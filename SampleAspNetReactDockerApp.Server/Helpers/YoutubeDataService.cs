@@ -13,7 +13,7 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
             _youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
                 ApiKey = configuration["YoutubeApiKey"],
-                ApplicationName = this.GetType().ToString()
+                ApplicationName = GetType().ToString()
             });
         }
 
@@ -40,7 +40,21 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
 
     public class VideoDetailsResponse
     {
+        public int Id { get; set; }
+
         public string Title { get; set; }
+
         public string Description { get; set; }
+
+        public string EmbedLink { get; set; }
+
+        public AppUserDto SharedBy { get; set; }
+    }
+
+    public class AppUserDto
+    {
+        public int UserId { get; set; }
+
+        public string Username { get; set; }
     }
 }

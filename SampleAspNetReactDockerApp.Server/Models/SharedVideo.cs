@@ -17,7 +17,7 @@ namespace SampleAspNetReactDockerApp.Server.Models
         public required DateTime DateShared { get; set; }
 
 
-        public required int UserId { get; set; }
+        public required string UserId { get; set; }
         // Navigation property for the user who shared the video
         [ForeignKey(nameof(UserId))]
         public virtual AppUserEntity SharedBy { get; set; }
