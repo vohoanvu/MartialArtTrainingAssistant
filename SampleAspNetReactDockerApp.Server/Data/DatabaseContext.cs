@@ -20,6 +20,8 @@ public class DatabaseContext : IdentityDbContext<AppUserEntity>
         _logger = logger;
     }
 
+    public DbSet<SharedVideo> SharedVideos { get; set; }
+
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
