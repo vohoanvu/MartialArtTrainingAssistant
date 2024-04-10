@@ -1,10 +1,14 @@
 ﻿using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
-using Google.Apis.YouTube.v3.Data;
 
 namespace SampleAspNetReactDockerApp.Server.Helpers
 {
-    public class YoutubeDataService
+    public interface IYoutubeDataService
+    {
+        Task<VideoDetailsResponse> GetVideoDetailsAsync(string videoId);
+    }
+
+    public class YoutubeDataService : IYoutubeDataService
     {
         private readonly YouTubeService _youtubeService;
 
@@ -12,12 +16,12 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
         {
             _youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
-                ApiKey = configuration["YoutubeApiKey"],
+                ApiKey = configuration["YOUTUBE_API_KEY"],
                 ApplicationName = GetType().ToString()
             });
         }
 
-        public async Task<VideoDetailsResponse> GetVideoDetailsAsync(string videoId)
+        public async Task<VideoDetailsResponse?> GetVideoDetailsAsync(string videoId)
         {
             var videoRequest = _youtubeService.Videos.List("snippet");
             videoRequest.Id = videoId;
@@ -34,7 +38,7 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
                 };
             }
 
-            return new VideoDetailsResponse();
+            return null;
         }
     }
 

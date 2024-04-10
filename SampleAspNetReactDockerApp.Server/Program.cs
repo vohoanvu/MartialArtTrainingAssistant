@@ -26,6 +26,8 @@ namespace SampleAspNetReactDockerApp.Server
             Global.Configuration = builder.Configuration;
 
             // Add services to the container.
+            builder.Services.AddScoped<ISharedVideoRepository, SharedVideoRepository>();
+            builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

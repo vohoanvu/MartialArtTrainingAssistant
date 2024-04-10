@@ -6,13 +6,15 @@ namespace SampleAspNetReactDockerApp.Server.Models
     public class SharedVideo
     {
         [Key]
-        public required int Id { get; set; }
+        public int Id { get; set; }
 
         public required string Title { get; set; }
 
         public required string Description { get; set; }
 
         public required string Url { get; set; }
+
+        public required string VideoId { get; set; }
 
         public required DateTime DateShared { get; set; }
 
