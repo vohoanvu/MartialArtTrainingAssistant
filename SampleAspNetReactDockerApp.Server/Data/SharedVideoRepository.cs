@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 
 namespace SampleAspNetReactDockerApp.Server.Data
@@ -14,10 +16,12 @@ namespace SampleAspNetReactDockerApp.Server.Data
     public class SharedVideoRepository : ISharedVideoRepository
     {
         private readonly DatabaseContext _context;
+        private readonly IHubContext<VideoShareHub> _hubContext;
 
-        public SharedVideoRepository(DatabaseContext context)
+        public SharedVideoRepository(DatabaseContext context, IHubContext<VideoShareHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         public async Task<SharedVideo?> GetByIdAsync(int id)
@@ -40,6 +44,10 @@ namespace SampleAspNetReactDockerApp.Server.Data
             {
                 // If the video doesn't exist, add it as a new video
                 _context.SharedVideos.Add(video);
+                await _context.SaveChangesAsync();
+
+                var userName = video.SharedBy.UserName;
+                await _hubContext.Clients.All.SendAsync("SendVideoSharedNotification", video.Title, userName);
             }
             else
             {
@@ -49,10 +57,9 @@ namespace SampleAspNetReactDockerApp.Server.Data
                 existingVideo.DateShared = video.DateShared;
                 existingVideo.UserId = video.UserId;
                 // Note: No need to call Update() as EF tracks changes to existing entities
-            }
 
-            // Save changes to the database
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task DeleteAsync(int id)

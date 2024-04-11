@@ -137,6 +137,8 @@ namespace SampleAspNetReactDockerApp.Server
                 })
                 .AddEntityFrameworkStores<DatabaseContext>();
 
+            builder.Services.AddSignalR();
+
             var app = builder.Build();
 
             // Initialize the database if it doesn't exist
@@ -160,6 +162,7 @@ namespace SampleAspNetReactDockerApp.Server
                 app.UseSwaggerUI();
             }
 
+            app.MapHub<VideoShareHub>("/videoShareHub");
 
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();

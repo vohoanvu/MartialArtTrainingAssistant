@@ -17,7 +17,8 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
         private readonly ISharedVideoRepository _sharedVideoRepository;
 
         public VideoController(ILogger<WeatherForecastController> logger, 
-            IYoutubeDataService youtubeDataService, ISharedVideoRepository sharedVideoRepository)
+            IYoutubeDataService youtubeDataService, 
+            ISharedVideoRepository sharedVideoRepository)
         {
             _logger = logger;
             _youtubeDataService = youtubeDataService;
@@ -70,7 +71,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
         }
 
         [HttpGet("GetAll")]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<ActionResult<List<VideoDetailsResponse>>> GetAll()
         {
             var sharedVideos = await _sharedVideoRepository.GetAllAsync();
