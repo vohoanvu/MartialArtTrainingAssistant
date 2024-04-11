@@ -38,25 +38,28 @@ namespace SampleAspNetReactDockerApp.Server
 
                 opts.SwaggerDoc("v1", new OpenApiInfo()
                 {
-                    Title = "SampleAspNetReactDockerApp",
+                    Title = "Remitano Video Sharing App",
                     Version = "v1",
-                    Description = "Sample ASP.NET Core Web API with React and Docker",
+                    Description = "Youtube Vid Sharing App built with ASP.NET Core Web API, React and Docker",
                     Contact = new OpenApiContact()
                     {
-                        Name = "Cyprian Gburek",
-                        Email = "dcyprian.a.gburek@gmail.com",
-                        Url = new Uri("https://github.com/SirCypkowskyy")
+                        Name = "Vo Hoan Vu",
+                        Email = "vohoanvu96@gmail.com",
+                        Url = new Uri("https://github.com/vohoanvu")
                     }
                 });
 
-                opts.AddSecurityDefinition("bearer", new OpenApiSecurityScheme()
+                opts.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
                 {
                     In = ParameterLocation.Header,
                     Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
                     Description = "Please enter into field the word 'Bearer' following by space and JWT"
                 });
 
+                opts.OperationFilter<AuthOperationFilter>();
                 opts.OperationFilter<SecurityRequirementsOperationFilter>();
 
                 // Add XML comments to Swagger
