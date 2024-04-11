@@ -62,10 +62,32 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
             videoDetailsResponse.SharedBy = new AppUserDto
             {
                 UserId = userId,
-                Username = User.Identity?.Name
+                Username = User.Identity?.Name!
             };
+            videoDetailsResponse.Id = video.Id;
 
-            return videoDetailsResponse;
+            return Ok(videoDetailsResponse);
+        }
+
+        [HttpGet("GetAll")]
+        [Authorize]
+        public async Task<ActionResult<List<VideoDetailsResponse>>> GetAll()
+        {
+            var sharedVideos = await _sharedVideoRepository.GetAllAsync();
+
+            return Ok(sharedVideos.Select(v => new VideoDetailsResponse()
+            {
+                Id = v.Id,
+                VideoId = v.VideoId,
+                Title = v.Title,
+                Description = v.Description,
+                EmbedLink = $"https://www.youtube.com/embed/{v.VideoId}",
+                SharedBy = new AppUserDto
+                {
+                    UserId = v.UserId,
+                    Username = v.SharedBy.UserName!
+                }
+            }).ToList());
         }
     }
 }
