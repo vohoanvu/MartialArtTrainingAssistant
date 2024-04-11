@@ -10,7 +10,7 @@ export function Home(): ReactElement {
     const {t} = useTranslation();
 
     return (
-        <div className="flex flex-col justify-center h-[70%]">
+        <div className="flex flex-col items-center"> {/*flex flex-col justify-center h-[70%]*/}
             {/* Hero Section */}
             <section className="container mt-10 flex flex-col items-center text-center" id="hero-section">
                 <h1 className="text-4xl text-primary font-bold mb-4">
@@ -20,7 +20,7 @@ export function Home(): ReactElement {
                     {t("home.hero.subtitle")}
                 </p>
             </section>
-            <section className="container mt-20 pt-60 flex flex-col items-center text-center" id="hero-section">
+            <section className="container mt-10 flex flex-col items-center text-center" id="hero-section">
                 <SharedVideosList/>
             </section>
         </div>

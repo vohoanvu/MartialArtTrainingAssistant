@@ -48,7 +48,7 @@ const SharedVideosList: React.FC = () => {
                     </div>
                 ))
             ) : (
-                <p className="text-center text-gray-800">No videos to display</p>
+                <p className="text-center text-gray-800">Loading data from API...</p>
             )}
         </div>
     );

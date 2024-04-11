@@ -3,9 +3,10 @@ import useAuthStore from "@/store/authStore.ts";
 import {useNavigate} from "react-router-dom";
 import {getWeatherForecast} from "@/services/api.ts";
 import {WeatherForecast} from "@/types/global.ts";
-import {DataTable} from "@/components/ui/data-table.tsx";
-import {weatherForecastColumns} from "@/components/ui/specific/weather-forecast-cols.tsx";
+//import {DataTable} from "@/components/ui/data-table.tsx";
+//import {weatherForecastColumns} from "@/components/ui/specific/weather-forecast-cols.tsx";
 import {useTranslation} from "react-i18next";
+import SharedVideosList from "@/components/SharedVideoList";
 
 export default function Dashboard(): ReactElement {
     const [data, setData] = useState<WeatherForecast[] | null>(null);
@@ -47,26 +48,32 @@ export default function Dashboard(): ReactElement {
     };
 
     return (
-        <div className="flex flex-col items-center">
-            <h1 className="text-2xl font-bold my-4">
-                {t("dashboard.title")}
-            </h1>
-            <div className="w-1/2">
-                <p className="text-center text-lg mb-4">
-                    {t("dashboard.subtitle")}
-                </p>
-            </div>
-            {data ? (
-                <div className="w-1/2 rounded-lg dark:shadow-accent p-4 transition duration-500 ease-in-out transform hover:scale-105">
-                    <DataTable columns={weatherForecastColumns} data={data} 
-                               title={t("dashboard.table.title")} 
-                               titleClassName={"text-center text-xl font-bold py-2"}
-                    />
-                </div>
-                
-            ) : (
-                <p>Loading data from API...</p>
-            )}
-        </div>
+        <section className="container mt-10 flex flex-col items-center text-center">
+            <SharedVideosList/>
+        </section>
     );
 }
+
+{/*
+    <div className="flex flex-col items-center">
+        <h1 className="text-2xl font-bold my-4">
+            {t("dashboard.title")}
+        </h1>
+        <div className="w-1/2">
+            <p className="text-center text-lg mb-4">
+                {t("dashboard.subtitle")}
+            </p>
+        </div>
+        {data ? (
+            <div className="w-1/2 rounded-lg dark:shadow-accent p-4 transition duration-500 ease-in-out transform hover:scale-105">
+                <DataTable columns={weatherForecastColumns} data={data} 
+                            title={t("dashboard.table.title")} 
+                            titleClassName={"text-center text-xl font-bold py-2"}
+                />
+            </div>
+            
+        ) : (
+            <p>Loading data from API...</p>
+        )}
+    </div>
+*/}
