@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
+using System.Net;
 using System.Security.Claims;
 
 namespace SampleAspNetReactDockerApp.Server.Controllers
@@ -27,6 +28,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
         [Authorize]
         public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(string videoUrl)
         {
+            videoUrl = WebUtility.UrlDecode(videoUrl);
             var videoId = YouTubeHelper.ExtractVideoId(videoUrl);
             if (videoId == null)
             {
@@ -51,11 +53,17 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
                 Title = videoDetailsResponse.Title,
                 Description = videoDetailsResponse.Description,
                 Url = videoUrl,
-                DateShared = DateTime.Now,
+                DateShared = DateTime.Now.Date.ToUniversalTime(),
                 UserId = userId
             };
 
             await _sharedVideoRepository.SaveAsync(video);
+
+            videoDetailsResponse.SharedBy = new AppUserDto
+            {
+                UserId = userId,
+                Username = User.Identity?.Name
+            };
 
             return videoDetailsResponse;
         }

@@ -33,8 +33,10 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
                 var video = response.Items[0];
                 return new VideoDetailsResponse
                 {
+                    Id = videoId,
                     Title = video.Snippet.Title,
-                    Description = video.Snippet.Description
+                    Description = video.Snippet.Description,
+                    EmbedLink = $"https://www.youtube.com/embed/{videoId}",
                 };
             }
 
@@ -44,7 +46,7 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
 
     public class VideoDetailsResponse
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
 
         public string Title { get; set; }
 
@@ -57,7 +59,7 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
 
     public class AppUserDto
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; }
 
         public string Username { get; set; }
     }
