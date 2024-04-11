@@ -1,8 +1,9 @@
-﻿// @ts-nocheck
+﻿// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 
 import { paths } from './endpoints';
-import useAuthStore from "@/store/authStore.ts";
-import {WeatherForecast} from "@/types/global.ts";
+//import useAuthStore from "@/store/authStore.ts";
+import { WeatherForecast, SharedVideo} from "@/types/global.ts";
 
 type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
@@ -46,4 +47,24 @@ export async function getWeatherForecast({currentTry = 0, jwtToken, refreshToken
     }
     
     throw new Error("Error fetching weather forecast");
+}
+
+export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken, hydrate}): Promise<SharedVideo[]> {
+    console.log("Trying to fetch all shared videos...");
+    const response = await fetch("/api/video/getall", {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+
+    if(response.ok) {
+        console.log("Shared videos fetched successfully!");
+        return await response.json() as SharedVideo[];
+    } else if(response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await getAllSharedVideos({currentTry: 1, jwtToken, refreshToken, hydrate});
+    }
+
+    throw new Error("Error fetching shared videos");
 }

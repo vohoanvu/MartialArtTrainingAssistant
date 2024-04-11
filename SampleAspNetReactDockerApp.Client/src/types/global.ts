@@ -42,3 +42,31 @@ export type WeatherForecast = {
     summary?: string | null;
 };
 
+/**
+ * SharedVideo type
+ * @property {number || null} id - ID
+ * @property {string || null} videoId - Video ID
+ * @property {string || null} title - Title
+ * @property {string || null} description - Description
+ * @property {string || null} embedLink - Embed Link
+ * @property {SharedBy || null} sharedBy - Shared By
+ */
+export type SharedVideo = {
+    id?: number;
+    videoId?: string;
+    title?: string;
+    description?: string;
+    embedLink?: string;
+    sharedBy?: SharedBy | null;
+};
+
+/**
+ * SharedBy type
+ * @property {string || null} userId - User ID
+ * @property {string || null} username - Username
+ */
+export type SharedBy = {
+    userId?: string;
+    username?: string;
+};
+
