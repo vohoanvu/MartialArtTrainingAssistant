@@ -31,7 +31,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
 
         public async Task<List<SharedVideo>> GetAllAsync()
         {
-            return await _context.SharedVideos.Include(v => v.SharedBy).ToListAsync();
+            return await _context.SharedVideos.Include(v => v.SharedBy).OrderByDescending(v => v.DateShared).ToListAsync();
         }
 
         public async Task<int> SaveAsync(SharedVideo video)
