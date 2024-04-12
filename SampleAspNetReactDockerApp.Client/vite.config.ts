@@ -65,6 +65,12 @@ let serverProxies: Record<string, ProxyOptions> =
             "/api": {
                 target: backendUrl,
                 agent: httpsAgent
+            },
+            '/videoShareHub': {
+                target: backendUrl,
+                ws: true,
+                changeOrigin: true,
+                secure: !runAsHttps,
             }
         }
         : 
@@ -72,6 +78,12 @@ let serverProxies: Record<string, ProxyOptions> =
             "/api": {
                 target: backendUrl,
             },
+            "/videoShareHub": {
+                target: backendUrl,
+                ws: true,
+                changeOrigin: true,
+                secure: !runAsHttps,
+            }
         }
 
 if (aspNetCore_environment === "Development" || aspNetCore_shouldShowSwaggerInProduction) {

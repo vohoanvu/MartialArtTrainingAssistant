@@ -39,6 +39,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
             // Check if a video with the same URL already exists
             var existingVideo = await _context.SharedVideos
                 .FirstOrDefaultAsync(v => v.VideoId == video.VideoId);
+            var appUser = await _context.Users.FindAsync(video.UserId);
 
             if (existingVideo == null)
             {
@@ -46,8 +47,9 @@ namespace SampleAspNetReactDockerApp.Server.Data
                 _context.SharedVideos.Add(video);
                 await _context.SaveChangesAsync();
 
-                //var userName = video.SharedBy.UserName;
-                //await _hubContext.Clients.All.SendAsync("SendVideoSharedNotification", video.Title, userName);
+                var userName = appUser!.UserName;
+                await _hubContext.Clients.All.SendAsync("SendVideoSharedNotification", video.Title, userName);
+
                 return video.Id;
             }
             else

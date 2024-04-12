@@ -1,6 +1,7 @@
 ﻿import {User} from "@/types/global";
 import {create} from "zustand";
-// import {removeAuthToken, removeRefreshToken, setAuthToken, setRefreshToken} from "@/lib/utils.ts";
+//setAuthToken, setRefreshToken 
+import {removeAuthToken, removeRefreshToken } from "@/lib/utils.ts";
 import {paths} from "@/services/endpoints.ts";
 import {createJSONStorage, persist} from "zustand/middleware";
 
@@ -124,8 +125,8 @@ const useAuthStore = create<AuthStore>()(
             logout: () => {
                 get().clearTokens();
                 get().clearUser();
-                // removeAuthToken();
-                // removeRefreshToken();
+                removeAuthToken();
+                removeRefreshToken();
                 get().setLoginStatus('unauthenticated');
             },
             hydrate: async () => {
