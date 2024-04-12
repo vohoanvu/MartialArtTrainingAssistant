@@ -36,20 +36,13 @@ export default function Navbar(
                                     <li>
                                         Welcome <strong>{authUser?.email}!</strong>
                                     </li>
-                                    <li>
-                                        <Link to="/dashboard" className="hover:text-primary">
-                                            {t("navbar.dashboard")}
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/share-video" className="hover:text-primary">
+                                    <li className="">
+                                        <Link to="/share-video" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
                                             Share a Video
                                         </Link>
                                     </li>
                                     <li>
-                                        <button onClick={() => {
-                                            logout();
-                                            }}>
+                                        <button onClick={() => { logout(); }}>
                                             {t("navbar.logout")}
                                         </button>
                                     </li>
@@ -57,11 +50,11 @@ export default function Navbar(
                             )
                             : (
                                 <>
-                                    <li>
+                                    {/* <li>
                                         <Link to="/about" className="hover:text-primary">
                                             {t("navbar.about")}
                                         </Link>
-                                    </li>
+                                    </li> */}
                                     <li>
                                         <Link to="/login" className="hover:text-primary">
                                             {t("navbar.login")}
@@ -72,11 +65,11 @@ export default function Navbar(
                                             {t("navbar.register")}
                                         </Link>
                                     </li>
-                                    <li>
+                                    {/* <li>
                                         <Link to="/contact" className="hover:text-primary">
                                             {t("navbar.contact")}
                                         </Link>
-                                    </li>
+                                    </li> */}
                                 </>
                             )
                         }
@@ -84,9 +77,9 @@ export default function Navbar(
                         <li>
                             <ModeToggle className={cn("h-8 w-8")}/>
                         </li>
-                        <li>
+                        {/* <li>
                             <LangToggle className={cn("h-8")}/>
-                        </li>
+                        </li> */}
                     </ul>
                 </div>
             </nav>

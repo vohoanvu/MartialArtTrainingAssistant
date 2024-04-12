@@ -6,6 +6,7 @@ const VideoSharingForm : React.FC = () =>
 {
     const [videoUrl, setVideoUrl] = useState('');
     const { accessToken } = useAuthStore();
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
     }, []);
@@ -20,6 +21,8 @@ const VideoSharingForm : React.FC = () =>
             console.log('Video uploaded successfully:', videoResponse);
         } catch (error) {
             console.error('Error uploading video url:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -49,7 +52,7 @@ const VideoSharingForm : React.FC = () =>
                     />
                 </div>
                 <button type="submit" className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                    Share
+                    {isLoading ? 'Sharing...' : 'Share'} {/* Change button text based on loading status */}
                 </button>
             </form>
         </div>

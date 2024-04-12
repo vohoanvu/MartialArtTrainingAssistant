@@ -7,8 +7,8 @@ export function Layout(): ReactElement {
     return (
         <div className={`h-screen flex flex-col`}>
             <NotificationListener />
-            <header>
-                <Navbar />
+            <header className="border-b border-gray-400">
+                <Navbar className="bg-gray-800 text-white shadow-md"/>
             </header>
             <main className={`flex-1`}>
                 <Outlet />
