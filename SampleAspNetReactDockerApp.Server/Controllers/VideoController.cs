@@ -25,7 +25,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
             _sharedVideoRepository = sharedVideoRepository;
         }
 
-        [HttpPost("/metadata/{videoUrl}")]
+        [HttpPost("metadata/{videoUrl}")]
         [Authorize]
         public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(string videoUrl)
         {
@@ -58,14 +58,14 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
                 UserId = userId
             };
 
-            await _sharedVideoRepository.SaveAsync(video);
+            var dbId = await _sharedVideoRepository.SaveAsync(video);
 
             videoDetailsResponse.SharedBy = new AppUserDto
             {
                 UserId = userId,
                 Username = User.Identity?.Name!
             };
-            videoDetailsResponse.Id = video.Id;
+            videoDetailsResponse.Id = dbId;
 
             return Ok(videoDetailsResponse);
         }

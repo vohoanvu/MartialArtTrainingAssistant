@@ -9,7 +9,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
     {
         Task<SharedVideo> GetByIdAsync(int id);
         Task<List<SharedVideo>> GetAllAsync();
-        Task SaveAsync(SharedVideo video);
+        Task<int> SaveAsync(SharedVideo video);
         Task DeleteAsync(int id);
     }
 
@@ -34,7 +34,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
             return await _context.SharedVideos.Include(v => v.SharedBy).ToListAsync();
         }
 
-        public async Task SaveAsync(SharedVideo video)
+        public async Task<int> SaveAsync(SharedVideo video)
         {
             // Check if a video with the same URL already exists
             var existingVideo = await _context.SharedVideos
@@ -46,8 +46,9 @@ namespace SampleAspNetReactDockerApp.Server.Data
                 _context.SharedVideos.Add(video);
                 await _context.SaveChangesAsync();
 
-                var userName = video.SharedBy.UserName;
-                await _hubContext.Clients.All.SendAsync("SendVideoSharedNotification", video.Title, userName);
+                //var userName = video.SharedBy.UserName;
+                //await _hubContext.Clients.All.SendAsync("SendVideoSharedNotification", video.Title, userName);
+                return video.Id;
             }
             else
             {
@@ -59,6 +60,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
                 // Note: No need to call Update() as EF tracks changes to existing entities
 
                 await _context.SaveChangesAsync();
+                return existingVideo.Id;
             }
         }
 
