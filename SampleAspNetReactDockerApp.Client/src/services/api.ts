@@ -68,3 +68,33 @@ export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken
 
     throw new Error("Error fetching shared videos");
 }
+
+export async function uploadYoutubeVideo({
+    videoUrl,
+    jwtToken,
+    currentTry = 0,
+    hydrate
+}): Promise<SharedVideo> 
+{
+    console.log("Trying to upload YouTube video metadata...");
+
+    const response = await fetch(`/api/video/metadata/${encodeURIComponent(videoUrl)}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+
+    if (response.ok) {
+        console.log("YouTube video metadata uploaded successfully!");
+        return await response.json() as SharedVideo;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await uploadYoutubeVideo({ videoUrl, jwtToken, currentTry: 1, hydrate });
+    } else {
+        const errorText = await response.text();
+        throw new Error(`Error uploading YouTube video metadata: ${errorText}`);
+    }
+}
+  

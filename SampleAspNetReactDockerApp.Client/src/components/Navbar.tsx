@@ -42,6 +42,11 @@ export default function Navbar(
                                         </Link>
                                     </li>
                                     <li>
+                                        <Link to="/share-video" className="hover:text-primary">
+                                            Share a Video
+                                        </Link>
+                                    </li>
+                                    <li>
                                         <button onClick={() => {
                                             logout();
                                             }}>
