@@ -8,7 +8,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
     public interface ISharedVideoRepository
     {
         Task<SharedVideo> GetByIdAsync(int id);
-        Task<List<SharedVideo>> GetAllAsync();
+        List<SharedVideo> GetAllAsync();
         Task<int> SaveAsync(SharedVideo video);
         Task DeleteAsync(int id);
     }
@@ -29,9 +29,9 @@ namespace SampleAspNetReactDockerApp.Server.Data
             return await _context.SharedVideos.FindAsync(id);
         }
 
-        public async Task<List<SharedVideo>> GetAllAsync()
+        public List<SharedVideo> GetAllAsync()
         {
-            return await _context.SharedVideos.Include(v => v.SharedBy).OrderByDescending(v => v.DateShared).ToListAsync();
+            return _context.SharedVideos.Include(v => v.SharedBy).OrderByDescending(v => v.DateShared).ToList();
         }
 
         public async Task<int> SaveAsync(SharedVideo video)

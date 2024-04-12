@@ -9,18 +9,19 @@ namespace SampleAspNetReactDockerApp.Server.Data;
 /// </summary>
 public class DatabaseContext : IdentityDbContext<AppUserEntity>
 {
-    private readonly ILogger<DatabaseContext> _logger;
-    
     /// <summary>
     /// The constructor for the database context.
     /// </summary>
     /// <param name="options"></param>
-    public DatabaseContext(DbContextOptions<DatabaseContext> options, ILogger<DatabaseContext> logger) : base(options)
+    public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
     {
-        _logger = logger;
     }
 
-    public DbSet<SharedVideo> SharedVideos { get; set; }
+    public DatabaseContext()
+    {
+    }
+
+    public virtual DbSet<SharedVideo> SharedVideos { get; set; }
 
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
