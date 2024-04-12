@@ -18,6 +18,7 @@ export default function Navbar(
     const {t} = useTranslation();
     const authStatus = useAuthStore((state) => state.loginStatus);
     const logout = useAuthStore((state) => state.logout);
+    const authUser = useAuthStore((state) => state.user);
     
     return (
         <div className={cn(className)}>
@@ -32,6 +33,9 @@ export default function Navbar(
                         {authStatus === "authenticated" ?
                             (
                                 <>
+                                    <li>
+                                        Welcome <strong>{authUser?.email}!</strong>
+                                    </li>
                                     <li>
                                         <Link to="/dashboard" className="hover:text-primary">
                                             {t("navbar.dashboard")}

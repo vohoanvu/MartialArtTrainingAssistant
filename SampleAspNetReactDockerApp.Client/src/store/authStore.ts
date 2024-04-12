@@ -46,6 +46,7 @@ interface AuthActions {
     register: (email: string, password: string) => Promise<{ successful : boolean, response : string | null }>;
     logout: () => void;
     hydrate: () => Promise<void>;
+    getUserInfo: () => Promise<void>;
 }
 
 /**
@@ -59,8 +60,7 @@ type AuthStore = AuthState & AuthActions;
  * It uses the create function from zustand to create the store.
  */
 const useAuthStore = create<AuthStore>()(
-    persist
-    (
+    persist(
         (set, get) => ({
             accessToken: null,
             refreshToken: null,
@@ -83,6 +83,7 @@ const useAuthStore = create<AuthStore>()(
                     const responseData: paths["/api/auth/v1/login"]["post"]["responses"]["200"]["content"]["application/json"] = await response.json();
                     get().setTokens(responseData.accessToken || "", responseData.refreshToken || "");
                     get().setLoginStatus('authenticated');
+                    get().getUserInfo();
                     return { successful: true, response: null };
                 } else {
                     get().setLoginStatus('unauthenticated');
@@ -148,7 +149,27 @@ const useAuthStore = create<AuthStore>()(
                 
                 const responseCode = response.status;
                 return responseCode === 200 ? { successful: true, response: null } : { successful: false, response: await response.text() };
-            }
+            },
+            getUserInfo: async () => {
+                const accessToken = get().accessToken;
+                if (!accessToken) {
+                    console.error("Access token is not available.");
+                    return;
+                }
+                const response = await fetch("/api/auth/v1/manage/info", {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                if (response.ok) {
+                    const userInfo = await response.json();
+                    get().setUser(userInfo);
+                } else {
+                    console.error("Failed to fetch user info:", await response.text());
+                }
+            },
         }),
         {
             name: 'auth-storage',
