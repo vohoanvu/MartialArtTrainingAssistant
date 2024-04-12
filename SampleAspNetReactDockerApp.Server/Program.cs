@@ -56,7 +56,7 @@ namespace SampleAspNetReactDockerApp.Server
                     Type = SecuritySchemeType.Http,
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
-                    Description = "Please enter into field the word 'Bearer' following by space and JWT"
+                    Description = "Please enter into field a valid JWT token"
                 });
 
                 opts.OperationFilter<AuthOperationFilter>();
@@ -128,6 +128,7 @@ namespace SampleAspNetReactDockerApp.Server
 
             builder.Services.AddDbContext<DatabaseContext>();
 
+            builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
 
             builder.Services.AddIdentityApiEndpoints<AppUserEntity>(opts =>
@@ -153,6 +154,7 @@ namespace SampleAspNetReactDockerApp.Server
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
+            app.UseAuthentication();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment() ||
