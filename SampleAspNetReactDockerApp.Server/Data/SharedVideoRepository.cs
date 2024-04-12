@@ -48,7 +48,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
                 await _context.SaveChangesAsync();
 
                 var userName = appUser!.UserName;
-                await _hubContext.Clients.All.SendAsync("SendVideoSharedNotification", video.Title, userName);
+                await _hubContext.Clients.All.SendAsync("ReceiveVideoSharedNotification", video.Title, userName);
 
                 return video.Id;
             }

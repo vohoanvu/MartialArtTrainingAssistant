@@ -25,12 +25,9 @@ const VideoSharingForm : React.FC = () =>
 
     const handleSubmit = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
-        // Logic to handle the video sharing
         console.log('Video URL submitted:', videoUrl);
 
-        //Call API to upload the video
         await uploadVideoRequest(videoUrl);
-        // Reset the input field after submission
         setVideoUrl('');
     };
 

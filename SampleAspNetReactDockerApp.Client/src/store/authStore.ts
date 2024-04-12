@@ -128,6 +128,8 @@ const useAuthStore = create<AuthStore>()(
                 removeAuthToken();
                 removeRefreshToken();
                 get().setLoginStatus('unauthenticated');
+                //Redirect back /Home page
+                window.location.href = "/";
             },
             hydrate: async () => {
                 try {

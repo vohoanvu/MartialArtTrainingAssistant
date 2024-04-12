@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { connection } from '../services/SignalRService';
 import * as signalR from '@microsoft/signalr';
+import NotificationPopup from './NotificationPopup';
 
-const NotificationComponent: React.FC = () => {
+const NotificationListener: React.FC = () => {
     const [isConnected, setIsConnected] = useState(false);
-
+    const [notification, setNotification] = useState({ videoTitle: '', userName: '' });
+    const [showNotification, setShowNotification] = useState(false);
     useEffect(() => {
         if (!isConnected && connection.state === signalR.HubConnectionState.Disconnected) {
             console.log('Starting SignalR connection...');
@@ -12,7 +14,9 @@ const NotificationComponent: React.FC = () => {
                 console.log('Connected to SignalR hub');
                 setIsConnected(true);
                 connection.on('ReceiveVideoSharedNotification', (videoTitle: string, userName: string) => {
-                    alert(`New video shared: ${videoTitle} by ${userName}`);
+                    console.log('Client reveived notification... from SignalR hub', videoTitle, userName);
+                    setNotification({ videoTitle, userName });
+                    setShowNotification(true);
                 });
             }).catch(error => {
                 console.error('Error starting SignalR connection:', error);
@@ -28,7 +32,18 @@ const NotificationComponent: React.FC = () => {
         };
     }, [isConnected]);
 
-    return null;
+    const handleCloseNotification = () => {
+        setShowNotification(false);
+    };
+
+    return (
+        <NotificationPopup
+            videoTitle={notification.videoTitle}
+            userName={notification.userName}
+            isVisible={showNotification}
+            onClose={handleCloseNotification}
+        />
+    );
 };
 
-export default NotificationComponent;
+export default NotificationListener;

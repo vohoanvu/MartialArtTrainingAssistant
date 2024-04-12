@@ -12,7 +12,6 @@ import About from "@/pages/About.tsx";
 import Register from "@/pages/Register.tsx";
 import Contact from "@/pages/Contact.tsx";
 import ShareVideo from "@/pages/SharingVideo.tsx";
-import NotificationComponent from './components/Notifications.tsx';
 
 const router = createBrowserRouter([
     {
@@ -55,7 +54,6 @@ initLang();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <NotificationComponent />
         <RouterProvider router={router}/>
     </React.StrictMode>,
 )

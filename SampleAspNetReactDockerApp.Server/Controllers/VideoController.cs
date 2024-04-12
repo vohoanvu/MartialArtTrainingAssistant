@@ -54,7 +54,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
                 Title = videoDetailsResponse.Title,
                 Description = videoDetailsResponse.Description,
                 Url = videoUrl,
-                DateShared = DateTime.Now.Date.ToUniversalTime(),
+                DateShared = DateTime.Now.ToUniversalTime(),
                 UserId = userId
             };
 
