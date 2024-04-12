@@ -6,7 +6,6 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
     {
         public VideoShareHub()
         {
-            Console.WriteLine("VideoShareHub created!");
         }
 
         public async Task SendVideoSharedNotification(string videoTitle, string userName)

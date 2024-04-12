@@ -5,9 +5,6 @@ using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using System.Globalization;
-using System.Linq.Expressions;
-using System.Net.Sockets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SampleAspNetReactDockerApp.Tests
 {
