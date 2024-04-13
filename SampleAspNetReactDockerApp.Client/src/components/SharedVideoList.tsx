@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SharedVideo } from '@/types/global';
 import useAuthStore from "@/store/authStore.ts";
 import { getAllSharedVideos } from '@/services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
-const SharedVideosList: React.FC = () => {
+const SharedVideosList: React.FC = () => 
+{
     const [videos, setVideos] = useState<SharedVideo[]>([]);
     const { accessToken, refreshToken } = useAuthStore();
 
