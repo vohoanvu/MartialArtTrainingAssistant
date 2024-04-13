@@ -1,9 +1,5 @@
 ﻿import {ReactElement} from "react";
-//import {Button} from "@/components/ui/button.tsx";
-//import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-//import {EnvelopeOpenIcon} from "@radix-ui/react-icons"
 import {useTranslation} from "react-i18next";
-//import {Link} from "react-router-dom";
 import SharedVideosList from "@/components/SharedVideoList.tsx";
 
 export function Home(): ReactElement {
@@ -11,10 +7,9 @@ export function Home(): ReactElement {
 
     return (
         <div className="flex flex-col items-center"> {/*flex flex-col justify-center h-[70%]*/}
-            {/* Hero Section */}
             <section className="container mt-10 flex flex-col items-center text-center" id="hero-section">
                 <h1 className="text-4xl text-primary font-bold mb-4">
-                    {t("home.hero.title")}
+                    Welcome to the Youtube Video Sharing App
                 </h1>
                 <p className="text-muted-foreground mb-4">
                     {t("home.hero.subtitle")}

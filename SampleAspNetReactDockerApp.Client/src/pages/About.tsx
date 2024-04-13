@@ -1,6 +1,7 @@
 ﻿import {ReactElement} from "react";
 import {useTranslation} from "react-i18next";
 
+//Unused component
 export default function About(): ReactElement {
     const { t } = useTranslation();
 

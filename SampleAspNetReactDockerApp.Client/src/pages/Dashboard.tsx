@@ -3,6 +3,7 @@ import useAuthStore from "@/store/authStore.ts";
 import {useNavigate} from "react-router-dom";
 import SharedVideosList from "@/components/SharedVideoList";
 
+//unused component
 export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
     const navigate = useNavigate();

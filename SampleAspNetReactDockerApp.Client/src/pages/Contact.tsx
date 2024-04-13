@@ -1,6 +1,7 @@
 ﻿// Contact.tsx
 import { useTranslation } from 'react-i18next';
 
+//Unused component
 export default function Contact() {
     const { t } = useTranslation();
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { SharedVideo } from '@/types/global';
 import useAuthStore from "@/store/authStore.ts";
 import { getAllSharedVideos } from '@/services/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 const SharedVideosList: React.FC = () => {
     const [videos, setVideos] = useState<SharedVideo[]>([]);
@@ -29,8 +30,8 @@ const SharedVideosList: React.FC = () => {
         <div className="flex flex-col gap-4 p-4">
             {videos.length > 0 ? (
                 videos.map((video) => (
-                    <div key={video.id} className="flex gap-4 bg-white p-4 rounded shadow">
-                        <div className="flex-none w-1/3">
+                    <Card key={video.id} className="flex gap-4 bg-white p-4 rounded shadow">
+                        <div className="flex-none w-1/2">
                             <iframe
                                 className="w-full h-full"
                                 src={video.embedLink}
@@ -40,11 +41,15 @@ const SharedVideosList: React.FC = () => {
                             ></iframe>
                         </div>
                         <div className="flex-grow">
-                            <h3 className="text-lg text-gray-900 font-bold">{video.title}</h3>
-                            <p className="text-sm text-gray-600">Shared by: {video.sharedBy?.username}</p>
-                            <p className="text-sm text-gray-800">Description:<br/>  {video.description}</p>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>{video.title}</CardTitle>
+                                    <CardContent>Shared by: {video.sharedBy?.username}</CardContent>
+                                    <CardDescription>Description:<br/> {video.description}</CardDescription>
+                                </CardHeader>
+                            </Card>
                         </div>
-                    </div>
+                    </Card>
                 ))
             ) : (
                 <p className="text-center text-gray-800">Loading data from API...</p>
