@@ -12,7 +12,6 @@ namespace SampleAspNetReactDockerApp.Tests
 
         public YoutubeDataServiceTests()
         {
-            _mockConfiguration = new Mock<IConfiguration>();
             _mockYoutubeServiceWrapper = new Mock<IYoutubeServiceWrapper>();
             _youtubeDataService = new YoutubeDataService(_mockYoutubeServiceWrapper.Object);
         }
