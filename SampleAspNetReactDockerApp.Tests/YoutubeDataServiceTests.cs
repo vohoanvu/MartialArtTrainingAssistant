@@ -1,6 +1,5 @@
 ﻿using SampleAspNetReactDockerApp.Server.Helpers;
 using Moq;
-using Microsoft.Extensions.Configuration;
 using Google.Apis.YouTube.v3.Data;
 
 namespace SampleAspNetReactDockerApp.Tests

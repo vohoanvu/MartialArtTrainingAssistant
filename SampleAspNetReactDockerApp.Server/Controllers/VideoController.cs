@@ -12,15 +12,12 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
     [Route("api/[controller]")]
     public class VideoController : ControllerBase
     {
-        private readonly ILogger<WeatherForecastController> _logger;
         private readonly IYoutubeDataService _youtubeDataService;
         private readonly ISharedVideoRepository _sharedVideoRepository;
 
-        public VideoController(ILogger<WeatherForecastController> logger, 
-            IYoutubeDataService youtubeDataService, 
+        public VideoController(IYoutubeDataService youtubeDataService, 
             ISharedVideoRepository sharedVideoRepository)
         {
-            _logger = logger;
             _youtubeDataService = youtubeDataService;
             _sharedVideoRepository = sharedVideoRepository;
         }
@@ -39,7 +36,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
             var videoDetailsResponse = await _youtubeDataService.GetVideoDetailsAsync(videoId);
             if (videoDetailsResponse is null)
             {
-                return NotFound(new { message=$"Video metadata was not found for this videoId {videoId}" });
+                return NotFound($"Video metadata was not found for this videoId {videoId}");
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

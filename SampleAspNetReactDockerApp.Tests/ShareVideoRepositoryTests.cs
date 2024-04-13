@@ -26,11 +26,6 @@ namespace SampleAspNetReactDockerApp.Tests
             _repository = new SharedVideoRepository(_mockContext.Object, _mockHubContext.Object);
         }
 
-        static SharedVideoRepositoryTests()
-        {
-            System.Environment.SetEnvironmentVariable("AppDb", "MockingConnectionString");
-        }
-
         [Fact]
         public async Task GetByIdAsync_ReturnsVideo_WhenIdIsValid()
         {
@@ -101,11 +96,7 @@ namespace SampleAspNetReactDockerApp.Tests
                 }
             }.AsQueryable();
 
-            _mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.Provider).Returns(data.Provider);
-            _mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.Expression).Returns(data.Expression);
-            _mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.ElementType).Returns(data.ElementType);
-            _mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
-            _mockContext.Setup(m => m.SharedVideos).Returns(_mockDbSet.Object);
+            _mockContext.Setup(m => m.SharedVideos).ReturnsDbSet(data);
 
             // Act
             var result = await _repository.GetAllAsync();
@@ -122,11 +113,7 @@ namespace SampleAspNetReactDockerApp.Tests
             // Arrange
             var data = new List<SharedVideo>().AsQueryable();
 
-            _mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.Provider).Returns(data.Provider);
-            _mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.Expression).Returns(data.Expression);
-            _mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.ElementType).Returns(data.ElementType);
-            _mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
-            _mockContext.Setup(m => m.SharedVideos).Returns(_mockDbSet.Object);
+            _mockContext.Setup(m => m.SharedVideos).ReturnsDbSet(data);
 
             // Act
             var result = await _repository.GetAllAsync();
@@ -137,11 +124,11 @@ namespace SampleAspNetReactDockerApp.Tests
         }
 
         [Fact]
-        public async Task SaveAsync_CallsSaveChangesAsync_WhenVideoIdDoesNotExist()
+        public async Task SaveAsync_CreateNewVideo_NewVideoAddedSuccesfully()
         {
             // Arrange
             var newVideo = new SharedVideo 
-            { 
+            {
                 Id = 2,
                 Title = "new Title",
                 VideoId = "newvideoid",
@@ -155,7 +142,7 @@ namespace SampleAspNetReactDockerApp.Tests
             {
                 new SharedVideo
                 {
-                    Id = 1,
+                    Id = 1, // different id than the new video
                     Title = "Existing Title",
                     VideoId = "existingvideoid",
                     Description = "Existing Description",
@@ -165,13 +152,13 @@ namespace SampleAspNetReactDockerApp.Tests
                 }
             };
             _mockContext.Setup(x => x.SharedVideos).ReturnsDbSet(data);
-            var appUser = new AppUserEntity
+            _mockContext.Setup(m => m.SharedVideos.Add(It.IsAny<SharedVideo>())).Callback<SharedVideo>(v => data.Add(v));
+            var mockedAppUser = new AppUserEntity
             {
                 Id = "newuserid",
                 UserName = "newuser"
             };
-            _mockContext.Setup(m => m.Users.FindAsync("newuserid")).ReturnsAsync(appUser);
-            // Mock the IHubContext
+            _mockContext.Setup(m => m.Users.FindAsync("newuserid")).ReturnsAsync(mockedAppUser);
             var mockClients = new Mock<IHubClients>();
             var mockClientProxy = new Mock<IClientProxy>();
             mockClients.Setup(m => m.All).Returns(mockClientProxy.Object);
@@ -182,15 +169,14 @@ namespace SampleAspNetReactDockerApp.Tests
 
             // Assert
             _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-            mockClientProxy.Verify(clientProxy => clientProxy.SendCoreAsync(
-                "ReceiveVideoSharedNotification", 
-                It.Is<object[]>(o => o[0] as string == newVideo.Title && o[1] as string == "newuser"), 
-                It.IsAny<CancellationToken>()), Times.Once);
+            //checking that the DbSet.Add() method was called with new video
+            Assert.Contains(newVideo, data);
+            Assert.Equal(newVideo.Title, data.Last().Title);
+            Assert.Equal(newVideo.VideoId, data.Last().VideoId);
         }
 
-
         [Fact]
-        public async Task SaveAsync_UpdatesExistingVideo_WhenVideoIdExists()
+        public async Task SaveAsync_UpdatesExistingVideo_UpdatedVideoId_Equals_ExistingVideoId()
         {
             // Arrange
             var existingVideo = new SharedVideo
@@ -241,6 +227,57 @@ namespace SampleAspNetReactDockerApp.Tests
             Assert.Equal(updatedVideo.Description, existingVideo.Description);
             _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [Fact]
+        public async Task SaveAsync_CreateNewVideo_SignalrNotificationWasTriggered()
+        {
+            // Arrange
+            var newVideo = new SharedVideo 
+            {
+                Id = 2,
+                Title = "new Title",
+                VideoId = "newvideoid",
+                Description = "New Description",
+                DateShared = DateTime.Now,
+                Url = "https://www.youtube.com/watch?v=existingvideoid",
+                UserId = "newuserid"
+            };
+
+            var data = new List<SharedVideo>
+            {
+                new SharedVideo
+                {
+                    Id = 1, // different id than the new video
+                    Title = "Existing Title",
+                    VideoId = "existingvideoid",
+                    Description = "Existing Description",
+                    DateShared = DateTime.Now,
+                    Url = "https://www.youtube.com/watch?v=existingvideoid",
+                    UserId = "existinguserid"
+                }
+            };
+            _mockContext.Setup(x => x.SharedVideos).ReturnsDbSet(data);
+            var mockedAppUser = new AppUserEntity
+            {
+                Id = "newuserid",
+                UserName = "newuser"
+            };
+            _mockContext.Setup(m => m.Users.FindAsync("newuserid")).ReturnsAsync(mockedAppUser);
+            // Mock the IHubContext
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            mockClients.Setup(m => m.All).Returns(mockClientProxy.Object);
+            _mockHubContext.Setup(m => m.Clients).Returns(mockClients.Object);
+
+            // Act
+            var result = await _repository.SaveAsync(newVideo);
+
+            // Assert
+            mockClientProxy.Verify(clientProxy => clientProxy.SendCoreAsync(
+                "ReceiveVideoSharedNotification", 
+                It.Is<object[]>(o => o[0] as string == newVideo.Title && o[1] as string == "newuser"), 
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }
 
@@ -283,7 +320,6 @@ namespace SampleAspNetReactDockerApp.Tests
 //_mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.ElementType).Returns(data.ElementType);
 //_mockDbSet.As<IQueryable<SharedVideo>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
 
-// This is the important part for async operations
 //_mockDbSet.As<IAsyncEnumerable<SharedVideo>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
 //    .Returns(new TestAsyncEnumerator<SharedVideo>(data.GetEnumerator()));
 

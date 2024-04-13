@@ -8,6 +8,7 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
         {
         }
 
+        //Unused method! the trigger of notification is done at the SharedVideoRepository level
         public async Task SendVideoSharedNotification(string videoTitle, string userName)
         {
             await Clients.Others.SendAsync("ReceiveVideoSharedNotification", videoTitle, userName);
@@ -15,13 +16,11 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
 
         public override async Task OnConnectedAsync()
         {
-            // Set a breakpoint here
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            // Set a breakpoint here
             await base.OnDisconnectedAsync(exception);
         }
 
