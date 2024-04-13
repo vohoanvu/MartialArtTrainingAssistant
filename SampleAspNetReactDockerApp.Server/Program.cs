@@ -1,5 +1,6 @@
 using System.Reflection;
 using Asp.Versioning;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Helpers;

@@ -72,9 +72,9 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
 
         [HttpGet("GetAll")]
         [AllowAnonymous]
-        public ActionResult<List<VideoDetailsResponse>> GetAll()
+        public async Task<ActionResult<List<VideoDetailsResponse>>> GetAll()
         {
-            var sharedVideos = _sharedVideoRepository.GetAllAsync();
+            var sharedVideos = await _sharedVideoRepository.GetAllAsync();
 
             return Ok(sharedVideos.Select(v => new VideoDetailsResponse()
             {
