@@ -61,6 +61,16 @@ public static class Global
             case AppEnvironmentVariables.DeleteDbIfExistsOnStartup:
                 return Configuration?["DeleteDbIfExistsOnStartup"] 
                        ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.YoutubeApiKey:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("YOUTUBE_API_KEY");
+                
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["YOUTUBE_API_KEY"] 
+                       ?? throw new InvalidOperationException($"Environment variable {variable} not found");
             default:
                 throw new ArgumentOutOfRangeException(nameof(variable), variable, null);
         }
@@ -97,5 +107,9 @@ public enum AppEnvironmentVariables
     /// <summary>
     /// The environment variable that determines whether to delete the database if it exists on startup
     /// </summary>
-    DeleteDbIfExistsOnStartup
+    DeleteDbIfExistsOnStartup,
+    /// <summary>
+    /// The environment variable for external Youtube Data Service API key
+    /// </summary>
+    YoutubeApiKey
 }

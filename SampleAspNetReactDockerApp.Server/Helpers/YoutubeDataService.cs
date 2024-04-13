@@ -1,5 +1,4 @@
-﻿using Google.Apis.Services;
-using Google.Apis.YouTube.v3;
+﻿using Google;
 
 namespace SampleAspNetReactDockerApp.Server.Helpers
 {
@@ -10,34 +9,37 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
 
     public class YoutubeDataService : IYoutubeDataService
     {
-        private readonly YouTubeService _youtubeService;
+        private readonly IYoutubeServiceWrapper _youtubeServiceWrapper;
 
-        public YoutubeDataService(IConfiguration configuration)
+        public YoutubeDataService(IYoutubeServiceWrapper youtubeService)
         {
-            _youtubeService = new YouTubeService(new BaseClientService.Initializer()
-            {
-                ApiKey = configuration["YOUTUBE_API_KEY"],
-                ApplicationName = GetType().ToString()
-            });
+            _youtubeServiceWrapper = youtubeService;
         }
 
         public async Task<VideoDetailsResponse?> GetVideoDetailsAsync(string videoId)
         {
-            var videoRequest = _youtubeService.Videos.List("snippet");
-            videoRequest.Id = videoId;
-
-            var response = await videoRequest.ExecuteAsync();
-
-            if (response.Items.Count > 0)
+            try
             {
-                var video = response.Items[0];
-                return new VideoDetailsResponse
+                var videoRequest = _youtubeServiceWrapper.List("snippet");
+                videoRequest.VideoId = videoId;
+
+                var response = await videoRequest.ExecuteAsync();
+
+                if (response.Items.Count > 0)
                 {
-                    VideoId = videoId,
-                    Title = video.Snippet.Title,
-                    Description = video.Snippet.Description,
-                    EmbedLink = $"https://www.youtube.com/embed/{videoId}",
-                };
+                    var video = response.Items[0];
+                    return new VideoDetailsResponse
+                    {
+                        VideoId = videoId,
+                        Title = video.Snippet.Title,
+                        Description = video.Snippet.Description,
+                        EmbedLink = $"https://www.youtube.com/embed/{videoId}",
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new VideoDetailsException($"Failed to get video details for video ID {videoId}", ex);
             }
 
             return null;
@@ -64,5 +66,13 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
         public string UserId { get; set; }
 
         public string Username { get; set; }
+    }
+
+    public class VideoDetailsException : Exception
+    {
+        public VideoDetailsException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }

@@ -1,5 +1,7 @@
 using System.Reflection;
 using Asp.Versioning;
+using Google.Apis.Services;
+using Google.Apis.YouTube.v3;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SampleAspNetReactDockerApp.Server.Data;
@@ -28,6 +30,17 @@ namespace SampleAspNetReactDockerApp.Server
 
             // Add services to the container.
             builder.Services.AddScoped<ISharedVideoRepository, SharedVideoRepository>();
+            builder.Services.AddSingleton<IYoutubeServiceWrapper>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+                {
+                    ApiKey = configuration["YOUTUBE_API_KEY"],
+                    ApplicationName = "YoutubeVideSharingApp"
+                });
+
+                return new YoutubeServiceWrapper(youtubeService);
+            });
             builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
 
             builder.Services.AddControllers();
