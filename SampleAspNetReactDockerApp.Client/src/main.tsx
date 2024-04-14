@@ -11,7 +11,7 @@ import Dashboard from "@/pages/Dashboard.tsx";
 import About from "@/pages/About.tsx";
 import Register from "@/pages/Register.tsx";
 import Contact from "@/pages/Contact.tsx";
-import VideoSharingForm from '@/pages/SharingVideo.tsx';
+import SharingVideo from '@/pages/SharingVideo.tsx';
 
 const router = createBrowserRouter([
     {
@@ -44,7 +44,7 @@ const router = createBrowserRouter([
             },
             {
                 path: '/share-video',
-                element: <VideoSharingForm/>,
+                element: <SharingVideo/>,
             }
         ]
     }

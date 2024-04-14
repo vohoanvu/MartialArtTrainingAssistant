@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import FetchMock, {enableFetchMocks} from 'jest-fetch-mock';
 import { act } from 'react-dom/test-utils';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).fetch = FetchMock;
 enableFetchMocks();
 
