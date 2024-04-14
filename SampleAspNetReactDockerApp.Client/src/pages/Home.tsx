@@ -1,9 +1,7 @@
 ﻿import {ReactElement} from "react";
-import {useTranslation} from "react-i18next";
 import SharedVideosList from "@/components/SharedVideoList.tsx";
 
 export function Home(): ReactElement {
-    const {t} = useTranslation();
 
     return (
         <div className="flex flex-col items-center"> {/*flex flex-col justify-center h-[70%]*/}
@@ -11,9 +9,9 @@ export function Home(): ReactElement {
                 <h1 className="text-4xl text-primary font-bold mb-4">
                     Welcome to the Youtube Video Sharing App
                 </h1>
-                <p className="text-muted-foreground mb-4">
+                {/* <p className="text-muted-foreground mb-4">
                     {t("home.hero.subtitle")}
-                </p>
+                </p> */}
             </section>
             <section className="container mt-10 flex flex-col items-center text-center" id="hero-section">
                 <SharedVideosList/>
