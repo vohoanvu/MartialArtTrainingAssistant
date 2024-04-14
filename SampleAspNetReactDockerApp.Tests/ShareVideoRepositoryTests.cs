@@ -226,6 +226,10 @@ namespace SampleAspNetReactDockerApp.Tests
             Assert.Equal(updatedVideo.Title, existingVideo.Title);
             Assert.Equal(updatedVideo.Description, existingVideo.Description);
             _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            mockClientProxy.Verify(clientProxy => clientProxy.SendCoreAsync(
+                "ReceiveVideoSharedNotification", 
+                It.Is<object[]>(o => o[0] as string == "This video has already been shared!" && o[1] as string == updatedVideo.Title && o[2] as string == "existinguser"), 
+                It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -273,9 +277,10 @@ namespace SampleAspNetReactDockerApp.Tests
             var result = await _repository.SaveAsync(newVideo);
 
             // Assert
+            _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
             mockClientProxy.Verify(clientProxy => clientProxy.SendCoreAsync(
                 "ReceiveVideoSharedNotification", 
-                It.Is<object[]>(o => o[0] as string == newVideo.Title && o[1] as string == "newuser"), 
+                It.Is<object[]>(o => o[0] as string == "New Video Shared!" && o[1] as string == newVideo.Title && o[2] as string == "newuser"), 
                 It.IsAny<CancellationToken>()), Times.Once);
         }
     }

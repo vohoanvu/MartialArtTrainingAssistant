@@ -5,7 +5,7 @@ import NotificationPopup from './NotificationPopup';
 
 const NotificationListener: React.FC = () => {
     const [isConnected, setIsConnected] = useState(false);
-    const [notification, setNotification] = useState({ videoTitle: '', userName: '' });
+    const [notification, setNotification] = useState({ bannerTitle: '', videoTitle: '', userName: '' });
     const [showNotification, setShowNotification] = useState(false);
     useEffect(() => {
         if (!isConnected && connection.state === signalR.HubConnectionState.Disconnected) {
@@ -13,9 +13,9 @@ const NotificationListener: React.FC = () => {
             connection.start().then(() => {
                 console.log('Connected to SignalR hub');
                 setIsConnected(true);
-                connection.on('ReceiveVideoSharedNotification', (videoTitle: string, userName: string) => {
-                    console.log('Client reveived notification... from SignalR hub', videoTitle, userName);
-                    setNotification({ videoTitle, userName });
+                connection.on('ReceiveVideoSharedNotification', (bannerTitle: string, videoTitle: string, userName: string) => {
+                    console.log('Client reveived notification... from SignalR hub', bannerTitle, videoTitle, userName);
+                    setNotification({ bannerTitle, videoTitle, userName });
                     setShowNotification(true);
                 });
             }).catch(error => {
@@ -38,6 +38,7 @@ const NotificationListener: React.FC = () => {
 
     return (
         <NotificationPopup
+            bannerTitle={notification.bannerTitle}
             videoTitle={notification.videoTitle}
             userName={notification.userName}
             isVisible={showNotification}

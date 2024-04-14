@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 
 type NotificationPopupProps = {
+    bannerTitle: string;
     videoTitle: string;
     userName: string;
     isVisible: boolean;
     onClose: () => void;
 };
 
-const NotificationPopup = ({ videoTitle, userName, isVisible, onClose } : NotificationPopupProps) => 
+const NotificationPopup = ({ bannerTitle, videoTitle, userName, isVisible, onClose } : NotificationPopupProps) => 
 {
     const [show, setShow] = useState(isVisible);
-    const [timer, setTimer] = useState(5); // Timer set for 10 seconds
+    const [timer, setTimer] = useState(5);
 
     useEffect(() => {
         setShow(isVisible);
@@ -42,6 +43,7 @@ const NotificationPopup = ({ videoTitle, userName, isVisible, onClose } : Notifi
         }`}>
             <div className="max-w-2xl mx-auto flex justify-between items-center">
                 <div className="flex-grow">
+                    <strong>{bannerTitle}</strong>
                     <p className="font-bold text-lg">{videoTitle}</p>
                     <p className="text-sm">Shared by: {userName}</p>
                 </div>

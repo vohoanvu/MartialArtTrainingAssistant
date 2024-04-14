@@ -40,6 +40,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
             var existingVideo = await _context.SharedVideos
                 .FirstOrDefaultAsync(v => v.VideoId == video.VideoId);
             var appUser = await _context.Users.FindAsync(video.UserId);
+            var userName = appUser!.UserName;
 
             if (existingVideo == null)
             {
@@ -47,8 +48,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
                 _context.SharedVideos.Add(video);
                 await _context.SaveChangesAsync();
 
-                var userName = appUser!.UserName;
-                await _hubContext.Clients.All.SendAsync("ReceiveVideoSharedNotification", video.Title, userName);
+                await _hubContext.Clients.All.SendAsync("ReceiveVideoSharedNotification", "New Video Shared!", video.Title, userName);
 
                 return video.Id;
             }
@@ -60,6 +60,8 @@ namespace SampleAspNetReactDockerApp.Server.Data
                 existingVideo.DateShared = video.DateShared;
                 existingVideo.UserId = video.UserId;
                 // Note: No need to call Update() as EF tracks changes to existing entities
+
+                await _hubContext.Clients.All.SendAsync("ReceiveVideoSharedNotification", "This video has already been shared!", video.Title, userName);
 
                 await _context.SaveChangesAsync();
                 return existingVideo.Id;
