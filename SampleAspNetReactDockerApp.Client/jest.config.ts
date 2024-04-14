@@ -1,9 +1,9 @@
-import type { Config } from "@jest/types";
+import type { Config } from "jest";
 
-const config: Config.InitialOptions = {
+const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
+  setupFilesAfterEnv: ['@testing-library/jest-dom'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
