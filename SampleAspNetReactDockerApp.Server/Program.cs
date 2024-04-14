@@ -183,7 +183,11 @@ namespace SampleAspNetReactDockerApp.Server
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
 
-            app.UseCors();
+            app.UseCors(x => x
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .SetIsOriginAllowed(origin => true) // allow any origin
+                .AllowCredentials());  // allow credentials
 
             app.UseHttpsRedirection();
 
