@@ -49,7 +49,6 @@ services:
       ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "${ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION}"
       ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT}"
       CLIENT_APP_PORTS: "${CLIENT_APP_PORTS}"
-      WDS_SOCKET_PORT: "${WDS_SOCKET_PORT}"
     volumes:
       - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
