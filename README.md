@@ -8,8 +8,6 @@ A sample .Net 8.0 web API with React and Docker support project for demonstratio
 
 This project utilizes the .Net 8.0 SDK, React, and Docker to create a development and production environment for a web application, with the addition of Nginx for routing between the React and .Net applications.
 
-I recommend using this repository as a starter project for your fullstack application, as it provides a good starting point for a .Net application with a React frontend, and it is configured to run as a collection of Docker containers, ready for development and production.
-
 <figure>
 <img src="static/SequenceGraph.png" alt="Project's sequence graph" />
 <figcaption>Project's sequence graph</figcaption>
@@ -40,8 +38,6 @@ I recommend using this repository as a starter project for your fullstack applic
 This project is a sample .Net 8.0 web API with React and Docker support project for demonstration purposes and as a starting point for a fullstack application. The project is designed to run as a collection of Docker containers, with the .Net application running in a container, the React application running in a container (via Nginx), and a PostgreSQL database running in a container. The project also includes an Nginx to route traffic between the React and .Net applications on the same port, but different paths.
 
 It was made to demonstrate how to create a fullstack application with .Net and React, and how to run the application in a Docker environment. The project is also a good starting point for a fullstack application, as it provides a good starting point for a .Net application with a React frontend, and it is configured to run as a collection of Docker containers, ready for development and production.
-
-I created this project because the existing Microsoft's templates did not provide a good starting point (in my opinion) for a fullstack application with .Net and React, and I wanted to have a solid starting point for my fullstack applications, with pre-configured Docker support for production.
 
 ## Getting Started
 
@@ -117,39 +113,3 @@ This will start the .Net application, the React-Vite application and the databas
 - [Docker](https://www.docker.com/) - for containerization
 - [Nginx](https://www.nginx.com/) - for routing between the React and .Net applications
 - [PostgreSQL](https://www.postgresql.org/) - for the database used by the .Net application
-
-## Authors
-
-- **[Cyprian Gburek](https://github.com/SirCypkowskyy)**
-
-## Screenshots
-
-<figure>
-<img src="static/homepage_en.png" alt="Home page in English" />
-<figcaption>Home page in English</figcaption>
-</figure>
-
-<figure>
-<img src="static/homepage_pl.png" alt="Home page in Polish" />
-<figcaption>Home page in Polish</figcaption>
-</figure>
-
-<figure>
-<img src="static/homepage_en_light.png" alt="Home page in English with light theme" />
-<figcaption>Home page in English with light theme</figcaption>
-</figure>
-
-<figure>
-<img src="static/loginpage.png" alt="Login page" />
-<figcaption>Login page</figcaption>
-</figure>
-
-<figure>
-<img src="static/dashboardpage.png" alt="Dashboard page" />
-<figcaption>Dashboard page with table (weather forecast, secured by auth)</figcaption>
-</figure>
-
-<figure>
-<img src="static/dashboardpage_selected.png" alt="Dashboard page with selected item" />
-<figcaption>Dashboard page with selected item from table</figcaption>
-</figure>
