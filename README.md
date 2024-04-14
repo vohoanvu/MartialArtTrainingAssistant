@@ -8,19 +8,6 @@ A sample .Net 8.0 web API with React and Docker support project for demonstratio
 
 This project utilizes the .Net 8.0 SDK, React, and Docker to create a development and production environment for a web application, with the addition of Nginx for routing between the React and .Net applications.
 
-<figure>
-<img src="static/SequenceGraph.png" alt="Project's sequence graph" />
-<figcaption>Project's sequence graph</figcaption>
-</figure>
-
-<br />
-<br />
-
-<figure>
-<img src="static/AppGraph.png" alt="Project's main graph" />
-<figcaption>Project's main graph</figcaption>
-</figure>
-
 ## Table of Contents
 
 - [About the Project](#about-the-project)
@@ -30,8 +17,6 @@ This project utilizes the .Net 8.0 SDK, React, and Docker to create a developmen
     - [Running the Application without Docker](#running-the-application-without-docker)
     - [Running the Application with Docker](#running-the-application-with-docker)
 - [Tech stack](#tech-stack)
-- [Authors](#authors)
-- [Screenshots](#screenshots)
 
 ## About the Project
 
