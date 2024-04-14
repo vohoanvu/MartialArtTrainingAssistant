@@ -13,8 +13,8 @@ export default function Register() {
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
 
-    const handleRegister = async (e: any) => {
-        e.preventDefault();
+    const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
         try {
             const success = await register(email, password);
             if (success.successful) {

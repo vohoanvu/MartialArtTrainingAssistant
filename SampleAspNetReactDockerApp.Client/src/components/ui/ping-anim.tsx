@@ -50,4 +50,5 @@ const PingAnim = React.forwardRef<HTMLSpanElement, PingAnimProps>(
     });
   
 
+// eslint-disable-next-line react-refresh/only-export-components
 export {PingAnim, pingAnimSizeVariants}

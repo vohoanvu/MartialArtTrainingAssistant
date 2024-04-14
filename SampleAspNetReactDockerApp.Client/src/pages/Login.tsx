@@ -38,7 +38,7 @@ export default function Login() {
                 break;
         }
         
-    }, [isLogged]);
+    }, [isLogged, navigate]);
 
     return (
         <div className="container mx-auto max-w-md p-8 shadow-lg rounded-lg">

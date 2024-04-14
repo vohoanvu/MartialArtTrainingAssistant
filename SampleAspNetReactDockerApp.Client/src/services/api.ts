@@ -1,20 +1,18 @@
 ﻿// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-
 import { paths } from './endpoints';
-//import useAuthStore from "@/store/authStore.ts";
 import { WeatherForecast, SharedVideo} from "@/types/global.ts";
 
 type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
 
 type RequestParams<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {
-        parameters: any;
+        parameters: unknown;
     }
     ? paths[P][M]['parameters']
     : undefined;
 type ResponseType<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {
-        responses: { 200: { schema: { [x: string]: any } } };
+        responses: { 200: { schema: { [x: string]: unknown } } };
     }
     ? paths[P][M]['responses'][200]['schema']
     : undefined;
@@ -24,6 +22,9 @@ export const apiCall = <P extends Path, M extends PathMethod<P>>(
     method: M,
     ...params: RequestParams<P, M> extends undefined ? [] : [RequestParams<P, M>]
 ): Promise<ResponseType<P, M>> => {
+    console.log("Inspecting url: ", url);
+    console.log("Inspecting method: ", method);
+    console.log("Inspecting params: ", params);
 };
 
 export async function getWeatherForecast({currentTry = 0, jwtToken, refreshToken, hydrate}) : Promise<WeatherForecast[]> {
@@ -43,6 +44,7 @@ export async function getWeatherForecast({currentTry = 0, jwtToken, refreshToken
     }
     else if(response.status === 401 && currentTry === 0) {
         await hydrate();
+        console.log("Refresh token and try again...", refreshToken);
         return await getWeatherForecast({currentTry : 1});
     }
     
