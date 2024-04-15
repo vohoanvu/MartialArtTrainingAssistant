@@ -7,7 +7,7 @@ export function Home(): ReactElement {
         <div className="flex flex-col items-center"> {/*flex flex-col justify-center h-[70%]*/}
             <section className="container mt-10 flex flex-col items-center text-center" id="hero-section">
                 <h1 className="text-4xl text-primary font-bold mb-4">
-                    Testing 1
+                    Welcome to Vu's Video Sharing App
                 </h1>
                 {/* <p className="text-muted-foreground mb-4">
                     {t("home.hero.subtitle")}
