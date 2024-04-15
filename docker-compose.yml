@@ -7,8 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: SampleDriverDb
-      TZ: Europe/Warsaw
+      POSTGRES_DB: AppDb
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     command: -p "${POSTGRES_PORT}"
