@@ -70,6 +70,6 @@ describe('SharedVideosList', () => {
             render(React.createElement(Home));
         });
 
-        expect(screen.getByText(/Loading data from API/i)).toBeInTheDocument();
+        expect(screen.getByText(/No Video yet shared/i)).toBeInTheDocument();
     });
 });
