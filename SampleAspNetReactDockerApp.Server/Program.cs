@@ -113,17 +113,11 @@ namespace SampleAspNetReactDockerApp.Server
 
                     var possibleHttpsOrigins = allowedOriginPorts.Select(port => $"https://localhost:{port}").ToArray();
                     var possibleHttpOrigins = allowedOriginPorts.Select(port => $"http://localhost:{port}").ToArray();
-                    possibleHttpsOrigins.Append("https://youtubesharingapp.azurewebsites.net");
-                    possibleHttpOrigins.Append("http://youtubesharingapp.azurewebsites.net");
 
                     options.AddDefaultPolicy(corsBuilder =>
                         corsBuilder.WithOrigins(possibleHttpsOrigins
                                 .Concat(possibleHttpOrigins).ToArray())
                             .AllowAnyMethod().AllowAnyHeader());
-                    //options.AddDefaultPolicy(corsBuilder =>
-                    //    corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-                    //options.AddPolicy("AllowAll",
-                    //    corsBuilder => corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
                 }
             });
 
@@ -188,12 +182,6 @@ namespace SampleAspNetReactDockerApp.Server
 
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
-
-            app.UseCors(x => x
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .SetIsOriginAllowed(origin => true) // allow any origin
-                .AllowCredentials());  // allow credentials
 
             app.UseHttpsRedirection();
 
