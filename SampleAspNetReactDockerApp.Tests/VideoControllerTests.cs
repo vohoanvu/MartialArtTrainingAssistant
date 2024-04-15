@@ -6,6 +6,7 @@ using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using System.Security.Claims;
+using static SampleAspNetReactDockerApp.Server.Controllers.VideoController;
 
 namespace SampleAspNetReactDockerApp.Tests
 {
@@ -61,7 +62,7 @@ namespace SampleAspNetReactDockerApp.Tests
             _mockSharedVideoRepository.Setup(m => m.SaveAsync(It.IsAny<SharedVideo>())).ReturnsAsync(1);
 
             // Act
-            var result = await _controller.GetVideoMetadata(videoUrl);
+            var result = await _controller.GetVideoMetadata(new UploadVideoRequest() { VideoUrl = videoUrl });
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -81,7 +82,7 @@ namespace SampleAspNetReactDockerApp.Tests
             var videoUrl = "https://youtubee.com/watch?v=123abc";
 
             // Act
-            var result = await _controller.GetVideoMetadata(videoUrl);
+            var result = await _controller.GetVideoMetadata(new UploadVideoRequest() { VideoUrl = videoUrl });
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
@@ -98,7 +99,7 @@ namespace SampleAspNetReactDockerApp.Tests
                 .ReturnsAsync((VideoDetailsResponse)null!);
 
             // Act
-            var result = await _controller.GetVideoMetadata(videoUrl);
+            var result = await _controller.GetVideoMetadata(new UploadVideoRequest() { VideoUrl = videoUrl });
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result.Result);
@@ -128,7 +129,7 @@ namespace SampleAspNetReactDockerApp.Tests
             _mockYoutubeDataService.Setup(m => m.GetVideoDetailsAsync(videoId)).ReturnsAsync(videoDetailsResponse);
 
             // Act
-            var result = await _controller.GetVideoMetadata(videoUrl);
+            var result = await _controller.GetVideoMetadata(new UploadVideoRequest() { VideoUrl = videoUrl });
 
             // Assert
             Assert.IsType<UnauthorizedResult>(result.Result);
@@ -158,7 +159,7 @@ namespace SampleAspNetReactDockerApp.Tests
             _mockSharedVideoRepository.Setup(m => m.SaveAsync(It.IsAny<SharedVideo>())).ReturnsAsync(1);
 
             // Act
-            var result = await _controller.GetVideoMetadata(videoUrl);
+            var result = await _controller.GetVideoMetadata(new UploadVideoRequest() { VideoUrl = videoUrl });
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
