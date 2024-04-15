@@ -5,6 +5,7 @@ using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using System.Net;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 namespace SampleAspNetReactDockerApp.Server.Controllers
 {
@@ -22,11 +23,11 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
             _sharedVideoRepository = sharedVideoRepository;
         }
 
-        [HttpGet("metadata/{videoUrl}")]
+        [HttpPost("metadata")]
         [AllowAnonymous]
-        public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(string videoUrl)
+        public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(UploadVideoRequest request)
         {
-            videoUrl = WebUtility.UrlDecode(videoUrl);
+            var videoUrl = WebUtility.UrlDecode(request.VideoUrl);
             var videoId = YouTubeHelper.ExtractVideoId(videoUrl);
             if (videoId == null)
             {
@@ -86,6 +87,12 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
                     Username = v.SharedBy.UserName!
                 }
             }).ToList());
+        }
+
+        public class UploadVideoRequest
+        {
+            [JsonPropertyName("videoUrl")]
+            public required string VideoUrl { get; set; }
         }
     }
 }

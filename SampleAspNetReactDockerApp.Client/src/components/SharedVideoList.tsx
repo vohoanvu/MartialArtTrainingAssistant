@@ -53,7 +53,7 @@ const SharedVideosList: React.FC = () =>
                     </Card>
                 ))
             ) : (
-                <p className="text-center text-gray-800">Loading data from API...</p>
+                <p className="text-center text-gray-800">No Video yet shared!</p>
             )}
         </div>
     );

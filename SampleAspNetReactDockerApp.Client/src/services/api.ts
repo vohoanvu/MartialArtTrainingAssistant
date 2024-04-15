@@ -80,8 +80,11 @@ export async function uploadYoutubeVideo({
 {
     console.log("Trying to upload YouTube video metadata...");
 
-    const response = await fetch(`/api/video/metadata/${encodeURIComponent(videoUrl)}`, {
+    const response = await fetch(`/api/video/metadata`, {
         method: 'POST',
+        body: JSON.stringify({
+            videoUrl: encodeURIComponent(videoUrl)
+        }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${jwtToken}`
