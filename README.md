@@ -1,8 +1,4 @@
-# Sample AspNet Core with React and Docker support application
-    
-![GitHub license](https://img.shields.io/github/license/SirCypkowskyy/SampleAspNetReactDockerApp)
-![GitHub issues](https://img.shields.io/github/issues/SirCypkowskyy/SampleAspNetReactDockerApp)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/SirCypkowskyy/SampleAspNetReactDockerApp)
+# Youtube Video Sharing Web App
 
 ## Table of Contents
 
@@ -16,7 +12,7 @@
 
 ## About the Project
 
-# App Overview
+### App Overview
 This web application provides a dynamic platform for users to share and discover their favorite YouTube videos. It is designed with a focus on user engagement and real-time interactions. Below are the key features:
 - **User Registration & Authentication**: Users can sign up and log in using their email and password, ensuring secure access to their accounts.
 - **Video Sharing & Discovery**: The homepage showcases a curated list of YouTube videos shared by the community. Users can explore new content and get inspired by others' favorites.
@@ -27,7 +23,7 @@ This project is a sample .Net 8.0 web API with React and Docker support project 
 
 It was made to demonstrate how to create a fullstack application with .Net and React, and how to run the application in a Docker environment.
 
-# Credit Acknowledgement:
+### Credit Acknowledgement:
 The original starting template was forked from this public repository **[SampleAspNetReactDockerApp](https://github.com/SirCypkowskyy/SampleAspNetReactDockerApp)** by **Cyprian Gburek**
 
 ## Getting Started
