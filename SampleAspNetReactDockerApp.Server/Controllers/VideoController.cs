@@ -22,7 +22,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
             _sharedVideoRepository = sharedVideoRepository;
         }
 
-        [HttpPost("metadata/{videoUrl}")]
+        [HttpGet("metadata/{videoUrl}")]
         [Authorize]
         public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(string videoUrl)
         {

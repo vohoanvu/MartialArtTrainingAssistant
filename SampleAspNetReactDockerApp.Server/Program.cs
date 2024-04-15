@@ -120,6 +120,10 @@ namespace SampleAspNetReactDockerApp.Server
                         corsBuilder.WithOrigins(possibleHttpsOrigins
                                 .Concat(possibleHttpOrigins).ToArray())
                             .AllowAnyMethod().AllowAnyHeader());
+                    //options.AddDefaultPolicy(corsBuilder =>
+                    //    corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+                    //options.AddPolicy("AllowAll",
+                    //    corsBuilder => corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
                 }
             });
 
