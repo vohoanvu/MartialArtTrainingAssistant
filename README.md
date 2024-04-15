@@ -4,10 +4,6 @@
 ![GitHub issues](https://img.shields.io/github/issues/SirCypkowskyy/SampleAspNetReactDockerApp)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/SirCypkowskyy/SampleAspNetReactDockerApp)
 
-A sample .Net 8.0 web API with React and Docker support project for demonstration purposes and as a starting point for a fullstack application. 
-
-This project utilizes the .Net 8.0 SDK, React, and Docker to create a development and production environment for a web application, with the addition of Nginx for routing between the React and .Net applications.
-
 ## Table of Contents
 
 - [About the Project](#about-the-project)
@@ -20,9 +16,19 @@ This project utilizes the .Net 8.0 SDK, React, and Docker to create a developmen
 
 ## About the Project
 
+# App Overview
+This web application provides a dynamic platform for users to share and discover their favorite YouTube videos. It is designed with a focus on user engagement and real-time interactions. Below are the key features:
+- **User Registration & Authentication**: Users can sign up and log in using their email and password, ensuring secure access to their accounts.
+- **Video Sharing & Discovery**: The homepage showcases a curated list of YouTube videos shared by the community. Users can explore new content and get inspired by others' favorites.
+- **Real-Time Notifications**: When a user shares a new YouTube video, all registered users receive immediate notifications, fostering a lively and connected user experience.
+
+
 This project is a sample .Net 8.0 web API with React and Docker support project for demonstration purposes and as a starting point for a fullstack application. The project is designed to run as a collection of Docker containers, with the .Net application running in a container, the React application running in a container (via Nginx), and a PostgreSQL database running in a container. The project also includes an Nginx to route traffic between the React and .Net applications on the same port, but different paths.
 
-It was made to demonstrate how to create a fullstack application with .Net and React, and how to run the application in a Docker environment. The project is also a good starting point for a fullstack application, as it provides a good starting point for a .Net application with a React frontend, and it is configured to run as a collection of Docker containers, ready for development and production.
+It was made to demonstrate how to create a fullstack application with .Net and React, and how to run the application in a Docker environment.
+
+# Credit Acknowledgement:
+The original starting template was forked from this public repository **[SampleAspNetReactDockerApp](https://github.com/SirCypkowskyy/SampleAspNetReactDockerApp)** by **Cyprian Gburek**
 
 ## Getting Started
 
@@ -44,7 +50,7 @@ Below are the steps to run the application in both environments:
 
 #### Running the Application without Docker
 
-To run the application without Docker, you can run the .Net application and the React application separately. To run the .Net application, open the project in Visual Studio 2022 and run the application. The client application should start by default, but if it does not, you can navigate to the `SampleAspNetReactDockerApp.Client` directory and run the following command:
+To run the application without Docker, you can run the .Net application and the React application separately. To run the .Net application, open the project in Visual Studio 2022 and run the application. The React client application should automatically start by default, but if it does not, you can navigate to the `SampleAspNetReactDockerApp.Client` directory and run the following command:
 
 ```bash
 npm install
@@ -54,6 +60,7 @@ npm run dev
 **Create a `.env` file in the project root directory with the content of the `.env.example` file.**
 
 **NOTE:** You will need to have Node.js installed to run the client application. The application requires connection to a PostgreSQL database, so you will need to have a PostgreSQL database running. You can configure the connection string in the `appsettings.json` file in the `SampleAspNetReactDockerApp.Server` directory, or you can set the `ASPNETCORE_CONNECTIONSTRING` environment variable to the connection string. You can also run the database in a Docker container (from docker-compose) by running the following command:
+**NOTE:** For this youtube video sharing app, you will have to configure your `YOUTUBE_API_KEY` value in `.env` (for Docker host) or `appsettings.json` (for localhost)
 
 ```bash
 docker compose --env-file ./.env up -d app-db
@@ -63,13 +70,13 @@ docker compose --env-file ./.env up -d app-db
 
 To run the application with Docker, you can run the following command in the root directory of the project:
 
-**Create a `.env` file in the project root directory with the content of the `.env.example` file.**
+** Update the `.env` file from the project's root directory with your own Youtube API KEY from the [Google Cloud Console Dashboard](https://cloud.google.com/docs/authentication/api-keys), or you can keep it the same as the content of the `.env.example` file.**
 
 ```bash
 docker compose --env-file ./.env up -d
 ```
 
-This will start the .Net application, the React-Vite application and the database in separate Docker containers. You can access the application at `http://localhost:8080`.
+The above command will start the .Net application, the React-Vite application and the database in separate Docker containers. You can access the application at `http://localhost:8080`.
 
 ## Tech stack
 
@@ -80,21 +87,30 @@ This will start the .Net application, the React-Vite application and the databas
   - [Npgsql](https://www.npgsql.org/) - for the PostgreSQL database provider
   - [Swagger](https://swagger.io/) - for API documentation
   - [Microsoft Identity](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity) - for user authentication and authorization
-  - [AutoMapper](https://automapper.org/) - for object-to-object mapping
-  - [FluentValidation](https://fluentvalidation.net/) - for input validation
-  - [Serilog](https://serilog.net/) - for logging
+  - [xUnit](https://xunit.net/) - for backend unit testing
+  - [SignalR](https://learn.microsoft.com/en-us/aspnet/signalr/overview/getting-started/introduction-to-signalr) - for real-time notifications system
 - Frontend
   - [React](https://reactjs.org/) - for the client application
   - [Vite](https://vitejs.dev/) - for the client application
   - [Tailwind CSS](https://tailwindcss.com/) - for styling
-  - [Zustand](https://github.com/pmndrs/zustand) - for state management
-  - [Shadcn](https://shadcn.com/) - for good looking, accessible and customizable components
-  - [TanStack Table](https://tanstack.com/table/latest) - for interactive and accessible tables with data
   - [React Router](https://reactrouter.com/) - for routing
-  - [RadixUI](https://radix-ui.com/) - for building accessible and composable UI components, and as a foundation for Shadcn
-  - [i18next](https://www.i18next.com/) - for internationalization
-  - [Lucide Icons](https://lucide.netlify.app/) - for icons
-  - [React World Flags](https://www.npmjs.com/package/react-world-flags) - for flags
 - [Docker](https://www.docker.com/) - for containerization
 - [Nginx](https://www.nginx.com/) - for routing between the React and .Net applications
 - [PostgreSQL](https://www.postgresql.org/) - for the database used by the .Net application
+- [Jest](https://jestjs.io/docs/getting-started) - for frontend unit testing
+
+## Running unit test suite for backend
+- From the repository root:
+```bash
+dotnet test
+```
+Or you run test suite via Visual Studio GUI
+
+## Running unit test suite for frontend
+- From the repository root:
+```bash
+cd SampleAspNetReactDockerApp.Client
+```
+```bash
+npm test
+```
