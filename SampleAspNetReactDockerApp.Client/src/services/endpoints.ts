@@ -227,6 +227,9 @@ export interface paths {
   "/api/v{version}/weatherforecast": {
     get: operations["GetWeatherForecast"];
   };
+  "/api/video/metadata/{videoUrl}": {
+    post: operations["UploadVideoMetadata"];
+  }
 }
 
 export type webhooks = Record<string, never>;
@@ -309,6 +312,17 @@ export interface components {
       temperatureF?: number;
       summary?: string | null;
     };
+    VideoMetadata: {
+      id: string;
+      videoId: string;
+      title: string;
+      description: string;
+      embedLink?: string;
+      sharedBy: {
+        userId: string;
+        username: string;
+      }
+    }
   };
   responses: never;
   parameters: never;
@@ -322,7 +336,6 @@ export type $defs = Record<string, never>;
 export type external = Record<string, never>;
 
 export interface operations {
-
   "MapIdentityApi-/api/auth/v1/confirmEmail": {
     parameters: {
       query?: {
@@ -355,4 +368,15 @@ export interface operations {
       };
     };
   };
+
+  UploadVideoMetadata: {
+    /** @description Success */
+    200: {
+      content: {
+        "text/plain": components["schemas"]["VideoMetadata"][];
+        "application/json": components["schemas"]["VideoMetadata"][];
+        "text/json": components["schemas"]["VideoMetadata"][];
+      };
+    };
+  }
 }
