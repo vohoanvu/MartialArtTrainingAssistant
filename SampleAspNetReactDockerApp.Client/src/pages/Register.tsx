@@ -4,6 +4,18 @@ import {useNavigate} from "react-router-dom";
 import useAuthStore from "@/store/authStore.ts";
 import {Button} from "@/components/ui/button.tsx";
 
+interface ValidationError {
+    type: string;
+    title: string;
+    status: number;
+    errors: {
+        PasswordTooShort?: string[];
+        PasswordRequiresNonAlphanumeric?: string[];
+        PasswordRequiresLower?: string[];
+        PasswordRequiresUpper?: string[];
+    };
+}
+
 export default function Register() {
     const navigate = useNavigate();
     // Assuming the existence of a 'register' method in useAuthStore similar to 'login'
@@ -11,7 +23,7 @@ export default function Register() {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
+    const [validationError, setValidationError] = useState<ValidationError | null>();
 
     const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -21,12 +33,15 @@ export default function Register() {
                 alert("Registration successful!");
                 navigate("/login"); // Redirect to login page or another page as desired    
             } else {
-                setErrorMessage("Registration failed, reason: " + success.response);
-                console.error("Registration failed: ", success.response);
+                const errorResponse = JSON.parse(success.response ?? "{}");
+                if (errorResponse && typeof errorResponse === 'object') {
+                    setValidationError(errorResponse as ValidationError);
+                    console.error("Registration failed: ", errorResponse as ValidationError);
+                }
             }
         } catch (error) {
-            setErrorMessage("Registration failed: " + error);
             console.error("Registration failed: ", error);
+            setValidationError({type: 'error', title: error as string, status: 500, errors: {}});
         }
     };
 
@@ -37,9 +52,16 @@ export default function Register() {
                 className="space-y-4"
                 onSubmit={handleRegister}
             >
-                {errorMessage &&
+                {validationError &&
                     <>
-                        <p className="text-red-500 line-clamp-5">{errorMessage}</p>
+                        {
+                            Object.values(validationError.errors).flat().map((error, index) =>  
+                                {
+                                    const keyIndex = index;
+                                    return <p key={keyIndex} className="text-red-500 line-clamp-5">{error}</p>
+                                }
+                            )
+                        }
                         <p className="text-red-300 text-xl font-bold">Check console for details</p>
                     </>
                 }
@@ -54,8 +76,8 @@ export default function Register() {
                         className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                         value={email}
                         onChange={(e) => {
-                            if(errorMessage !== '')
-                                setErrorMessage('');
+                            if (validationError !== null)
+                                setValidationError(null);
                             setEmail(e.target.value);
                         }}
                         required
@@ -72,8 +94,8 @@ export default function Register() {
                         className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                         value={password}
                         onChange={(e) => {
-                            if(errorMessage !== '')
-                                setErrorMessage('');
+                            if (validationError !== null)
+                                setValidationError(null);
                             setPassword(e.target.value)
                         }}
                         required
