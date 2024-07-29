@@ -48,6 +48,11 @@ public class DatabaseContext : IdentityDbContext<AppUserEntity>
                 .HasDefaultValue(DateTime.UtcNow)
                 .ValueGeneratedOnAddOrUpdate();
         });
+
+        builder.Entity<AppUserEntity>(b =>
+        {
+            b.HasOne(x => x.Fighter).WithOne().HasForeignKey<AppUserEntity>(x => x.FighterId);
+        });
         
     }
 }

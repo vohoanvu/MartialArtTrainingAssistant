@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SampleAspNetReactDockerApp.Server.Models;
 
@@ -16,4 +17,11 @@ public class AppUserEntity : IdentityUser
     /// Date and time the user was last updated.
     /// </summary>
     public DateTime UpdatedAt { get; init; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Corresponding Fighter data for the user
+    /// </summary>
+    public int FighterId { get; set; }
+    [ForeignKey("FighterId")]
+    public virtual Fighter? Fighter { get; set; }
 }
