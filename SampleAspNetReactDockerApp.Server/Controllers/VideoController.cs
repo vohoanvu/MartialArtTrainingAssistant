@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SampleAspNetReactDockerApp.Server.Data;
-using SampleAspNetReactDockerApp.Server.Helpers;
+using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
 using SampleAspNetReactDockerApp.Server.Models;
 using System.Net;
 using System.Security.Claims;

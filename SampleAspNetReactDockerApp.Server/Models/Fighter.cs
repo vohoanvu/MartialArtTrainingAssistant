@@ -22,13 +22,11 @@ namespace SampleAspNetReactDockerApp.Server.Models
 
         public DateTime Birthdate { get; set; }
 
-        public int? MaxWorkoutDuration { get; set; }
+        public required int MaxWorkoutDuration { get; set; } //how long can you spar without taking a break (in minutes)?
 
-        public TrainingExperience? Experience { get; set; }
+        public TrainingExperience Experience { get; set; }
 
-        public BeltColor? BelkRank { get; set; }
-
-        public DateTime? Birthdate { get; set; }
+        public BeltColor BelkRank { get; set; }
 
 
         public virtual List<TrainingSessionFighterJoint>? TrainingSessions { get; set; } 

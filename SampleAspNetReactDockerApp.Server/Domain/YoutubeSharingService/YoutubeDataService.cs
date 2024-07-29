@@ -1,6 +1,6 @@
 ﻿using Google;
 
-namespace SampleAspNetReactDockerApp.Server.Helpers
+namespace SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService
 {
     public interface IYoutubeDataService
     {

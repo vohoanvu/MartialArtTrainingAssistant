@@ -5,6 +5,7 @@ using Google.Apis.YouTube.v3;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SampleAspNetReactDockerApp.Server.Data;
+using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using Serilog;

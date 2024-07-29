@@ -2,7 +2,7 @@
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 
-namespace SampleAspNetReactDockerApp.Server.Helpers
+namespace SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService
 {
     public interface IYoutubeServiceWrapper
     {

@@ -1,6 +1,6 @@
-﻿using SampleAspNetReactDockerApp.Server.Helpers;
-using Moq;
+﻿using Moq;
 using Google.Apis.YouTube.v3.Data;
+using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
 
 namespace SampleAspNetReactDockerApp.Tests
 {

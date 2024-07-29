@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SampleAspNetReactDockerApp.Server.Controllers;
 using SampleAspNetReactDockerApp.Server.Data;
-using SampleAspNetReactDockerApp.Server.Helpers;
+using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
 using SampleAspNetReactDockerApp.Server.Models;
 using System.Security.Claims;
 using static SampleAspNetReactDockerApp.Server.Controllers.VideoController;

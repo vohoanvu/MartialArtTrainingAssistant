@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using SampleAspNetReactDockerApp.Server.Data;
-using SampleAspNetReactDockerApp.Server.Helpers;
+using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
 using SampleAspNetReactDockerApp.Server.Models;
 using System.Globalization;
 
