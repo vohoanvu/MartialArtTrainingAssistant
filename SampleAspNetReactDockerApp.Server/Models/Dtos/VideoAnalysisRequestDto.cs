@@ -1,6 +1,8 @@
-﻿namespace SampleAspNetReactDockerApp.Server.Controllers
+﻿using SampleAspNetReactDockerApp.Server.Models;
+
+namespace SampleAspNetReactDockerApp.Server.Models.Dtos
 {
-    public class VideoAnalysisRequestDto
+    /*public class VideoAnalysisRequestDto
     {
         public object VideoUrl { get; internal set; }
     }
@@ -11,10 +13,5 @@
         public TrainingPlan()
         {
         }
-    }
-
-    
-    public class UserProfileDto
-    {
-    }
+    }*/
 }
