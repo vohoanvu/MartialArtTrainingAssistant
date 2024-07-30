@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SampleAspNetReactDockerApp.Server.Data;
+using System.Linq.Expressions;
 
 namespace SampleAspNetReactDockerApp.Server.Helpers
 {
     public interface IUnitOfWork : IDisposable
     {
+        MyDatabaseContext AppDbContext { get; }
+
         IRepository<TEntity> Repository<TEntity>() where TEntity : class;
         Task<int> SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
@@ -14,6 +18,8 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
     {
         private readonly MyDatabaseContext _context = context;
         private readonly Dictionary<Type, object> _repositories = [];
+
+        public MyDatabaseContext AppDbContext => _context;
 
         public IRepository<TEntity> Repository<TEntity>() where TEntity : class
         {

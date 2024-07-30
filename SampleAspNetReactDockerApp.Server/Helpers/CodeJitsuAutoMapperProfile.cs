@@ -29,5 +29,10 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ForMember(x => x.Experience, y => y.MapFrom(z => z.Experience.ToString()))
             .ForMember(x => x.Id, y => y.MapFrom(z => z.Id))
             .ReverseMap();
+
+        CreateMap<TrainingSessionDtoBase, TrainingSession>()
+            .ForMember(x => x.Status, y => y.MapFrom(z => Enum.Parse<SessionStatus>(z.Status)))
+            .ForMember(dest => dest.TrainingDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.TrainingDate, DateTimeKind.Utc)))
+            .ReverseMap();
     }
 }

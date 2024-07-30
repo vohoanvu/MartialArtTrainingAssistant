@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace SampleAspNetReactDockerApp.Server.Helpers
 {
@@ -9,6 +10,8 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
         Task AddAsync(TEntity entity);
         void Update(TEntity entity);
         void Delete(TEntity entity);
+
+        IQueryable<TEntity> FindWhereAsync<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class;
     }
 
 
@@ -46,6 +49,11 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
         public void Delete(TEntity entity)
         {
             _dbSet.Remove(entity);
+        }
+
+        public IQueryable<TEntity> FindWhereAsync<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class
+        {
+            return _context.Set<TEntity>().Where(predicate);
         }
     }
 }
