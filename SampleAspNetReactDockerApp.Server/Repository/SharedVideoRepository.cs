@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
 using SampleAspNetReactDockerApp.Server.Models;
 
-namespace SampleAspNetReactDockerApp.Server.Data
+namespace SampleAspNetReactDockerApp.Server.Repository
 {
     public interface ISharedVideoRepository
     {

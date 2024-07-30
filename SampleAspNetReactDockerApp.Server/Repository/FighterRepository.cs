@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using System.Net;
 
-namespace SampleAspNetReactDockerApp.Server.Data
+namespace SampleAspNetReactDockerApp.Server.Repository
 {
     public interface IFighterRepository
     {
@@ -20,7 +21,7 @@ namespace SampleAspNetReactDockerApp.Server.Data
 
     public class FighterRepository(IServiceProvider serviceProvider) : IFighterRepository
     {
-        private readonly DatabaseContext _databaseContext = 
+        private readonly DatabaseContext _databaseContext =
             serviceProvider.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
 
         public async Task<List<Fighter>> GetFighters()
@@ -42,13 +43,13 @@ namespace SampleAspNetReactDockerApp.Server.Data
 
         public async Task<Fighter> AddFighter(Fighter fighter)
         {
-            try 
+            try
             {
                 _databaseContext.Fighters.Add(fighter);
                 await _databaseContext.SaveChangesAsync();
                 return fighter;
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;

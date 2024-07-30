@@ -14,6 +14,7 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
             destination.Height = source.Height;
             destination.Weight = source.Weight;
             destination.MaxWorkoutDuration = source.MaxWorkoutDuration;
+            destination.Birthdate = source.Birthdate;
         }
     }
 }

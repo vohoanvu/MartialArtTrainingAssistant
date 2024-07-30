@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SampleAspNetReactDockerApp.Server.Models;
+using System.Reflection.Emit;
 
 namespace SampleAspNetReactDockerApp.Server.Data;
 
@@ -59,6 +60,5 @@ public class DatabaseContext : IdentityDbContext<AppUserEntity>
         {
             b.HasOne(x => x.Fighter).WithOne().HasForeignKey<AppUserEntity>(x => x.FighterId);
         });
-        
     }
 }

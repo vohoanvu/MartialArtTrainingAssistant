@@ -11,9 +11,11 @@ namespace SampleAspNetReactDockerApp.Server.Models.Dtos
 
         public required double Weight { get; set; }
 
+        public double? BMI { get; set; }
+
         public required string Gender { get; set; }
 
-        public DateTime? Birthdate { get; set; }
+        public DateTime Birthdate { get; set; }
 
         public required string FighterRole { get; set; }
 

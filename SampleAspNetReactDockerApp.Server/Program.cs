@@ -8,6 +8,7 @@ using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
+using SampleAspNetReactDockerApp.Server.Repository;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
@@ -43,6 +44,7 @@ namespace SampleAspNetReactDockerApp.Server
                 return new YoutubeServiceWrapper(youtubeService);
             });
             builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

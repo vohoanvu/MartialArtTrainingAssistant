@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using SampleAspNetReactDockerApp.Server.Models.Dtos;
-using System.Net;
+using SampleAspNetReactDockerApp.Server.Repository;
 
 namespace SampleAspNetReactDockerApp.Server.Controllers
 {
@@ -19,69 +18,74 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<List<ViewFighterDto>> GetListAsync()
+        public async Task<ActionResult<List<ViewFighterDto>>> GetListAsync()
         {
             var allFighters = await _fighterRepository.GetFighters();
-            return _objectMapper.Map<List<Fighter>, List<ViewFighterDto>>(allFighters);
+            return Ok(_objectMapper.Map<List<Fighter>, List<ViewFighterDto>>(allFighters));
         }
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ViewFighterDto> GetAsync(int id)
+        public async Task<ActionResult<ViewFighterDto>> GetAsync(int id)
         {
-            var fighter = await _fighterRepository.GetFighter(id) 
-                ?? throw new ErrorResponseException().SetMessage("Fighter Not Found!").SetStatusCode(HttpStatusCode.NotFound);
+            var fighter = await _fighterRepository.GetFighter(id);
+            if (fighter == null)
+            {
+                return NotFound(new { Message = "Fighter Not Found!" });
+            }
 
-            return _objectMapper.Map<Fighter, ViewFighterDto>(fighter);
+            return Ok(_objectMapper.Map<Fighter, ViewFighterDto>(fighter));
         }
 
         [HttpPost]
-        public async Task<ViewFighterDto> CreateAsync(CreateFighterDto input)
+        public async Task<ActionResult<ViewFighterDto>> CreateAsync(CreateFighterDto input)
         {
             if (!Enum.IsDefined(typeof(Gender), input.Gender) || 
                 !Enum.IsDefined(typeof(FighterRole), input.FighterRole) ||
                 !Enum.IsDefined(typeof(BeltColor), input.BeltColor))
             {
-                throw new ErrorResponseException().SetMessage("Invalid Enum values").SetStatusCode(HttpStatusCode.BadRequest);
+                return BadRequest(new { Message = "Invalid Enum values" });
             }
 
             var newFighter = _objectMapper.Map<CreateFighterDto, Fighter>(input);
-
             var createdFighter = await _fighterRepository.AddFighter(newFighter);
-            return _objectMapper.Map<Fighter, ViewFighterDto>(createdFighter);
+            return CreatedAtAction(nameof(GetAsync), new { id = createdFighter.Id }, _objectMapper.Map<Fighter, ViewFighterDto>(createdFighter));
         }
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<ViewFighterDto> UpdateAsync(int id, UpdateFighterDto input)
+        public async Task<ActionResult<ViewFighterDto>> UpdateAsync(int id, UpdateFighterDto input)
         {
             if (!Enum.IsDefined(typeof(Gender), input.Gender) ||
                 !Enum.IsDefined(typeof(FighterRole), input.FighterRole) ||
                 !Enum.IsDefined(typeof(BeltColor), input.BeltColor))
             {
-                throw new ErrorResponseException().SetMessage("Invalid Enum values").SetStatusCode(HttpStatusCode.BadRequest);
+                return BadRequest(new { Message = "Invalid Enum values" });
             }
 
-            var existingFighter = await _fighterRepository.GetFighter(id) 
-                ?? throw new ErrorResponseException().SetMessage("Fighter Not Found!").SetStatusCode(HttpStatusCode.NotFound);
-            existingFighter.Update(input);
+            var existingFighter = await _fighterRepository.GetFighter(id);
+            if (existingFighter == null)
+            {
+                return NotFound(new { Message = "Fighter Not Found!" });
+            }
 
+            existingFighter.Update(input);
             var updatedFighter = await _fighterRepository.UpdateFighter(existingFighter);
-            return _objectMapper.Map<Fighter, ViewFighterDto>(updatedFighter);
+            return Ok(_objectMapper.Map<Fighter, ViewFighterDto>(updatedFighter));
         }
 
         [HttpDelete("{id}")]
         [Authorize]
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<ActionResult> DeleteAsync(int id)
         {
             try
             {
                 await _fighterRepository.DeleteFighter(id);
-                return true;
+                return NoContent();
             }
-            catch (ErrorResponseException)
+            catch (ErrorResponseException ex)
             {
-                return false;
+                return StatusCode((int)ex.StatusCode, new { ex.Message });
             }
         }
     }
