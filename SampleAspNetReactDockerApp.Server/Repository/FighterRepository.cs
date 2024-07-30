@@ -21,8 +21,8 @@ namespace SampleAspNetReactDockerApp.Server.Repository
 
     public class FighterRepository(IServiceProvider serviceProvider) : IFighterRepository
     {
-        private readonly DatabaseContext _databaseContext =
-            serviceProvider.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
+        private readonly MyDatabaseContext _databaseContext =
+            serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
         public async Task<List<Fighter>> GetFighters()
         {

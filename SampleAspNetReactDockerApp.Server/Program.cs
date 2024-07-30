@@ -143,7 +143,7 @@ namespace SampleAspNetReactDockerApp.Server
                     .WriteTo.File("../logs/log-.log", rollingInterval: RollingInterval.Day);
             });
 
-            builder.Services.AddDbContext<DatabaseContext>();
+            builder.Services.AddDbContext<MyDatabaseContext>();
 
             builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
@@ -153,7 +153,7 @@ namespace SampleAspNetReactDockerApp.Server
                     opts.User.RequireUniqueEmail = true;
                     opts.Password.RequiredLength = 8;
                 })
-                .AddEntityFrameworkStores<DatabaseContext>();
+                .AddEntityFrameworkStores<MyDatabaseContext>();
 
             builder.Services.AddSignalR();
 

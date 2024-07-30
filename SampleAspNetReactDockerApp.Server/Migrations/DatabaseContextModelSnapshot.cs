@@ -10,7 +10,7 @@ using SampleAspNetReactDockerApp.Server.Data;
 
 namespace SampleAspNetReactDockerApp.Server.Migrations
 {
-    [DbContext(typeof(DatabaseContext))]
+    [DbContext(typeof(MyDatabaseContext))]
     partial class DatabaseContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -169,7 +169,7 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2024, 4, 10, 16, 41, 40, 94, DateTimeKind.Utc).AddTicks(4544));
+                        .HasDefaultValue(new DateTime(2024, 7, 30, 14, 38, 48, 623, DateTimeKind.Utc).AddTicks(1751));
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -177,6 +177,9 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("FighterId")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -210,13 +213,16 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2024, 4, 10, 16, 41, 40, 94, DateTimeKind.Utc).AddTicks(4777));
+                        .HasDefaultValue(new DateTime(2024, 7, 30, 14, 38, 48, 623, DateTimeKind.Utc).AddTicks(2045));
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FighterId")
+                        .IsUnique();
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -226,6 +232,50 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("app_users", (string)null);
+                });
+
+            modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.Fighter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("BMI")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("BelkRank")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Birthdate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Experience")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FighterName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Height")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("MaxWorkoutDuration")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Fighters");
                 });
 
             modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.SharedVideo", b =>
@@ -264,6 +314,62 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("SharedVideos");
+                });
+
+            modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.TrainingSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<double>("Duration")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("InstructorId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("TrainingDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstructorId");
+
+                    b.ToTable("TrainingSessions");
+                });
+
+            modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.TrainingSessionFighterJoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FighterId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TrainingSessionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FighterId");
+
+                    b.HasIndex("TrainingSessionId");
+
+                    b.ToTable("TrainingSessionFighterJoints");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -317,6 +423,17 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.AppUserEntity", b =>
+                {
+                    b.HasOne("SampleAspNetReactDockerApp.Server.Models.Fighter", "Fighter")
+                        .WithOne()
+                        .HasForeignKey("SampleAspNetReactDockerApp.Server.Models.AppUserEntity", "FighterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Fighter");
+                });
+
             modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.SharedVideo", b =>
                 {
                     b.HasOne("SampleAspNetReactDockerApp.Server.Models.AppUserEntity", "SharedBy")
@@ -326,6 +443,46 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("SharedBy");
+                });
+
+            modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.TrainingSession", b =>
+                {
+                    b.HasOne("SampleAspNetReactDockerApp.Server.Models.Fighter", "Instructor")
+                        .WithMany()
+                        .HasForeignKey("InstructorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Instructor");
+                });
+
+            modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.TrainingSessionFighterJoint", b =>
+                {
+                    b.HasOne("SampleAspNetReactDockerApp.Server.Models.Fighter", "Fighter")
+                        .WithMany("TrainingSessions")
+                        .HasForeignKey("FighterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SampleAspNetReactDockerApp.Server.Models.TrainingSession", "TrainingSession")
+                        .WithMany("Students")
+                        .HasForeignKey("TrainingSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Fighter");
+
+                    b.Navigation("TrainingSession");
+                });
+
+            modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.Fighter", b =>
+                {
+                    b.Navigation("TrainingSessions");
+                });
+
+            modelBuilder.Entity("SampleAspNetReactDockerApp.Server.Models.TrainingSession", b =>
+                {
+                    b.Navigation("Students");
                 });
 #pragma warning restore 612, 618
         }

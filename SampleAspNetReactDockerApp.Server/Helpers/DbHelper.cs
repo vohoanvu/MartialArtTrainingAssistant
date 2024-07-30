@@ -16,7 +16,7 @@ public static class DbHelper
     /// </param>
     public static async Task EnsureDbIsCreatedAsync(AsyncServiceScope scope, bool deleteIfExists = false)
     {
-        await using var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+        await using var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
         if(deleteIfExists)
             await dbContext.Database.EnsureDeletedAsync();

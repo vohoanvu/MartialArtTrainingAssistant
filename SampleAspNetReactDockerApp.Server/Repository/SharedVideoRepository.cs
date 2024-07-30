@@ -15,10 +15,10 @@ namespace SampleAspNetReactDockerApp.Server.Repository
 
     public class SharedVideoRepository : ISharedVideoRepository
     {
-        private readonly DatabaseContext _context;
+        private readonly MyDatabaseContext _context;
         private readonly IHubContext<VideoShareHub> _hubContext;
 
-        public SharedVideoRepository(DatabaseContext context, IHubContext<VideoShareHub> hubContext)
+        public SharedVideoRepository(MyDatabaseContext context, IHubContext<VideoShareHub> hubContext)
         {
             _context = context;
             _hubContext = hubContext;

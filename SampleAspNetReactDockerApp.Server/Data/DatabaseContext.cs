@@ -8,17 +8,17 @@ namespace SampleAspNetReactDockerApp.Server.Data;
 /// <summary>
 /// The database context for the application.
 /// </summary>
-public class DatabaseContext : IdentityDbContext<AppUserEntity>
+public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 {
     /// <summary>
     /// The constructor for the database context.
     /// </summary>
     /// <param name="options"></param>
-    public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
+    public MyDatabaseContext(DbContextOptions<MyDatabaseContext> options) : base(options)
     {
     }
 
-    public DatabaseContext()
+    public MyDatabaseContext()
     {
     }
 

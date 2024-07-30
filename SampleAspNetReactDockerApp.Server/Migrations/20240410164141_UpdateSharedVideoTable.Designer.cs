@@ -11,7 +11,7 @@ using SampleAspNetReactDockerApp.Server.Data;
 
 namespace SampleAspNetReactDockerApp.Server.Migrations
 {
-    [DbContext(typeof(DatabaseContext))]
+    [DbContext(typeof(MyDatabaseContext))]
     [Migration("20240410164141_UpdateSharedVideoTable")]
     partial class UpdateSharedVideoTable
     {

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using SampleAspNetReactDockerApp.Server.Data;
 
 namespace SampleAspNetReactDockerApp.Server.Helpers
 {
@@ -8,15 +8,10 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
         Task<int> SaveChangesAsync();
     }
 
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork(MyDatabaseContext context) : IUnitOfWork
     {
-        private readonly DbContext _context;
-        private readonly Dictionary<Type, object> _repositories = new();
-
-        public UnitOfWork(DbContext context)
-        {
-            _context = context;
-        }
+        private readonly MyDatabaseContext _context = context;
+        private readonly Dictionary<Type, object> _repositories = [];
 
         public IRepository<TEntity> Repository<TEntity>() where TEntity : class
         {

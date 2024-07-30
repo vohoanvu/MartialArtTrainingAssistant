@@ -11,7 +11,7 @@ using SampleAspNetReactDockerApp.Server.Data;
 
 namespace SampleAspNetReactDockerApp.Server.Migrations
 {
-    [DbContext(typeof(DatabaseContext))]
+    [DbContext(typeof(MyDatabaseContext))]
     [Migration("20240217232742_Initial")]
     partial class Initial
     {
