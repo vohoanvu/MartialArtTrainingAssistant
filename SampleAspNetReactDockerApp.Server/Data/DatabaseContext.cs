@@ -54,11 +54,8 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
             e.Property(p => p.UpdatedAt)
                 .HasDefaultValue(DateTime.UtcNow)
                 .ValueGeneratedOnAddOrUpdate();
-        });
 
-        builder.Entity<AppUserEntity>(b =>
-        {
-            b.HasOne(x => x.Fighter).WithOne().HasForeignKey<AppUserEntity>(x => x.FighterId);
+            e.HasOne(x => x.Fighter).WithOne().HasForeignKey<AppUserEntity>(x => x.FighterId);
         });
     }
 }

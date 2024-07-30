@@ -1,4 +1,5 @@
-﻿using SampleAspNetReactDockerApp.Server.Data;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using SampleAspNetReactDockerApp.Server.Data;
 
 namespace SampleAspNetReactDockerApp.Server.Helpers
 {
@@ -6,6 +7,7 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
     {
         IRepository<TEntity> Repository<TEntity>() where TEntity : class;
         Task<int> SaveChangesAsync();
+        Task<IDbContextTransaction> BeginTransactionAsync();
     }
 
     public class UnitOfWork(MyDatabaseContext context) : IUnitOfWork
@@ -28,6 +30,11 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
 
         public void Dispose()

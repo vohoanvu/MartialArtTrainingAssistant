@@ -10,9 +10,11 @@ public class CodeJitsuAutoMapperProfile : Profile
     {
         /* Create your AutoMapper object mappings here */
         CreateMap<CreateFighterDto, Fighter>()
-            .ForMember(x => x.BMI, y => y.MapFrom(z => z.Weight / (z.Height * z.Weight)))
+            .ForMember(dest => dest.Birthdate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.Birthdate, DateTimeKind.Utc)))
+            .ForMember(dest => dest.BMI, opt => opt.MapFrom(src => src.BMI ?? (src.Weight / (src.Height * src.Height))))
             .ForMember(x => x.Gender, y => y.MapFrom(z => Enum.Parse<Gender>(z.Gender)))
             .ForMember(x => x.Role, y => y.MapFrom(z => Enum.Parse<FighterRole>(z.FighterRole)))
+            .ForMember(x => x.BelkRank, y => y.MapFrom(z => Enum.Parse<BeltColor>(z.BeltColor)))
             .ReverseMap();
 
         CreateMap<UpdateFighterDto, Fighter>()
@@ -21,9 +23,11 @@ public class CodeJitsuAutoMapperProfile : Profile
         CreateMap<FighterDtoBase, Fighter>().ReverseMap();
 
         CreateMap<Fighter, ViewFighterDto>()
-            .ForMember(x => x.BeltColor, y => y.MapFrom(z => z.BelkRank))
+            .ForMember(x => x.BeltColor, y => y.MapFrom(z => z.BelkRank.ToString()))
             .ForMember(x => x.Gender, y => y.MapFrom(z => z.Gender.ToString()))
             .ForMember(x => x.FighterRole, y => y.MapFrom(z => z.Role.ToString()))
+            .ForMember(x => x.Experience, y => y.MapFrom(z => z.Experience.ToString()))
+            .ForMember(x => x.Id, y => y.MapFrom(z => z.Id))
             .ReverseMap();
     }
 }

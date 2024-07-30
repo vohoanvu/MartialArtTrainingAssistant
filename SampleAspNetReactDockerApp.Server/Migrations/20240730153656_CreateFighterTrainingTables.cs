@@ -17,7 +17,7 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                 table: "app_users",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(2024, 7, 30, 14, 38, 48, 623, DateTimeKind.Utc).AddTicks(2045),
+                defaultValue: new DateTime(2024, 7, 30, 15, 36, 56, 353, DateTimeKind.Utc).AddTicks(5595),
                 oldClrType: typeof(DateTime),
                 oldType: "timestamp with time zone",
                 oldDefaultValue: new DateTime(2024, 4, 10, 16, 41, 40, 94, DateTimeKind.Utc).AddTicks(4777));
@@ -27,7 +27,7 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                 table: "app_users",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(2024, 7, 30, 14, 38, 48, 623, DateTimeKind.Utc).AddTicks(1751),
+                defaultValue: new DateTime(2024, 7, 30, 15, 36, 56, 353, DateTimeKind.Utc).AddTicks(5376),
                 oldClrType: typeof(DateTime),
                 oldType: "timestamp with time zone",
                 oldDefaultValue: new DateTime(2024, 4, 10, 16, 41, 40, 94, DateTimeKind.Utc).AddTicks(4544));
@@ -173,7 +173,7 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                 defaultValue: new DateTime(2024, 4, 10, 16, 41, 40, 94, DateTimeKind.Utc).AddTicks(4777),
                 oldClrType: typeof(DateTime),
                 oldType: "timestamp with time zone",
-                oldDefaultValue: new DateTime(2024, 7, 30, 14, 38, 48, 623, DateTimeKind.Utc).AddTicks(2045));
+                oldDefaultValue: new DateTime(2024, 7, 30, 15, 36, 56, 353, DateTimeKind.Utc).AddTicks(5595));
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CreatedAt",
@@ -183,7 +183,7 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                 defaultValue: new DateTime(2024, 4, 10, 16, 41, 40, 94, DateTimeKind.Utc).AddTicks(4544),
                 oldClrType: typeof(DateTime),
                 oldType: "timestamp with time zone",
-                oldDefaultValue: new DateTime(2024, 7, 30, 14, 38, 48, 623, DateTimeKind.Utc).AddTicks(1751));
+                oldDefaultValue: new DateTime(2024, 7, 30, 15, 36, 56, 353, DateTimeKind.Utc).AddTicks(5376));
         }
     }
 }

@@ -169,7 +169,7 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2024, 7, 30, 14, 38, 48, 623, DateTimeKind.Utc).AddTicks(1751));
+                        .HasDefaultValue(new DateTime(2024, 7, 30, 15, 36, 56, 353, DateTimeKind.Utc).AddTicks(5376));
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -213,7 +213,7 @@ namespace SampleAspNetReactDockerApp.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2024, 7, 30, 14, 38, 48, 623, DateTimeKind.Utc).AddTicks(2045));
+                        .HasDefaultValue(new DateTime(2024, 7, 30, 15, 36, 56, 353, DateTimeKind.Utc).AddTicks(5595));
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)

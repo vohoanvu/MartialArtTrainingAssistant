@@ -2,9 +2,11 @@ using System.Reflection;
 using Asp.Versioning;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SampleAspNetReactDockerApp.Server.Data;
+using SampleAspNetReactDockerApp.Server.Domain.FighterService;
 using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
@@ -45,6 +47,8 @@ namespace SampleAspNetReactDockerApp.Server
             });
             builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<FighterRegistrationService>();
+            builder.Services.AddAutoMapper(typeof(Program));
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

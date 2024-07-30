@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SampleAspNetReactDockerApp.Server.Domain.FighterService;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using SampleAspNetReactDockerApp.Server.Models.Dtos;
@@ -10,10 +11,11 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class FighterController(IUnitOfWork unitOfWork,
-        IMapper objectMapper) : ControllerBase
+        IMapper objectMapper, FighterRegistrationService fighterRegistrationService) : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _objectMapper = objectMapper;
+        private readonly FighterRegistrationService _fighterRegistrationService = fighterRegistrationService;
 
         [HttpGet]
         [Authorize]
@@ -25,7 +27,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ActionResult<ViewFighterDto>> GetAsync(int id)
+        public async Task<ActionResult<ViewFighterDto>> GetByIdAsync(int id)
         {
             var fighter = await _unitOfWork.Repository<Fighter>().GetByIdAsync(id);
             if (fighter == null)
@@ -34,23 +36,59 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
             return Ok(_objectMapper.Map<Fighter, ViewFighterDto>(fighter));
         }
 
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<ActionResult<ViewFighterDto>> CreateAsync(CreateFighterDto input)
         {
             if (!Enum.IsDefined(typeof(Gender), input.Gender) || 
                 !Enum.IsDefined(typeof(FighterRole), input.FighterRole) ||
-                !Enum.IsDefined(typeof(BeltColor), input.BeltColor))
+                !Enum.IsDefined(typeof(BeltColor), input.BeltColor) ||
+                !Enum.IsDefined(typeof(TrainingExperience), input.Experience))
             {
-                return BadRequest(new { Message = "Invalid Enum values" });
+                return BadRequest(new CustomRegistrationResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "One or more validation errors occurred.",
+                    Status = 400,
+                    Detail = "Invalid Enum values",
+                    Instance = HttpContext.TraceIdentifier,
+                    Errors = new Dictionary<string, List<string>>
+                    {
+                        { "Gender", new List<string> { "Invalid gender value" } },
+                        { "FighterRole", new List<string> { "Invalid fighter role value" } },
+                        { "BeltColor", new List<string> { "Invalid belt color value" } },
+                        { "Experience", new List<string> { "Invalid experience value" } }
+                    }
+                });
             }
 
-            var newFighter = _objectMapper.Map<CreateFighterDto, Fighter>(input);
-            await _unitOfWork.Repository<Fighter>().AddAsync(newFighter);
-            return CreatedAtAction(
-                nameof(CreateAsync), 
-                new { id = newFighter.Id }, 
-                _objectMapper.Map<Fighter, ViewFighterDto>(newFighter)
-            );
+            var result = await _fighterRegistrationService.RegisterFighterAsync(input);
+            if (!result.identityResult.Succeeded)
+            {
+                return BadRequest(new CustomRegistrationResponse
+                {
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Registration failed",
+                    Status = 400,
+                    Detail = "User registration failed",
+                    Instance = HttpContext.TraceIdentifier,
+                    Errors = result.identityResult.Errors.ToDictionary(
+                        e => e.Code, 
+                        e => new List<string> { e.Description }
+                    )
+                });
+            }
+
+            Console.WriteLine($"Created fighter with ID: {result.fighter!.Id}");
+
+            return StatusCode(201, new CustomRegistrationResponse
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.3.2",
+                Title = "Fighter created successfully",
+                Status = 201,
+                Detail = "The fighter was created successfully",
+                Instance = HttpContext.TraceIdentifier,
+                CreatedObject = result.fighter!
+            });
         }
 
         [HttpPut("{id}")]
