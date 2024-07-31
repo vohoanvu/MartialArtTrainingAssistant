@@ -1,5 +1,6 @@
-﻿import {ReactElement} from "react";
-import SharedVideosList from "@/components/SharedVideoList.tsx";
+﻿import LandingPageForm from "@/components/LandingPageForm";
+import { ReactElement } from "react";
+//import SharedVideosList from "@/components/SharedVideoList.tsx";
 
 export function Home(): ReactElement {
 
@@ -7,14 +8,14 @@ export function Home(): ReactElement {
         <div className="flex flex-col items-center"> {/*flex flex-col justify-center h-[70%]*/}
             <section className="container mt-10 flex flex-col items-center text-center" id="hero-section">
                 <h1 className="text-4xl text-primary font-bold mb-4">
-                    Welcome to Vu's Video Sharing App
+                    Your Martial Art Training Assistant
                 </h1>
                 {/* <p className="text-muted-foreground mb-4">
                     {t("home.hero.subtitle")}
                 </p> */}
             </section>
             <section className="container mt-10 flex flex-col items-center text-center" id="hero-section">
-                <SharedVideosList/>
+                <LandingPageForm/>
             </section>
         </div>
     );

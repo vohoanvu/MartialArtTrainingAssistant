@@ -5,6 +5,22 @@ import {removeAuthToken, removeRefreshToken } from "@/lib/utils.ts";
 import {paths} from "@/services/endpoints.ts";
 import {createJSONStorage, persist} from "zustand/middleware";
 
+export interface RegisterFighterBody {
+    email: string;
+    password: string;
+    fighterRole: string;
+    fighterName: string;
+    height: number;
+    weight: number;
+    bmi: number;
+    gender: string;
+    birthdate: string;
+    beltColor: string;
+    maxWorkoutDuration: number;
+    experience: number;
+}
+
+
 /**
  * @AuthState is an interface that defines the state of the AuthStore.
  * @accessToken: The access token used to authenticate requests to the server.
@@ -48,6 +64,7 @@ interface AuthActions {
     logout: () => void;
     hydrate: () => Promise<void>;
     getUserInfo: () => Promise<void>;
+    registerFighter: (body: RegisterFighterBody) => Promise<{ successful : boolean, response : string | null }>;
 }
 
 /**
@@ -152,6 +169,18 @@ const useAuthStore = create<AuthStore>()(
                 
                 const responseCode = response.status;
                 return responseCode === 200 ? { successful: true, response: null } : { successful: false, response: await response.text() };
+            },
+            registerFighter: async (body: RegisterFighterBody) => {
+                const response = await fetch("api/fighter/register", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+                console.log('POST /api/fighter/register...', response);
+                const responseCode = response.status;
+                return responseCode === 201 ? 
+                    { successful: true, response: null } : 
+                    { successful: false, response: await response.text() };
             },
             getUserInfo: async () => {
                 const accessToken = get().accessToken;
