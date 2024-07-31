@@ -1,7 +1,7 @@
 ﻿// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { paths } from './endpoints';
-import { TrainingSessionResponse, SharedVideo } from "@/types/global.ts";
+import { CreateTrainingSessionRequest, CreateTrainingSessionResponse, TrainingSessionResponse, SharedVideo } from "@/types/global.ts";
 
 type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
@@ -47,6 +47,28 @@ export async function getTrainingSessions({ currentTry = 0, jwtToken, refreshTok
     }
     
     throw new Error("Error fetching training sessions");
+}
+
+export async function createTrainingSession(newSession: CreateTrainingSessionRequest, jwtToken: string): Promise<CreateTrainingSessionResponse> {
+    try {
+        const response = await fetch('/api/trainingsession', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwtToken}`,
+            },
+            body: JSON.stringify(newSession),
+        });
+    
+        if (!response.ok) {
+            throw new Error(`Failed to create a new training session: ${response.statusText}`);
+        }
+    
+        return await response.json() as CreateTrainingSessionResponse;
+    } catch (error) {
+        console.error('Error creating new training session:', error);
+        throw error;
+    }
 }
 
 export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken, hydrate}): Promise<SharedVideo[]> {

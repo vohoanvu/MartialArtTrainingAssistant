@@ -50,6 +50,24 @@ export type TrainingSessionResponse = {
     studentIds: number[];
 };
 
+export interface CreateTrainingSessionRequest {
+    trainingDate: string;
+    description: string;
+    capacity: number;
+    duration: number;
+    status: string;
+}
+
+export interface CreateTrainingSessionResponse {
+    trainingDate: string;
+    description: string;
+    capacity: number;
+    duration: number;
+    status: string;
+    instructorId: number;
+    studentIds: number[];
+}
+
 /**
  * SharedVideo type
  * @property {number || null} id - ID

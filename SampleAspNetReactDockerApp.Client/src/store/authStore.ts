@@ -197,6 +197,7 @@ const useAuthStore = create<AuthStore>()(
                 });
                 if (response.ok) {
                     const userInfo = await response.json();
+                    console.log("User info fetched: ", userInfo);
                     get().setUser(userInfo);
                 } else {
                     console.error("Failed to fetch user info:", await response.text());

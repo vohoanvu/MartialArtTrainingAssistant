@@ -1,12 +1,12 @@
 ﻿import {ReactElement, useEffect, useState } from "react";
 import useAuthStore from "@/store/authStore.ts";
 import {useNavigate} from "react-router-dom";
-//import SharedVideosList from "@/components/SharedVideoList";
 import { TrainingSessionResponse } from "@/types/global";
 import { getTrainingSessions } from "@/services/api";
 import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
+import { Button } from "@/components/ui/button";
 
 const trainingSessionColumns: ColumnDef<TrainingSessionResponse, unknown>[] = [
     {
@@ -79,6 +79,10 @@ export default function Dashboard(): ReactElement {
         }
     };
 
+    const handleCreateNewSession = () => {
+        navigate('/create-session'); // Navigate to the TrainingSessionForm component
+    };
+
     return (
         <div className="flex flex-col items-center">
             <h1 className="text-2xl font-bold my-4">
@@ -97,6 +101,11 @@ export default function Dashboard(): ReactElement {
                         title="Active Training Sessions"
                         titleClassName={"text-center text-xl font-bold py-2"}
                     />
+                    <div className="flex justify-start mt-4">
+                        <Button type="button" onClick={handleCreateNewSession}>
+                            Create New Session
+                        </Button>
+                    </div>
                 </div>
             ) : (
                 <p>Loading data from API...</p>
@@ -113,11 +122,11 @@ export default function Dashboard(): ReactElement {
 // export default function Dashboard(): ReactElement {
 //     const [data, setData] = useState<WeatherForecast[] | null>(null);
 
-//     const isLogged = useAuthStore((state) => state.loginStatus);
-//     const navigate = useNavigate();
-//     const jwtToken = useAuthStore((state) => state.accessToken);
-//     const refreshToken = useAuthStore((state) => state.refreshToken);
-//     const hydrate = useAuthStore((state) => state.hydrate);
+// const isLogged = useAuthStore((state) => state.loginStatus);
+// const navigate = useNavigate();
+// const jwtToken = useAuthStore((state) => state.accessToken);
+// const refreshToken = useAuthStore((state) => state.refreshToken);
+// const hydrate = useAuthStore((state) => state.hydrate);
 
 //     const {t} = useTranslation();
 
