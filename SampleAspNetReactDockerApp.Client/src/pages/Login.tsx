@@ -15,7 +15,7 @@ export default function Login() {
         try {
             const resp = await login({email, password});
             if (resp.successful) {
-                navigate("/");
+                navigate("/dashboard");
             } else {
                 setErrorMessage("Login failed, reason: " + resp.response);
                 console.log("Login failed: ", resp.response)

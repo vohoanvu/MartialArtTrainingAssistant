@@ -1,16 +1,63 @@
-﻿import {ReactElement, useEffect } from "react";
+﻿import {ReactElement, useEffect, useState } from "react";
 import useAuthStore from "@/store/authStore.ts";
 import {useNavigate} from "react-router-dom";
-import SharedVideosList from "@/components/SharedVideoList";
+//import SharedVideosList from "@/components/SharedVideoList";
+import { TrainingSessionResponse } from "@/types/global";
+import { getTrainingSessions } from "@/services/api";
+import { DataTable } from "@/components/ui/data-table";
 
-//unused component
+import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
+
+const trainingSessionColumns: ColumnDef<TrainingSessionResponse, unknown>[] = [
+    {
+        header: 'Training Date',
+        accessorKey: 'trainingDate' as keyof TrainingSessionResponse,
+        cell: ({ row }) => {
+            const date = new Date(row.original.trainingDate);
+            const formattedDate = date.toISOString().split('T')[0]; // Format as yyyy-MM-dd
+            return formattedDate;
+        },
+    },
+    {
+        header: 'Start Time',
+        accessorKey: 'trainingTime' as keyof TrainingSessionResponse,
+        cell: ({ row }) => {
+            const date = new Date(row.original.trainingDate);
+            const formattedTime = date.toTimeString().split(' ')[0]; // Format as HH:mm:ss
+            return formattedTime;
+        },
+    },
+    {
+        header: 'Description',
+        accessorKey: 'description' as keyof TrainingSessionResponse,
+    },
+    {
+        header: 'Capacity',
+        accessorKey: 'capacity' as keyof TrainingSessionResponse,
+    },
+    {
+        header: 'Duration (hours)',
+        accessorKey: 'duration' as keyof TrainingSessionResponse,
+    },
+    {
+        header: 'Status',
+        accessorKey: 'status' as keyof TrainingSessionResponse,
+    }
+];
+  
+
 export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
     const navigate = useNavigate();
+    const [data, setData] = useState<TrainingSessionResponse[] | null>(null);
+    const jwtToken = useAuthStore((state) => state.accessToken);
+    const refreshToken = useAuthStore((state) => state.refreshToken);
+    const hydrate = useAuthStore((state) => state.hydrate);
 
     useEffect(() => {
         switch (isLogged) {
             case "authenticated":
+                fetchData();
                 break;
             case "unauthenticated":
                 navigate("/login");
@@ -20,14 +67,48 @@ export default function Dashboard(): ReactElement {
             default:
                 break;
         }
-    }, [isLogged, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLogged]);
+
+    const fetchData = async () => {
+        try {
+            const trainingSessions = await getTrainingSessions({ jwtToken, refreshToken, hydrate });
+            setData(trainingSessions);
+        } catch (error) {
+            console.error("Error fetching training sessions: ", error);
+        }
+    };
 
     return (
-        <section className="container mt-10 flex flex-col items-center text-center">
-            <SharedVideosList/>
-        </section>
+        <div className="flex flex-col items-center">
+            <h1 className="text-2xl font-bold my-4">
+                Find your training session to check in
+            </h1>
+            <div className="w-1/2">
+                <p className="text-center text-lg mb-4">
+                    Create new class session below
+                </p>
+            </div>
+            {data ? (
+                <div className="w-1/2 rounded-lg dark:shadow-accent p-4 transition duration-500 ease-in-out transform hover:scale-105">
+                    <DataTable
+                        columns={trainingSessionColumns}
+                        data={data}
+                        title="Active Training Sessions"
+                        titleClassName={"text-center text-xl font-bold py-2"}
+                    />
+                </div>
+            ) : (
+                <p>Loading data from API...</p>
+            )}
+        </div>
     );
 }
+
+// <section className="container mt-10 flex flex-col items-center text-center">
+//     <SharedVideosList/>
+// </section>
+
 
 // export default function Dashboard(): ReactElement {
 //     const [data, setData] = useState<WeatherForecast[] | null>(null);

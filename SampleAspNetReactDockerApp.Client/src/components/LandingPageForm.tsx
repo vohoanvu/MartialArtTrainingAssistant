@@ -15,7 +15,7 @@ const LandingPageForm = () => {
         try {
             const resp = await login({email, password});
             if (resp.successful) {
-                navigate("/");
+                navigate("/dashboard");
             } else {
                 setErrorMessage("Login failed, reason: " + resp.response);
                 console.log("Login failed: ", resp.response)
@@ -28,7 +28,7 @@ const LandingPageForm = () => {
     useEffect(() => {
         switch (isLogged) {
             case "authenticated":
-                navigate("/"); //go to home page after login
+                navigate("/dashboard"); //go to Dashboard after login
                 break;
             case "unauthenticated":
                 break;

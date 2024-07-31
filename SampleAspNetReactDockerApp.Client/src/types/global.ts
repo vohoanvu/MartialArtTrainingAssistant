@@ -26,20 +26,28 @@ export type LoginRequest = {
 
 
 /**
- * Weather forecast type
- * @property {string || null} date - Date
- * @property {number || null} temperatureC - Temperature in Celsius
- * @property {number || null} temperatureF - Temperature in Fahrenheit
- * @property {string || null} summary - Summary
+ * TrainingSessionResponse type
+ * @property {string} trainingDate - Date of the training session
+ * @property {string} description - Description of the training session
+ * @property {number} capacity - Capacity of the training session
+ * @property {number} duration - Duration of the training session
+ * @property {string} status - Status of the training session
+ * @property {number} instructorId - ID of the instructor
+ * @property {number[]} studentIds - IDs of the students
  */
-export type WeatherForecast = {
-    /** Format: date */
-    date?: string;
+export type TrainingSessionResponse = {
+    /** Format: date-time */
+    trainingDate: string;
+    description: string;
     /** Format: int32 */
-    temperatureC?: number;
+    capacity: number;
     /** Format: int32 */
-    temperatureF?: number;
-    summary?: string | null;
+    duration: number;
+    status: string;
+    /** Format: int32 */
+    instructorId: number;
+    /** Format: int32[] */
+    studentIds: number[];
 };
 
 /**

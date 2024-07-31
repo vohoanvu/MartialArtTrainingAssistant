@@ -1,7 +1,7 @@
 ﻿// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { paths } from './endpoints';
-import { WeatherForecast, SharedVideo} from "@/types/global.ts";
+import { TrainingSessionResponse, SharedVideo } from "@/types/global.ts";
 
 type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
@@ -27,28 +27,26 @@ export const apiCall = <P extends Path, M extends PathMethod<P>>(
     console.log("Inspecting params: ", params);
 };
 
-export async function getWeatherForecast({currentTry = 0, jwtToken, refreshToken, hydrate}) : Promise<WeatherForecast[]> {
-    console.log("Test1");
+export async function getTrainingSessions({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<TrainingSessionResponse[]> {
+    console.log("Trying to get training session list...");
     
-    console.log("Trying to get weather forecast...");
-    const response = await fetch("api/v1/weatherforecast", {
+    const response = await fetch("api/trainingsession", {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${jwtToken}`
         }
     });
-    
-    if(response.ok) {
-        console.log("Weather forecast fetched successfully!");
-        return await response.json() as WeatherForecast[];
-    }
-    else if(response.status === 401 && currentTry === 0) {
+    console.log("Inspecting response: ", response);
+    if (response.ok) {
+        console.log("Training sessions fetched successfully!");
+        return await response.json() as TrainingSessionResponse[];
+    } else if (response.status === 401 && currentTry === 0) {
         await hydrate();
         console.log("Refresh token and try again...", refreshToken);
-        return await getWeatherForecast({currentTry : 1});
+        return await getTrainingSessions({ currentTry: 1, jwtToken, refreshToken, hydrate });
     }
     
-    throw new Error("Error fetching weather forecast");
+    throw new Error("Error fetching training sessions");
 }
 
 export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken, hydrate}): Promise<SharedVideo[]> {
