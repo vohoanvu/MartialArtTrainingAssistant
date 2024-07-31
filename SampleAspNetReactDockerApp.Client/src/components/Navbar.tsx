@@ -26,7 +26,7 @@ export default function Navbar(
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="text-lg font-bold">
                         <a href="/" className="hover:text-primary">
-                            Youtube Video Sharing App
+                            Martial Art Training Assistant
                         </a>
                     </div>
                     <ul className="flex space-x-5 mt-4">
