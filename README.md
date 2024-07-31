@@ -16,8 +16,10 @@
 ## About the Project
 
 ### App Overview
-This web application provides a dynamic platform for users to share and discover their favorite YouTube videos. It is designed with a focus on user engagement and real-time interactions. Below are the key features:
-- **User Registration & Authentication**: Users can sign up and log in using their email and password, ensuring secure access to their accounts.
+This web application facilitates better training curriculum for Martial Artist. It is designed with a focus on user engagement and real-time interactions. Below are the key features:
+- **User Registration & Authentication**: Users (Instructor or Student) can sign up and log in using their email and password, ensuring secure access to their accounts.
+- **Fighter Registration**: Student and Instructor can create their 'Fighter' profile by signing up.
+- **Training Session**: Instructor can create new training session for students to join.
 - **Video Sharing & Discovery**: The homepage showcases a curated list of YouTube videos shared by the community. Users can explore new content and get inspired by others' favorites.
 - **Real-Time Notifications**: When a user shares a new YouTube video, all registered users receive immediate notifications, fostering a lively and connected user experience.
 
