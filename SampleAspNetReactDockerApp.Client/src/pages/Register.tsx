@@ -52,18 +52,6 @@ export default function Register() {
         event.preventDefault();
         setPendingSubmit(event);
         setIsDialogOpen(true);
-        console.log('current email ', email);
-        console.log('current password ', password);
-        console.log('current role ', role);
-        console.log('current name ', name);
-        console.log('current height ', height);
-        console.log('current weight ', weight);
-        console.log('current bmi ', bmi);
-        console.log('current gender ', gender);
-        console.log('current birthdate ', birthdate);
-        console.log('current sparringDuration ', sparringDuration);
-        console.log('current experience ', experience);
-        console.log('current beltRank ', beltRank);
     };
 
     const handleConfirm = async () => {
@@ -139,6 +127,7 @@ export default function Register() {
                     </>
                 }
 
+                { /* FighterRole field */ }
                 <div>
                     <label htmlFor="role" className="block text-sm font-medium">Select Role:</label>
                     <select
@@ -152,6 +141,7 @@ export default function Register() {
                     </select>
                 </div>
 
+                { /* Fighter Name field */ }
                 <div>
                     <label htmlFor="name" className="block text-sm font-medium">Name:</label>
                     <input
@@ -164,7 +154,9 @@ export default function Register() {
                     />
                 </div>
 
+                { /* Height, Weight, BMI fields */ }
                 <div className="grid grid-cols-2 gap-4">
+                    { /* Height field */ }
                     <div>
                         <label htmlFor="height" className="block text-sm font-medium">Height:</label>
                         <input
@@ -181,6 +173,7 @@ export default function Register() {
                         <span className="ml-2">in ft</span>
                     </div>
 
+                    { /* Weight field */ }
                     <div>
                         <label htmlFor="weight" className="block text-sm font-medium">Weight:</label>
                         <input
@@ -196,6 +189,7 @@ export default function Register() {
                         <span className="ml-2">in lbs</span>
                     </div>
 
+                    { /* BMI field */ }
                     <div>
                         <label htmlFor="bmi" className="block text-sm font-medium">BMI:</label>
                         <input
@@ -208,6 +202,7 @@ export default function Register() {
                     </div>
                 </div>
 
+                {/* Gender field */}
                 <div>
                     <label htmlFor="gender" className="block text-sm font-medium">Gender:</label>
                     <select
@@ -221,6 +216,7 @@ export default function Register() {
                     </select>
                 </div>
 
+                {/* Birthdate field */}
                 <div>
                     <label htmlFor="birthdate">Birthdate:</label>
                     <input
@@ -231,6 +227,7 @@ export default function Register() {
                     />
                 </div>
 
+                {/* Sparring Duration field */}
                 <div>
                     <label htmlFor="sparringDuration" className="block text-sm font-medium">How long can you spar without breaking? (minutes):</label>
                     <input
@@ -243,6 +240,7 @@ export default function Register() {
                     />
                 </div>
 
+                {/* Experience field */}
                 <div>
                     <label htmlFor="experience" className="block text-sm font-medium">Years of Training Experience:</label>
                     <div className="flex space-x-4">
@@ -279,23 +277,24 @@ export default function Register() {
                     </div>
                 </div>
 
-
+                {/* Belt Rank field */}
                 <div>
-                <label htmlFor="beltRank" className="block text-sm font-medium">Brazilian Jiu-Jitsu Belt Rank:</label>
-                <select
-                    id="beltRank"
-                    className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
-                    value={beltRank}
-                    onChange={(e) => setBeltRank(e.target.value)}
-                >
-                    <option value="White">White</option>
-                    <option value="Blue">Blue</option>
-                    <option value="Purple">Purple</option>
-                    <option value="Brown">Brown</option>
-                    <option value="Black">Black</option>
-                </select>
+                    <label htmlFor="beltRank" className="block text-sm font-medium">Brazilian Jiu-Jitsu Belt Rank:</label>
+                    <select
+                        id="beltRank"
+                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
+                        value={beltRank}
+                        onChange={(e) => setBeltRank(e.target.value)}
+                    >
+                        <option value="White">White</option>
+                        <option value="Blue">Blue</option>
+                        <option value="Purple">Purple</option>
+                        <option value="Brown">Brown</option>
+                        <option value="Black">Black</option>
+                    </select>
                 </div>
 
+                {/* Email field */}
                 <div>
                     <label htmlFor="email" className="block text-sm font-medium">
                         Email
@@ -314,6 +313,7 @@ export default function Register() {
                         required
                     />
                 </div>
+                {/* Password field */}
                 <div>
                     <label htmlFor="password" className="block text-sm font-medium">
                         Password
@@ -332,6 +332,8 @@ export default function Register() {
                         required
                     />
                 </div>
+
+
                 <Button type="submit" variant="outline" className="w-full">
                     Register
                 </Button>

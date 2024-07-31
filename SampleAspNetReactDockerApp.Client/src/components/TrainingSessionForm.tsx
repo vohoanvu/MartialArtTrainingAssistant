@@ -10,8 +10,6 @@ import useAuthStore from '@/store/authStore';
 const TrainingSessionForm = () => {
     const navigate = useNavigate();
     const jwtToken = useAuthStore((state) => state.accessToken);
-    // const refreshToken = useAuthStore((state) => state.refreshToken);
-    // const hydrate = useAuthStore((state) => state.hydrate);
 
     const [instructorName, setInstructorName] = useState('');
     const [trainingDate, setTrainingDate] = useState('');
@@ -23,14 +21,6 @@ const TrainingSessionForm = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setIsDialogOpen(true);
-
-        console.log('Session Created:', {
-            instructorName,
-            trainingDate,
-            capacity,
-            duration,
-            description,
-        });
     };
 
     const handleConfirm = async () => {
@@ -60,6 +50,7 @@ const TrainingSessionForm = () => {
         <div className="container mx-auto max-w-lg p-8 shadow-lg rounded-lg">
             <h1 className="text-3xl font-bold mb-6">Create New Session</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Instructor Name field */}
                 <div>
                     <label htmlFor="instructorName" className="block text-sm font-medium">
                         Instructor Name
@@ -75,6 +66,7 @@ const TrainingSessionForm = () => {
                     />
                 </div>
 
+                {/* Training Date field */}
                 <div>
                     <label htmlFor="trainingDate" className="block text-sm font-medium">
                         Training Date
@@ -89,6 +81,7 @@ const TrainingSessionForm = () => {
                     />
                 </div>
 
+                {/* Capacity field */}
                 <div>
                     <label htmlFor="capacity" className="block text-sm font-medium">
                         Capacity
@@ -107,6 +100,7 @@ const TrainingSessionForm = () => {
                     </div>
                 </div>
 
+                {/* Duration field */}
                 <div>
                     <label htmlFor="duration" className="block text-sm font-medium">
                         Duration
@@ -145,6 +139,7 @@ const TrainingSessionForm = () => {
                     </select>
                 </div> */}
 
+                {/* Description field */}
                 <div>
                     <label htmlFor="description" className="block text-sm font-medium">
                         Description Notes
