@@ -153,11 +153,11 @@ namespace SampleAspNetReactDockerApp.Server
             builder.Services.AddAuthorization();
 
             builder.Services.AddIdentityApiEndpoints<AppUserEntity>(opts =>
-                {
-                    opts.User.RequireUniqueEmail = true;
-                    opts.Password.RequiredLength = 8;
-                })
-                .AddEntityFrameworkStores<MyDatabaseContext>();
+            {
+                opts.User.RequireUniqueEmail = true;
+                opts.Password.RequiredLength = 8;
+            })
+            .AddEntityFrameworkStores<MyDatabaseContext>();
 
             builder.Services.AddSignalR();
 

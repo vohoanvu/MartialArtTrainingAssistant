@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SampleAspNetReactDockerApp.Server.Domain.FighterService;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
@@ -11,11 +13,14 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class FighterController(IUnitOfWork unitOfWork,
-        IMapper objectMapper, FighterRegistrationService fighterRegistrationService) : ControllerBase
+        IMapper objectMapper, 
+        FighterRegistrationService fighterRegistrationService,
+        UserManager<AppUserEntity> userManager) : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _objectMapper = objectMapper;
         private readonly FighterRegistrationService _fighterRegistrationService = fighterRegistrationService;
+        private readonly UserManager<AppUserEntity> _userManager = userManager;
 
         [HttpGet]
         [Authorize]
@@ -132,6 +137,35 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
             {
                 return StatusCode((int)ex.StatusCode, new { ex.Message });
             }
+        }
+
+        [HttpGet("/api/fighter/info")]
+        [Authorize]
+        public async Task<IActionResult> GetUserInfo()
+        {
+            var user = await _userManager.Users.Include(u => u.Fighter)
+                .FirstOrDefaultAsync(u => u.Id == _userManager.GetUserId(User));
+
+            if (user == null || user.Fighter == null)
+            {
+                return NotFound(new { Message = "Fighter/User not found" });
+            }
+
+            var userInfo = new
+            {
+                user.Email,
+                IsEmailConfirmed = user.EmailConfirmed,
+                Fighter = new
+                {
+                    user.Fighter!.Id,
+                    user.Fighter.FighterName,
+                    user.Fighter.BelkRank,
+                    user.Fighter.Role,
+                    user.Fighter.Birthdate
+                }
+            };
+
+            return Ok(userInfo);
         }
     }
 }
