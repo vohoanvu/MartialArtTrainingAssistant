@@ -171,8 +171,6 @@ namespace SampleAspNetReactDockerApp.Server
                 app.UseSwaggerUI();
             }
 
-            app.MapHub<VideoShareHub>("/videoShareHub");
-
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
 

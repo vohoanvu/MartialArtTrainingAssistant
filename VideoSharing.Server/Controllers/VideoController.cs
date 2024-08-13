@@ -6,6 +6,7 @@ using VideoSharing.Server.Repository;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using VideoSharing.Server.Data;
 
 namespace VideoSharing.Server.Controllers
 {
@@ -18,9 +19,17 @@ namespace VideoSharing.Server.Controllers
         private readonly ISharedVideoRepository _sharedVideoRepository = sharedVideoRepository;
 
         [HttpPost("metadata")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(UploadVideoRequest request)
         {
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            Console.WriteLine($"Current claims {claims.Select(c => $" Type:{c.Type} ; Value:{c.Value}")} ");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
             var videoUrl = WebUtility.UrlDecode(request.VideoUrl);
             var videoId = YouTubeHelper.ExtractVideoId(videoUrl);
             if (videoId == null)
@@ -32,12 +41,6 @@ namespace VideoSharing.Server.Controllers
             if (videoDetailsResponse is null)
             {
                 return NotFound($"Video metadata was not found for this videoId {videoId}");
-            }
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-            {
-                return Unauthorized();
             }
 
             var video = new SharedVideo

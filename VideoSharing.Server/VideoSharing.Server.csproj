@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SpaRoot>..\SampleAspNetReactDockerApp.Client</SpaRoot>
-    <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
+    <!--<SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>-->
     <SpaProxyServerUrl>https://localhost:5173</SpaProxyServerUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
