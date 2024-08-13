@@ -2,12 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SampleAspNetReactDockerApp.Server.Helpers;
-using SampleAspNetReactDockerApp.Server.Models;
-using SampleAspNetReactDockerApp.Server.Models.Dtos;
+using VideoSharing.Server.Helpers;
+using VideoSharing.Server.Models;
+using VideoSharing.Server.Models.Dtos;
 using System.Security.Claims;
 
-namespace SampleAspNetReactDockerApp.Server.Controllers
+namespace VideoSharing.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -61,7 +61,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<TrainingSessionDtoBase>> UpdateSessionAsync(int id, TrainingSessionDtoBase input)
+        public async Task<ActionResult<TrainingSessionDtoBase>> UpdateSessionAsync(int id, TrainingSession input)
         {
             if (!Enum.IsDefined(typeof(SessionStatus), input.Status))
             {

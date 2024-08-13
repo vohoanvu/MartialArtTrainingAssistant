@@ -61,7 +61,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<TrainingSessionDtoBase>> UpdateSessionAsync(int id, TrainingSessionDtoBase input)
+        public async Task<ActionResult<TrainingSessionDtoBase>> UpdateSessionAsync(int id, TrainingSession input)
         {
             if (!Enum.IsDefined(typeof(SessionStatus), input.Status))
             {
