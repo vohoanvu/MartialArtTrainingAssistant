@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VideoSharing.Server.Data;
-using VideoSharing.Server.Domain.FighterService;
 using VideoSharing.Server.Domain.YoutubeSharingService;
 using VideoSharing.Server.Helpers;
 using VideoSharing.Server.Models;
@@ -47,7 +46,6 @@ namespace VideoSharing.Server
             });
             builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<FighterRegistrationService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
             builder.Services.AddControllers();
@@ -59,7 +57,7 @@ namespace VideoSharing.Server
 
                 opts.SwaggerDoc("v1", new OpenApiInfo()
                 {
-                    Title = "Remitano Video Sharing App",
+                    Title = "Video Sharing Service",
                     Version = "v1",
                     Description = "Youtube Vid Sharing App built with ASP.NET Core Web API, React and Docker",
                     Contact = new OpenApiContact()
