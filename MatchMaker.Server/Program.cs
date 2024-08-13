@@ -5,17 +5,17 @@ using Google.Apis.YouTube.v3;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using SampleAspNetReactDockerApp.Server.Data;
-using SampleAspNetReactDockerApp.Server.Domain.FighterService;
-using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
-using SampleAspNetReactDockerApp.Server.Helpers;
-using SampleAspNetReactDockerApp.Server.Models;
-using SampleAspNetReactDockerApp.Server.Repository;
+using MatchMaker.Server.Data;
+using MatchMaker.Server.Domain.FighterService;
+using MatchMaker.Server.Domain.YoutubeSharingService;
+using MatchMaker.Server.Helpers;
+using MatchMaker.Server.Models;
+using MatchMaker.Server.Repository;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace SampleAspNetReactDockerApp.Server
+namespace MatchMaker.Server
 {
     /// <summary>
     /// Main entry point for the application.
@@ -33,21 +33,6 @@ namespace SampleAspNetReactDockerApp.Server
             Global.Configuration = builder.Configuration;
 
             // Add services to the container.
-            builder.Services.AddScoped<ISharedVideoRepository, SharedVideoRepository>();
-            builder.Services.AddSingleton<IYoutubeServiceWrapper>(sp =>
-            {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var youtubeService = new YouTubeService(new BaseClientService.Initializer()
-                {
-                    ApiKey = configuration["YOUTUBE_API_KEY"],
-                    ApplicationName = "YoutubeVideSharingApp"
-                });
-
-                return new YoutubeServiceWrapper(youtubeService);
-            });
-            builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<FighterRegistrationService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
             builder.Services.AddControllers();
@@ -59,9 +44,9 @@ namespace SampleAspNetReactDockerApp.Server
 
                 opts.SwaggerDoc("v1", new OpenApiInfo()
                 {
-                    Title = "Remitano Video Sharing App",
+                    Title = "Match Maker service",
                     Version = "v1",
-                    Description = "Youtube Vid Sharing App built with ASP.NET Core Web API, React and Docker",
+                    Description = "built with ASP.NET Core Web API, React and Docker",
                     Contact = new OpenApiContact()
                     {
                         Name = "Vo Hoan Vu",
@@ -163,16 +148,6 @@ namespace SampleAspNetReactDockerApp.Server
 
             var app = builder.Build();
 
-            // Initialize the database if it doesn't exist
-            await using (var serviceScope = app.Services.CreateAsyncScope())
-            {
-                await DbHelper.EnsureDbIsCreatedAsync(
-                    serviceScope,
-                    app.Environment.IsDevelopment() &&
-                    Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
-                );
-            }
-
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseAuthentication();
@@ -184,8 +159,6 @@ namespace SampleAspNetReactDockerApp.Server
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
-            app.MapHub<VideoShareHub>("/videoShareHub");
 
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();

@@ -4,7 +4,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 
-namespace SampleAspNetReactDockerApp.Server.Helpers
+namespace MatchMaker.Server.Helpers
 {
     public class AuthOperationFilter : IOperationFilter
     {

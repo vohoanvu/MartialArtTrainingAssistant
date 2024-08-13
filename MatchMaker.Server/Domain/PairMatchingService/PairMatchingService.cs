@@ -1,6 +1,6 @@
-﻿using SampleAspNetReactDockerApp.Server.Models;
+﻿using MatchMaker.Server.Models;
 
-namespace SampleAspNetReactDockerApp.Server.Domain.PairMatchingService
+namespace MatchMaker.Server.Domain.PairMatchingService
 {
     public class PairMatchingService
     {

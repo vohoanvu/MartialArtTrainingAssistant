@@ -8,33 +8,33 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["SampleAspNetReactDockerApp.Server.csproj", "."]
-RUN dotnet restore "./SampleAspNetReactDockerApp.Server.csproj"
+COPY ["MatchMaker.Server.csproj", "."]
+RUN dotnet restore "./MatchMaker.Server.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./SampleAspNetReactDockerApp.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./MatchMaker.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./SampleAspNetReactDockerApp.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./MatchMaker.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "SampleAspNetReactDockerApp.Server.dll"]
+ENTRYPOINT ["dotnet", "MatchMaker.Server.dll"]
 
-#COPY ["SampleAspNetReactDockerApp.Server.csproj", "SampleAspNetReactDockerApp.Server/"]
+#COPY ["MatchMaker.Server.csproj", "MatchMaker.Server/"]
 #COPY ["SampleAspNetReactDockerApp.Client/SampleAspNetReactDockerApp.Client.esproj", "SampleAspNetReactDockerApp.Client/"]
-#RUN dotnet restore "SampleAspNetReactDockerApp.Server/SampleAspNetReactDockerApp.Server.csproj"
+#RUN dotnet restore "MatchMaker.Server/MatchMaker.Server.csproj"
 #COPY . .
-#WORKDIR "/src/SampleAspNetReactDockerApp.Server"
-#RUN dotnet build "SampleAspNetReactDockerApp.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
+#WORKDIR "/src/MatchMaker.Server"
+#RUN dotnet build "MatchMaker.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
 #
 #FROM build AS publish
 #ARG BUILD_CONFIGURATION=Release
-#RUN dotnet publish "SampleAspNetReactDockerApp.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+#RUN dotnet publish "MatchMaker.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 #
 #FROM base AS final
 #WORKDIR /app
 #COPY --from=publish /app/publish .
-#ENTRYPOINT ["dotnet", "SampleAspNetReactDockerApp.Server.dll"]
+#ENTRYPOINT ["dotnet", "MatchMaker.Server.dll"]

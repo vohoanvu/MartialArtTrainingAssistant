@@ -1,4 +1,4 @@
-﻿namespace SampleAspNetReactDockerApp.Server;
+﻿namespace MatchMaker.Server;
 
 /// <summary>
 /// Global class for accessing environment variables and other global settings

@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SampleAspNetReactDockerApp.Server.Domain.FighterService;
-using SampleAspNetReactDockerApp.Server.Helpers;
-using SampleAspNetReactDockerApp.Server.Models;
-using SampleAspNetReactDockerApp.Server.Models.Dtos;
+using MatchMaker.Server.Domain.FighterService;
+using MatchMaker.Server.Helpers;
+using MatchMaker.Server.Models;
+using MatchMaker.Server.Models.Dtos;
 
-namespace SampleAspNetReactDockerApp.Server.Controllers
+namespace MatchMaker.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
