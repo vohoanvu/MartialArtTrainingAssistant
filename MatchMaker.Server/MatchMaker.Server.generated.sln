@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatchMaker.Server", "MatchMaker.Server.csproj", "{A27E278B-6C68-4D3D-9806-D69CCA73CB74}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatchMaker.Server", "MatchMaker.Server.csproj", "{611C0EA6-0268-423A-9453-4BE193A55B17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A27E278B-6C68-4D3D-9806-D69CCA73CB74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A27E278B-6C68-4D3D-9806-D69CCA73CB74}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A27E278B-6C68-4D3D-9806-D69CCA73CB74}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A27E278B-6C68-4D3D-9806-D69CCA73CB74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{611C0EA6-0268-423A-9453-4BE193A55B17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{611C0EA6-0268-423A-9453-4BE193A55B17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{611C0EA6-0268-423A-9453-4BE193A55B17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{611C0EA6-0268-423A-9453-4BE193A55B17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,12 +6,4 @@ namespace VideoSharing.Server.Models.Dtos
     {
         public object VideoUrl { get; internal set; }
     }
-
-
-    public class TrainingPlan
-    {
-        public TrainingPlan()
-        {
-        }
-    }
 }

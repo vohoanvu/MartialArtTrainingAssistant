@@ -59,7 +59,7 @@ namespace VideoSharing.Server
                 {
                     Title = "Video Sharing Service",
                     Version = "v1",
-                    Description = "Youtube Vid Sharing App built with ASP.NET Core Web API, React and Docker",
+                    Description = "built with ASP.NET Core Web API, React and Docker",
                     Contact = new OpenApiContact()
                     {
                         Name = "Vo Hoan Vu",
@@ -160,16 +160,6 @@ namespace VideoSharing.Server
             builder.Services.AddSignalR();
 
             var app = builder.Build();
-
-            // Initialize the database if it doesn't exist
-            await using (var serviceScope = app.Services.CreateAsyncScope())
-            {
-                await DbHelper.EnsureDbIsCreatedAsync(
-                    serviceScope,
-                    app.Environment.IsDevelopment() &&
-                    Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
-                );
-            }
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
