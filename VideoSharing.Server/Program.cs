@@ -2,10 +2,8 @@ using System.Reflection;
 using Asp.Versioning;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using VideoSharing.Server.Data;
 using VideoSharing.Server.Domain.YoutubeSharingService;
 using VideoSharing.Server.Helpers;
 using VideoSharing.Server.Models;
@@ -13,6 +11,7 @@ using VideoSharing.Server.Repository;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
+using VideoSharing.Server.Data;
 
 namespace VideoSharing.Server
 {
@@ -45,7 +44,6 @@ namespace VideoSharing.Server
                 return new YoutubeServiceWrapper(youtubeService);
             });
             builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddAutoMapper(typeof(Program));
 
             builder.Services.AddControllers();
@@ -160,6 +158,16 @@ namespace VideoSharing.Server
             builder.Services.AddSignalR();
 
             var app = builder.Build();
+
+            // Initialize the database if it doesn't exist
+            await using (var serviceScope = app.Services.CreateAsyncScope())
+            {
+                await DbHelper.EnsureDbIsCreatedAsync(
+                    serviceScope,
+                    app.Environment.IsDevelopment() &&
+                    Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
+                );
+            }
 
             app.UseDefaultFiles();
             app.UseStaticFiles();

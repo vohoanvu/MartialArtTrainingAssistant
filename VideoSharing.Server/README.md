@@ -18,7 +18,7 @@ Once you have the .NET SDK installed, you can run the application using the foll
 dotnet run http
 ```
 
-This will start the server on port 5136. You can then navigate to `http://localhost:5136/swagger` to see the OpenAPI documentation for the API.
+This will start the server on port 5137. You can then navigate to `http://localhost:5137/swagger` to see the OpenAPI documentation for the API.
 
 If you want to run just the server app in the Docker production mode, you can use the following command in the parent directory:
 
