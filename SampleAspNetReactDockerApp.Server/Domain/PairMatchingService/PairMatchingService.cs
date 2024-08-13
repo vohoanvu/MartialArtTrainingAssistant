@@ -72,6 +72,41 @@ namespace SampleAspNetReactDockerApp.Server.Domain.PairMatchingService
             return pairs;
         }
 
+        public Tuple<Fighter, Fighter> FindNextMatchingPair(List<Fighter> remainingFighters)
+        {
+            double closestDifference = double.MaxValue;
+            Tuple<Fighter, Fighter> bestPair = null;
+
+            for (int i = 0; i < remainingFighters.Count; i++)
+            {
+                for (int j = i + 1; j < remainingFighters.Count; j++)
+                {
+                    // check if the pair is not already in the history
+                    var f1 = remainingFighters[i];
+                    var f2 = remainingFighters[j];
+                    if (!_pairHistory.Contains(Tuple.Create(f1.Id, f2.Id)) &&
+                        !_pairHistory.Contains(Tuple.Create(f2.Id, f1.Id)))
+                    {
+                        double currentDifference = ComputeDifference(f1, f2);
+
+                        if (currentDifference < closestDifference)
+                        {
+                            closestDifference = currentDifference;
+                            bestPair = Tuple.Create(f1, f2);
+                        }
+                    }
+                }
+            }
+
+            // add the new pair to the history
+            if (bestPair != null)
+            {
+                _pairHistory.Add(Tuple.Create(bestPair.Item1.Id, bestPair.Item2.Id)); // Record the pair in history
+            }
+
+            return bestPair;
+        }
+
         private Tuple<Fighter, Fighter> PairUpOddFighter(Fighter instructor)
         {
             var bestFighter = FindTheHighestRankFighter();
@@ -128,41 +163,6 @@ namespace SampleAspNetReactDockerApp.Server.Domain.PairMatchingService
             }
 
             return highestRankFighter;
-        }
-
-        public Tuple<Fighter, Fighter> FindNextMatchingPair(List<Fighter> remainingFighters)
-        {
-            double closestDifference = double.MaxValue;
-            Tuple<Fighter, Fighter> bestPair = null;
-
-            for (int i = 0; i < remainingFighters.Count; i++)
-            {
-                for (int j = i + 1; j < remainingFighters.Count; j++)
-                {
-                    // check if the pair is not already in the history
-                    var f1 = remainingFighters[i];
-                    var f2 = remainingFighters[j];
-                    if (!_pairHistory.Contains(Tuple.Create(f1.Id, f2.Id)) &&
-                        !_pairHistory.Contains(Tuple.Create(f2.Id, f1.Id)))
-                    {
-                        double currentDifference = ComputeDifference(f1, f2);
-
-                        if (currentDifference < closestDifference)
-                        {
-                            closestDifference = currentDifference;
-                            bestPair = Tuple.Create(f1, f2);
-                        }
-                    }
-                }
-            }
-
-            // add the new pair to the history
-            if (bestPair != null)
-            {
-                _pairHistory.Add(Tuple.Create(bestPair.Item1.Id, bestPair.Item2.Id)); // Record the pair in history
-            }
-
-            return bestPair;
         }
 
         //add a method to compare two belt ranks based on their color and stripe. Return -1 if this rank is lower than the other rank, 
