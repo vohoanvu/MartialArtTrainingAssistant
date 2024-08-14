@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using SampleAspNetReactDockerApp.Server.Models;
+using MatchMaker.Server.Models;
 
-namespace SampleAspNetReactDockerApp.Server.Data;
+namespace MatchMaker.Server.Data;
 
 /// <summary>
 /// The database context for the application.

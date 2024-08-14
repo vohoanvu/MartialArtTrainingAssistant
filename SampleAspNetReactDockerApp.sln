@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleAspNetReactDockerApp.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VideoSharing.Server", "VideoSharing.Server\VideoSharing.Server.csproj", "{51E5F5C5-1D8D-4DF5-9F84-C577ED82D9D0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatchMaker.Server", "MatchMaker.Server\MatchMaker.Server.csproj", "{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{51E5F5C5-1D8D-4DF5-9F84-C577ED82D9D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51E5F5C5-1D8D-4DF5-9F84-C577ED82D9D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51E5F5C5-1D8D-4DF5-9F84-C577ED82D9D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

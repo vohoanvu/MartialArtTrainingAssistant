@@ -23,7 +23,39 @@ namespace MatchMaker.Server.Domain.PairMatchingService
             _howManyDifferentPairs = howManyDifferentPairs;
         }
 
-        public IEnumerable<List<Tuple<Fighter, Fighter>>> GenerateFighterPairs()
+        public List<Tuple<Fighter, Fighter>> GenerateNonUniquePairs()
+        {
+            List<Fighter> remainingFighters = new List<Fighter>(_fighters);
+            List<Tuple<Fighter, Fighter>> pairs = new List<Tuple<Fighter, Fighter>>();
+
+            if (_fighters.Count % 2 != 0)
+            {
+                // If there is an odd number of fighters in the list, pair up the instructor with one of them.
+                Tuple<Fighter, Fighter> instructorPair = PairUpOddFighter(_instructor);
+                pairs.Add(instructorPair);
+                remainingFighters.Remove(instructorPair.Item2);
+            }
+
+            while (remainingFighters.Count > 0)
+            {
+                // Find the closest matching pair among the remaining fighters and add it to the list of pairs.
+                Tuple<Fighter, Fighter> pair = FindNextMatchingPairWithoutHistory(remainingFighters);
+                if (pair != null)
+                {
+                    pairs.Add(pair);
+                    remainingFighters.Remove(pair.Item1);
+                    remainingFighters.Remove(pair.Item2);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return pairs;
+        }
+
+        public IEnumerable<List<Tuple<Fighter, Fighter>>> GenerateFighterPairsWithUniquePairs()
         {
             while (_howManyDifferentPairs != null || _pairCounter < _howManyDifferentPairs)
             {
@@ -115,6 +147,11 @@ namespace MatchMaker.Server.Domain.PairMatchingService
 
         private Fighter FindTheHighestRankFighter()
         {
+            if (_fighters == null || !_fighters.Any())
+            {
+                throw new InvalidOperationException("No fighters available to find the highest rank.");
+            }
+
             Fighter highestRankFighter = _fighters[0];
 
             for (int i = 1; i < _fighters.Count; i++)
@@ -127,7 +164,6 @@ namespace MatchMaker.Server.Domain.PairMatchingService
                 {
                     // Current fighter has a higher belt rank than highest ranking fighter. Update highest ranking fighter.
                     highestRankFighter = currentFighter;
-
                 }
                 else if (beltComparison == 0)
                 {
@@ -210,6 +246,31 @@ namespace MatchMaker.Server.Domain.PairMatchingService
 
             //The belt ranks are equal.
             return 0;
+        }
+
+
+        private Tuple<Fighter, Fighter> FindNextMatchingPairWithoutHistory(List<Fighter> remainingFighters)
+        {
+            double closestDifference = double.MaxValue;
+            Tuple<Fighter, Fighter> bestPair = null;
+
+            for (int i = 0; i < remainingFighters.Count; i++)
+            {
+                for (int j = i + 1; j < remainingFighters.Count; j++)
+                {
+                    var f1 = remainingFighters[i];
+                    var f2 = remainingFighters[j];
+                    double currentDifference = ComputeDifference(f1, f2);
+
+                    if (currentDifference < closestDifference)
+                    {
+                        closestDifference = currentDifference;
+                        bestPair = Tuple.Create(f1, f2);
+                    }
+                }
+            }
+
+            return bestPair;
         }
     }
 }

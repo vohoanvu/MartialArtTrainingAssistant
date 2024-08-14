@@ -1,19 +1,12 @@
 using System.Reflection;
 using Asp.Versioning;
-using Google.Apis.Services;
-using Google.Apis.YouTube.v3;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using MatchMaker.Server.Data;
-using MatchMaker.Server.Domain.FighterService;
-using MatchMaker.Server.Domain.YoutubeSharingService;
 using MatchMaker.Server.Helpers;
-using MatchMaker.Server.Models;
-using MatchMaker.Server.Repository;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
+using MatchMaker.Server.Data;
 
 namespace MatchMaker.Server
 {
@@ -137,14 +130,14 @@ namespace MatchMaker.Server
             builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
 
-            builder.Services.AddIdentityApiEndpoints<AppUserEntity>(opts =>
-            {
-                opts.User.RequireUniqueEmail = true;
-                opts.Password.RequiredLength = 8;
-            })
-            .AddEntityFrameworkStores<MyDatabaseContext>();
+            //builder.Services.AddIdentityApiEndpoints<AppUserEntity>(opts =>
+            //{
+            //    opts.User.RequireUniqueEmail = true;
+            //    opts.Password.RequiredLength = 8;
+            //})
+            //.AddEntityFrameworkStores<MyDatabaseContext>();
 
-            builder.Services.AddSignalR();
+            //builder.Services.AddSignalR();
 
             var app = builder.Build();
 
@@ -160,8 +153,8 @@ namespace MatchMaker.Server
                 app.UseSwaggerUI();
             }
 
-            app.MapGroup("/api/auth/v1")
-                .MapIdentityApi<AppUserEntity>();
+            //app.MapGroup("/api/auth/v1")
+            //    .MapIdentityApi<AppUserEntity>();
 
             app.UseHttpsRedirection();
 
