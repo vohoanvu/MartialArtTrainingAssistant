@@ -167,6 +167,7 @@ namespace SampleAspNetReactDockerApp.Server
             builder.Services.AddSignalR();
 
             var app = builder.Build();
+            app.UseMiddleware<RedirectLoginMiddleware>();
 
             // Initialize the database if it doesn't exist
             await using (var serviceScope = app.Services.CreateAsyncScope())
@@ -193,10 +194,6 @@ namespace SampleAspNetReactDockerApp.Server
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
 
-            app.MapControllerRoute(
-                name: "custom-logic",
-                pattern: "api/auth/v1/login",
-                defaults: new { controller = "Auth", action = "Login" });
 
             app.UseHttpsRedirection();
 
