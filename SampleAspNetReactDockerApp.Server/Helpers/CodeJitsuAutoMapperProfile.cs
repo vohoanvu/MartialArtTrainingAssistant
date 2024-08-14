@@ -34,5 +34,7 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ForMember(x => x.Status, y => y.MapFrom(z => Enum.Parse<SessionStatus>(z.Status)))
             .ForMember(dest => dest.TrainingDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.TrainingDate, DateTimeKind.Utc)))
             .ReverseMap();
+
+        CreateMap<TrainingSession, GetSessionDetailResponse>();
     }
 }

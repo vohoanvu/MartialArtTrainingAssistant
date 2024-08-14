@@ -4,6 +4,8 @@ namespace SampleAspNetReactDockerApp.Server.Models.Dtos
 {
      public class TrainingSessionDtoBase
     {
+        public int? Id { get; set; }
+
         [Required]
         public DateTime TrainingDate { get; set; }
 
@@ -20,6 +22,15 @@ namespace SampleAspNetReactDockerApp.Server.Models.Dtos
 
         public int? InstructorId { get; set; }
 
-        public List<int>? StudentIds { get; set; } = new List<int>(); // List of Fighter IDs
+        public List<int>? StudentIds { get; set; } = []; // List of Fighter IDs
+    }
+
+    public class GetSessionDetailResponse : TrainingSessionDtoBase
+    {
+        public int Id { get; set; }
+
+        public ViewFighterDto Instructor { get; set; }
+
+        public List<ViewFighterDto> Students { get; set; }
     }
 }

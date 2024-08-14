@@ -25,13 +25,13 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<TrainingSessionDtoBase>> GetSessionAsync(int id)
+        public async Task<ActionResult<GetSessionDetailResponse>> GetSessionAsync(int id)
         {
             var session = await _unitOfWork.Repository<TrainingSession>().GetByIdAsync(id);
             if (session == null)
                 return NotFound();
         
-            return Ok(_objectMapper.Map<TrainingSession, TrainingSessionDtoBase>(session));
+            return Ok(_objectMapper.Map<TrainingSession, GetSessionDetailResponse>(session));
         }
 
         [HttpPost]
@@ -61,7 +61,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<TrainingSessionDtoBase>> UpdateSessionAsync(int id, TrainingSessionDtoBase input)
+        public async Task<ActionResult<GetSessionDetailResponse>> UpdateSessionAsync(int id, TrainingSessionDtoBase input)
         {
             if (!Enum.IsDefined(typeof(SessionStatus), input.Status))
             {
@@ -75,7 +75,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
             _unitOfWork.Repository<TrainingSession>().Update(existingSession);
             await _unitOfWork.SaveChangesAsync();
 
-            return Ok(_objectMapper.Map<TrainingSession, TrainingSessionDtoBase>(existingSession));
+            return Ok(_objectMapper.Map<TrainingSession, GetSessionDetailResponse>(existingSession));
         }
 
         [HttpDelete("{id}")]
