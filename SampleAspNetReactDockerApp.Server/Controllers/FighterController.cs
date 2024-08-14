@@ -3,10 +3,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SampleAspNetReactDockerApp.Server.Domain.FighterService;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using SampleAspNetReactDockerApp.Server.Models.Dtos;
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
 
 namespace SampleAspNetReactDockerApp.Server.Controllers
 {
@@ -15,12 +21,14 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
     public class FighterController(IUnitOfWork unitOfWork,
         IMapper objectMapper, 
         FighterRegistrationService fighterRegistrationService,
-        UserManager<AppUserEntity> userManager) : ControllerBase
+        UserManager<AppUserEntity> userManager, 
+        FighterSignInService<AppUserEntity> fighterSignInService) : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _objectMapper = objectMapper;
         private readonly FighterRegistrationService _fighterRegistrationService = fighterRegistrationService;
         private readonly UserManager<AppUserEntity> _userManager = userManager;
+        private readonly FighterSignInService<AppUserEntity> _fighterSignInService = fighterSignInService;
 
         [HttpGet]
         [Authorize]
@@ -167,5 +175,52 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
 
             return Ok(userInfo);
         }
+
+
+        [HttpPost("/api/fighter/login")]
+        public async Task<IActionResult> Login([FromBody] CustomLoginRequest model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
+            {
+                return BadRequest(new { message = "Email and password are required" });
+            }
+
+            try
+            {
+                var signInResult = await _fighterSignInService.PasswordSignInAsync(model.Email, model.Password, true, false);
+
+                if (!signInResult.Succeeded)
+                {
+                    return Unauthorized(new { message = "Invalid login attempt" });
+                }
+
+
+                var user = await _userManager.FindByNameAsync(model.Email);
+                if (user == null) 
+                {
+                    throw new ErrorResponseException()
+                            .SetStatusCode(HttpStatusCode.InternalServerError)
+                            .SetMessage("The Identity SignIn operation failed.");
+                }
+
+                var token = await _fighterSignInService.GenerateJwtTokenAsync(user);
+                var refreshToken = _fighterSignInService.GenerateRefreshToken(user);
+
+                var loginResponse = new CustomLoginResponse
+                {
+                    TokenType = "Bearer",
+                    AccessToken = token,
+                    ExpiresIn = 3600,
+                    RefreshToken = refreshToken
+                };
+
+                return Ok(loginResponse);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
+        }
     }
+
 }

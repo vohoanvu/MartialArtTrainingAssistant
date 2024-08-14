@@ -6,12 +6,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VideoSharing.Server.Domain.YoutubeSharingService;
 using VideoSharing.Server.Helpers;
-using VideoSharing.Server.Models;
 using VideoSharing.Server.Repository;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
 using VideoSharing.Server.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace VideoSharing.Server
 {
@@ -145,15 +148,44 @@ namespace VideoSharing.Server
 
             builder.Services.AddDbContext<MyDatabaseContext>();
 
-            builder.Services.AddAuthentication();
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidAudience = Global.Configuration["Jwt:Audience"],
+                    ValidIssuer = Global.Configuration["Jwt:Issuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.Configuration["Jwt:Key"]!))
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogError(context.Exception, "Authentication failed.");
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogInformation("Token validated successfully.");
+                        return Task.CompletedTask;
+                    }
+                };
+            });
             builder.Services.AddAuthorization();
 
-            builder.Services.AddIdentityApiEndpoints<AppUserEntity>(opts =>
-            {
-                opts.User.RequireUniqueEmail = true;
-                opts.Password.RequiredLength = 8;
-            })
-            .AddEntityFrameworkStores<MyDatabaseContext>();
+            //builder.Services.AddIdentityApiEndpoints<AppUserEntity>(opts =>
+            //{
+            //    opts.User.RequireUniqueEmail = true;
+            //    opts.Password.RequiredLength = 8;
+            //})
+            //.AddEntityFrameworkStores<MyDatabaseContext>();
 
             builder.Services.AddSignalR();
 
@@ -183,8 +215,8 @@ namespace VideoSharing.Server
 
             app.MapHub<VideoShareHub>("/videoShareHub");
 
-            app.MapGroup("/api/auth/v1")
-                .MapIdentityApi<AppUserEntity>();
+            //app.MapGroup("/api/auth/v1")
+            //    .MapIdentityApi<AppUserEntity>();
 
             app.UseHttpsRedirection();
 

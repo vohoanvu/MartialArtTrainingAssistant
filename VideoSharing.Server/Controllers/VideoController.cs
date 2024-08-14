@@ -13,22 +13,24 @@ namespace VideoSharing.Server.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class VideoController(IYoutubeDataService youtubeDataService,
-        ISharedVideoRepository sharedVideoRepository) : ControllerBase
+        ISharedVideoRepository sharedVideoRepository, IServiceProvider serviceProvider) : ControllerBase
     {
         private readonly IYoutubeDataService _youtubeDataService = youtubeDataService;
         private readonly ISharedVideoRepository _sharedVideoRepository = sharedVideoRepository;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         [HttpPost("metadata")]
         [Authorize]
         public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(UploadVideoRequest request)
         {
-            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
-            Console.WriteLine($"Current claims {claims.Select(c => $" Type:{c.Type} ; Value:{c.Value}")} ");
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
                 return Unauthorized();
             }
+
+            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
+            var appUserEntity = dbContext.Users.Find(userId);
 
             var videoUrl = WebUtility.UrlDecode(request.VideoUrl);
             var videoId = YouTubeHelper.ExtractVideoId(videoUrl);
@@ -58,7 +60,7 @@ namespace VideoSharing.Server.Controllers
             videoDetailsResponse.SharedBy = new AppUserDto
             {
                 UserId = userId,
-                Username = User.Identity?.Name!
+                Username = appUserEntity!.UserName!
             };
             videoDetailsResponse.Id = dbId;
 

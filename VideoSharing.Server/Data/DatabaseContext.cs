@@ -23,6 +23,12 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
     public virtual DbSet<SharedVideo> SharedVideos { get; set; }
 
+    public virtual DbSet<Fighter> Fighters { get; set; }
+
+    public virtual DbSet<TrainingSessionFighterJoint> TrainingSessionFighterJoints { get; set; }
+
+    public virtual DbSet<TrainingSession> TrainingSessions { get; set; }
+
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

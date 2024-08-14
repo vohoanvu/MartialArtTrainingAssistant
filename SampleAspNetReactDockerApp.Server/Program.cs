@@ -1,8 +1,12 @@
 using System.Reflection;
+using System.Text;
 using Asp.Versioning;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Domain.FighterService;
@@ -135,7 +139,20 @@ namespace SampleAspNetReactDockerApp.Server
 
             builder.Services.AddDbContext<MyDatabaseContext>();
 
-            builder.Services.AddAuthentication();
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidAudience = Global.Configuration["Jwt:Audience"],
+                    ValidIssuer = Global.Configuration["Jwt:Issuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.Configuration["Jwt:Key"]!))
+                };
+            });
             builder.Services.AddAuthorization();
 
             builder.Services.AddIdentityApiEndpoints<AppUserEntity>(opts =>
@@ -143,7 +160,9 @@ namespace SampleAspNetReactDockerApp.Server
                 opts.User.RequireUniqueEmail = true;
                 opts.Password.RequiredLength = 8;
             })
-            .AddEntityFrameworkStores<MyDatabaseContext>();
+            .AddEntityFrameworkStores<MyDatabaseContext>()
+            .AddSignInManager<FighterSignInService<AppUserEntity>>()
+            .AddUserManager<UserManager<AppUserEntity>>();
 
             builder.Services.AddSignalR();
 
@@ -173,6 +192,11 @@ namespace SampleAspNetReactDockerApp.Server
 
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
+
+            app.MapControllerRoute(
+                name: "custom-logic",
+                pattern: "api/auth/v1/login",
+                defaults: new { controller = "Auth", action = "Login" });
 
             app.UseHttpsRedirection();
 

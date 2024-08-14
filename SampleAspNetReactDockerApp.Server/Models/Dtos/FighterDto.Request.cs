@@ -1,4 +1,6 @@
-﻿namespace SampleAspNetReactDockerApp.Server.Models.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SampleAspNetReactDockerApp.Server.Models.Dtos
 {
     public class CreateFighterDto : FighterDtoBase
     {
@@ -9,4 +11,14 @@
     public class UpdateFighterDto : FighterDtoBase
     {
     }
+
+    public class CustomLoginRequest
+    {
+        [EmailAddress]
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+        public string? TwoFactorCode { get; set; }
+        public string? TwoFactorRecoveryCode { get; set; }
+    }
+
 }
