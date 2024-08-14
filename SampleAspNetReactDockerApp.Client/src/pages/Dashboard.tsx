@@ -7,44 +7,7 @@ import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
 import { Button } from "@/components/ui/button";
-
-const trainingSessionColumns: ColumnDef<TrainingSessionResponse, unknown>[] = [
-    {
-        header: 'Training Date',
-        accessorKey: 'trainingDate' as keyof TrainingSessionResponse,
-        cell: ({ row }) => {
-            const date = new Date(row.original.trainingDate);
-            const formattedDate = date.toISOString().split('T')[0]; // Format as yyyy-MM-dd
-            return formattedDate;
-        },
-    },
-    {
-        header: 'Start Time',
-        accessorKey: 'trainingTime' as keyof TrainingSessionResponse,
-        cell: ({ row }) => {
-            const date = new Date(row.original.trainingDate);
-            const formattedTime = date.toTimeString().split(' ')[0]; // Format as HH:mm:ss
-            return formattedTime;
-        },
-    },
-    {
-        header: 'Description',
-        accessorKey: 'description' as keyof TrainingSessionResponse,
-    },
-    {
-        header: 'Capacity',
-        accessorKey: 'capacity' as keyof TrainingSessionResponse,
-    },
-    {
-        header: 'Duration (hours)',
-        accessorKey: 'duration' as keyof TrainingSessionResponse,
-    },
-    {
-        header: 'Status',
-        accessorKey: 'status' as keyof TrainingSessionResponse,
-    }
-];
-  
+import { ActionCellProps } from "@/components/ui/TrainingSessionDetails";
 
 export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
@@ -82,6 +45,48 @@ export default function Dashboard(): ReactElement {
     const handleCreateNewSession = () => {
         navigate('/create-session'); // Navigate to the TrainingSessionForm component
     };
+    
+    
+    const trainingSessionColumns: ColumnDef<TrainingSessionResponse, unknown>[] = [
+        {
+            header: 'Training Date',
+            accessorKey: 'trainingDate' as keyof TrainingSessionResponse,
+            cell: ({ row }) => {
+                const date = new Date(row.original.trainingDate);
+                const formattedDate = date.toISOString().split('T')[0]; // Format as yyyy-MM-dd
+                return formattedDate;
+            },
+        },
+        {
+            header: 'Start Time',
+            accessorKey: 'trainingTime' as keyof TrainingSessionResponse,
+            cell: ({ row }) => {
+                const date = new Date(row.original.trainingDate);
+                const formattedTime = date.toTimeString().split(' ')[0]; // Format as HH:mm:ss
+                return formattedTime;
+            },
+        },
+        {
+            header: 'Description',
+            accessorKey: 'description' as keyof TrainingSessionResponse,
+        },
+        {
+            header: 'Capacity',
+            accessorKey: 'capacity' as keyof TrainingSessionResponse,
+        },
+        {
+            header: 'Duration (hours)',
+            accessorKey: 'duration' as keyof TrainingSessionResponse,
+        },
+        {
+            header: 'Status',
+            accessorKey: 'status' as keyof TrainingSessionResponse,
+        },
+        {
+            header: 'Actions',
+            cell: ({ row }) => <ActionCell sessionId={row.original.id} />
+        }
+    ];
 
     return (
         <div className="flex flex-col items-center">
@@ -113,6 +118,35 @@ export default function Dashboard(): ReactElement {
         </div>
     );
 }
+
+const ActionCell:  React.FC<ActionCellProps> = ({ sessionId }) => {
+    const navigate = useNavigate();
+
+    const handleEdit = () => {
+        navigate(`/edit-session/${sessionId}`);
+    };
+
+    const handleCheckIn = () => {
+        navigate(`/check-in/${sessionId}`);
+    };
+
+    return (
+        <div className="flex space-x-2">
+            <button
+                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                onClick={handleEdit}
+            >
+                Edit
+            </button>
+            <button
+                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                onClick={handleCheckIn}
+            >
+                Check-In
+            </button>
+        </div>
+    );
+};
 
 // <section className="container mt-10 flex flex-col items-center text-center">
 //     <SharedVideosList/>

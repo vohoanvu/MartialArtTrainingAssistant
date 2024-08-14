@@ -122,4 +122,55 @@ export async function uploadYoutubeVideo({
         throw new Error(`Error uploading YouTube video metadata: ${errorText}`);
     }
 }
+
+export async function getTrainingSessionDetails(sessionId: number, jwtToken: string) : Promise<SessionDetailViewModel>
+{
+    console.log("Trying to get training session details...");
+    
+    const response = await fetch(`api/trainingsession/${sessionId}`, {
+        method: "GET",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+    console.log("Inspecting response: ", response);
+    if (response.ok) {
+        console.log("Training session details fetched successfully!");
+        return await response.json() as SessionDetailViewModel[];
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        console.log("Refresh token and try again...", refreshToken);
+        return await getTrainingSessions({ currentTry: 1, jwtToken, refreshToken, hydrate });
+    }
+    
+    throw new Error("Error fetching training session details");
+}
+
+export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, jwtToken: string) : Promise<SessionDetailViewModel>
+{
+    console.log("Updating training session details...");
+    
+    const response = await fetch(`api/trainingsession/${sessionId}`, {
+        method: "PUT",
+        body: JSON.stringify(updateRequest),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+    console.log("Inspecting response: ", response);
+    if (response.ok) {
+        console.log("Training session details fetched successfully!");
+        return await response.json() as SessionDetailViewModel[];
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        console.log("Refresh token and try again...", refreshToken);
+        return await getTrainingSessions({ currentTry: 1, jwtToken, refreshToken, hydrate });
+    }
+    
+    throw new Error("Error fetching training session details");
+}
+
+
   
