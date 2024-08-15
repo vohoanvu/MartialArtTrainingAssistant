@@ -7,7 +7,6 @@ import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
 import { Button } from "@/components/ui/button";
-import { ActionCellProps } from "@/components/ui/TrainingSessionDetails";
 
 export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
@@ -91,7 +90,7 @@ export default function Dashboard(): ReactElement {
         }
     ];
 
-    const ActionCell:  React.FC<ActionCellProps> = ({ sessionId }) => {
+    const ActionCell = ({ sessionId }: { sessionId: number }) => {
         const navigate = useNavigate();
     
         const handleEdit = () => {
@@ -99,7 +98,7 @@ export default function Dashboard(): ReactElement {
         };
     
         const handleCheckIn = () => {
-            navigate(`/check-in/${sessionId}`);
+            navigate(`/session-details/${sessionId}`);
         };
     
         return (

@@ -193,7 +193,7 @@ export async function updateTrainingSessionDetails(sessionId: number, updateRequ
     console.log("Inspecting response: ", response);
     if (response.ok) {
         console.log("Training session details fetched successfully!");
-        return await response.json() as SessionDetailViewModel[];
+        return await response.json() as SessionDetailViewModel;
     } else if (response.status === 401 && currentTry === 0) {
         await hydrate();
         console.log("Refresh token and try again...", refreshToken);

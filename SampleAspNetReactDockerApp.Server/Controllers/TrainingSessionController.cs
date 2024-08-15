@@ -85,6 +85,7 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
 
             var updatedSession = await _unitOfWork.AppDbContext.TrainingSessions.Where(ts => ts.Id == id)
                 .Include(ts => ts.Students!).ThenInclude(joint => joint.Fighter)
+                .Include(ts => ts.Instructor)
                 .FirstOrDefaultAsync();
             if (updatedSession != null)
             {
