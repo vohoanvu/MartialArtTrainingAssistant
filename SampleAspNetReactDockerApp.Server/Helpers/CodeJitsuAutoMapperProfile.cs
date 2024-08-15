@@ -44,6 +44,8 @@ public class CodeJitsuAutoMapperProfile : Profile
 
         CreateMap<TrainingSession, GetSessionDetailResponse>()
             .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()  ));
+        CreateMap<TrainingSession, TrainingSessionDtoBase>()
+            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()  ));
 
         CreateMap<TrainingSessionFighterJoint, ViewFighterDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Fighter!.Id))

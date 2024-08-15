@@ -19,12 +19,12 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
         private readonly IMapper _objectMapper = objectMapper;
 
         [HttpGet]
-        public async Task<ActionResult<List<GetSessionDetailResponse>>> GetSessionsAsync()
+        public async Task<ActionResult<List<TrainingSessionDtoBase>>> GetSessionsAsync()
         {
             var allSessions = await _unitOfWork.AppDbContext.TrainingSessions
                 .Include(ts => ts.Students!).ToListAsync();
             
-            return Ok(_objectMapper.Map<List<TrainingSession>, List<GetSessionDetailResponse>>(allSessions));
+            return Ok(_objectMapper.Map<List<TrainingSession>, List<TrainingSessionDtoBase>>(allSessions));
         }
 
         [HttpGet("{id}")]
