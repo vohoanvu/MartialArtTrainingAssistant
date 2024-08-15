@@ -63,5 +63,6 @@
     "typescript": "^5.2.2",
     "vite": "^5.1.0",
     "vite-plugin-mkcert": "^1.17.3"
-  }
+  },
+  "proxy": "https://localhost:7192"
 }

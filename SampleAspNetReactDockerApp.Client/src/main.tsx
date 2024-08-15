@@ -14,6 +14,7 @@ import Contact from "@/pages/Contact.tsx";
 import SharingVideo from '@/pages/SharingVideo.tsx';
 import TrainingSessionForm from './components/TrainingSessionForm.tsx';
 import TrainingSessionDetails from './components/ui/TrainingSessionDetails.tsx';
+import VideoShareList from './pages/VideoShareList.tsx';
 
 const router = createBrowserRouter([
     {
@@ -59,7 +60,11 @@ const router = createBrowserRouter([
             {
                 path: '/session-details/:sessionId',
                 element: <TrainingSessionDetails/>
-            }
+            },
+            {
+                path: '/videos',
+                element: <VideoShareList/>,
+            },
         ]
     }
 ]);

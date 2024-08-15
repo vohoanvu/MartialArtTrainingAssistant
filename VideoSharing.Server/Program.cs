@@ -218,6 +218,8 @@ namespace VideoSharing.Server
             //app.MapGroup("/api/auth/v1")
             //    .MapIdentityApi<AppUserEntity>();
 
+            app.UseCors("AllowAll");
+
             app.UseHttpsRedirection();
 
             app.UseAuthorization();

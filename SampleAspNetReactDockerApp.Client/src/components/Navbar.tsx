@@ -36,6 +36,11 @@ export default function Navbar(
                                     <li>
                                         Welcome <strong>{authUser?.email}!</strong>
                                     </li>
+                                    <li>
+                                        <Link to="/videos" className="hover:text-primary">
+                                            Video Showcase
+                                        </Link>
+                                    </li>
                                     <li className="">
                                         <Link to="/share-video">
                                             <Button size="sm" variant="outline" className="w-full">
@@ -52,11 +57,6 @@ export default function Navbar(
                             )
                             : (
                                 <>
-                                    {/* <li>
-                                        <Link to="/about" className="hover:text-primary">
-                                            {t("navbar.about")}
-                                        </Link>
-                                    </li> */}
                                     <li>
                                         <Link to="/login" className="hover:text-primary">
                                             {t("navbar.login")}

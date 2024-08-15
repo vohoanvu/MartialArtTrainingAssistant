@@ -79,7 +79,7 @@ export async function createTrainingSession(newSession: CreateTrainingSessionReq
 
 export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken, hydrate}): Promise<SharedVideo[]> {
     console.log("Trying to fetch all shared videos...");
-    const response = await fetch("/api/video/getall", {
+    const response = await fetch("https://localhost:7192/api/video/getall", {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${jwtToken}`
@@ -106,7 +106,7 @@ export async function uploadYoutubeVideo({
 {
     console.log("Trying to upload YouTube video metadata...");
 
-    const response = await fetch(`/api/video/metadata`, {
+    const response = await fetch(`https://localhost:7192/api/video/metadata`, {
         method: 'POST',
         body: JSON.stringify({
             videoUrl: encodeURIComponent(videoUrl)

@@ -150,10 +150,6 @@ export default function Dashboard(): ReactElement {
     );
 }
 
-// <section className="container mt-10 flex flex-col items-center text-center">
-//     <SharedVideosList/>
-// </section>
-
 
 // export default function Dashboard(): ReactElement {
 //     const [data, setData] = useState<WeatherForecast[] | null>(null);
