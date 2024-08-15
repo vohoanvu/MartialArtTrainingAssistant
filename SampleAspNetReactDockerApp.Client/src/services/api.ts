@@ -6,7 +6,9 @@ import {
     CreateTrainingSessionResponse, 
     TrainingSessionResponse, 
     SharedVideo,
-    SessionDetailViewModel
+    SessionDetailViewModel,
+    MatchMakerRequest,
+    FighterPairResult
 } from "@/types/global.ts";
 
 type Path = keyof paths;
@@ -201,6 +203,35 @@ export async function updateTrainingSessionDetails(sessionId: number, updateRequ
     }
     
     throw new Error("Error fetching training session details");
+}
+
+export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest, {
+    jwtToken,
+    currentTry = 0,
+    hydrate
+}): Promise<FighterPairResult> 
+{
+    console.log("Generating Fighter Pair...");
+
+    const response = await fetch(`https://localhost:7193/api/matchmaker`, {
+        method: 'POST',
+        body: JSON.stringify(matchMakerRequest),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+
+    if (response.ok) {
+        console.log("Succcesfully generating Pair!");
+        return await response.json() as FighterPairResult;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await GenerateFighterPairs({ videoUrl, jwtToken, currentTry: 1, hydrate });
+    } else {
+        const errorText = await response.text();
+        throw new Error(`Error generating fighter pairs: ${errorText}`);
+    }
 }
 
 

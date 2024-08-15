@@ -90,6 +90,15 @@ namespace MatchMaker.Server
                         corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
                     options.AddPolicy("AllowAll",
                         corsBuilder => corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
+                    options.AddPolicy("AllowReactApp",
+                    builder =>
+                    {
+                        builder.WithOrigins("https://localhost:5173")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials();
+                    });
                 }
                 else
                 {
@@ -152,6 +161,8 @@ namespace MatchMaker.Server
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseCors("AllowReactApp");
 
             //app.MapGroup("/api/auth/v1")
             //    .MapIdentityApi<AppUserEntity>();

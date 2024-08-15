@@ -152,4 +152,17 @@ export interface FighterViewModel {
     experience: number;
 }
 
+export interface MatchMakerRequest
+{
+    studentFighterIds: number[]
+    instructorFighterId: number
+}
+
+export interface FighterPair {
+    fighter1: string;
+    fighter2: string;
+}
+
+export type FighterPairResult = FighterPair[];
+
 

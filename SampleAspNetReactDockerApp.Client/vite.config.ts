@@ -48,6 +48,7 @@ console.log(`Main Backend URL: ${backendUrl}`);
 
 const VideoShareBackendUrl = "https://localhost:7192"
 const MatchMakerBackendUrl = "https://localhost:7193"
+console.log(`VideoShare service Backend URL: ${VideoShareBackendUrl}`);
 console.log(`MatchMaker service Backend URL: ${MatchMakerBackendUrl}`);
 
 const runAsHttps: boolean = backendUrl.startsWith("https");

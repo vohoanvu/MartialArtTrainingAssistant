@@ -100,6 +100,10 @@ export default function Dashboard(): ReactElement {
         const handleCheckIn = () => {
             navigate(`/session-details/${sessionId}`);
         };
+
+        const handlePairUp = () => {
+            navigate(`/session-details/${sessionId}`);
+        };
     
         return (
             <div className="flex space-x-2">
@@ -110,9 +114,14 @@ export default function Dashboard(): ReactElement {
                             Check-In
                         </Button>
                     ) : (
-                        <Button type="button" onClick={handleEdit}>
-                            Edit
-                        </Button>
+                        <>
+                            <Button type="button" onClick={handleEdit}>
+                                Edit
+                            </Button>
+                            <Button type="button" onClick={handlePairUp}>
+                                Pair up
+                            </Button>
+                        </>
                     )
                 }
             </div>
