@@ -110,7 +110,20 @@ namespace VideoSharing.Server
                     options.AddDefaultPolicy(corsBuilder =>
                         corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
                     options.AddPolicy("AllowAll",
-                        corsBuilder => corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+                        corsBuilder => corsBuilder
+                            .AllowAnyOrigin()
+                            .AllowAnyMethod()
+                            .AllowAnyHeader()
+                    );
+
+                    options.AddPolicy("AllowReactApp",
+                    builder =>
+                    {
+                        builder.WithOrigins("https://localhost:5173")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials();
+                    });
                 }
                 else
                 {
@@ -218,7 +231,8 @@ namespace VideoSharing.Server
             //app.MapGroup("/api/auth/v1")
             //    .MapIdentityApi<AppUserEntity>();
 
-            app.UseCors("AllowAll");
+            //app.UseCors("AllowAll");
+            app.UseCors("AllowReactApp");
 
             app.UseHttpsRedirection();
 

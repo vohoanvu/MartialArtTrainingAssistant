@@ -1,8 +1,6 @@
 using System.Reflection;
 using System.Text;
 using Asp.Versioning;
-using Google.Apis.Services;
-using Google.Apis.YouTube.v3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +10,6 @@ using SampleAspNetReactDockerApp.Server.Data;
 using SampleAspNetReactDockerApp.Server.Domain.FighterService;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
-using SampleAspNetReactDockerApp.Server.Repository;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
@@ -35,7 +32,6 @@ namespace SampleAspNetReactDockerApp.Server
             Global.Configuration = builder.Configuration;
 
             // Add services to the container.
-            //builder.Services.AddScoped<ISharedVideoRepository, SharedVideoRepository>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<FighterRegistrationService>();
             builder.Services.AddAutoMapper(typeof(Program));
@@ -69,8 +65,7 @@ namespace SampleAspNetReactDockerApp.Server
                     BearerFormat = "JWT",
                     Description = "Please enter into field a valid JWT token"
                 });
-
-                opts.OperationFilter<AuthOperationFilter>();
+;
                 opts.OperationFilter<SecurityRequirementsOperationFilter>();
 
                 // Add XML comments to Swagger
@@ -160,12 +155,14 @@ namespace SampleAspNetReactDockerApp.Server
                     {
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
                         logger.LogError(context.Exception, "Authentication failed.");
+                        Console.WriteLine("Authentication failed: " + context.Exception.Message);
                         return Task.CompletedTask;
                     },
                     OnTokenValidated = context =>
                     {
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
                         logger.LogInformation("Token validated successfully.");
+                        Console.WriteLine("Token validated successfully.");
                         return Task.CompletedTask;
                     }
                 };
@@ -181,10 +178,7 @@ namespace SampleAspNetReactDockerApp.Server
             .AddSignInManager<FighterSignInService<AppUserEntity>>()
             .AddUserManager<UserManager<AppUserEntity>>();
 
-            builder.Services.AddSignalR();
-
             var app = builder.Build();
-            app.UseMiddleware<RedirectLoginMiddleware>();
 
             // Initialize the database if it doesn't exist
             await using (var serviceScope = app.Services.CreateAsyncScope())

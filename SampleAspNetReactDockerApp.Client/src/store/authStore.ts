@@ -58,7 +58,7 @@ interface AuthActions {
     setUser: (user: User) => void;
     clearUser: () => void;
     setLoginStatus: (status: 'authenticated' | 'unauthenticated' | 'pending') => void;
-    login: (request: paths["/api/auth/v1/login"]["post"]["requestBody"]["content"]["application/json"]) => Promise<{successful : boolean, response : string | null}>;
+    login: (request: paths["/api/fighter/login"]["post"]["requestBody"]["content"]["application/json"]) => Promise<{successful : boolean, response : string | null}>;
     signIn: (token: string) => Promise<void>;
     register: (email: string, password: string) => Promise<{ successful : boolean, response : string | null }>;
     logout: () => void;
@@ -89,16 +89,16 @@ const useAuthStore = create<AuthStore>()(
             setUser: (user) => set({user}),
             clearUser: () => set({user: null}),
             setLoginStatus: (status) => set({loginStatus: status}),
-            login: async (request: paths["/api/auth/v1/login"]["post"]["requestBody"]["content"]["application/json"]) => {
+            login: async (request: paths["/api/fighter/login"]["post"]["requestBody"]["content"]["application/json"]) => {
 
-                const response = await fetch("api/auth/v1/login", {
+                const response = await fetch("api/fighter/login", {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(request)
                 });
 
                 if (response.ok) {
-                    const responseData: paths["/api/auth/v1/login"]["post"]["responses"]["200"]["content"]["application/json"] = await response.json();
+                    const responseData: paths["/api/fighter/login"]["post"]["responses"]["200"]["content"]["application/json"] = await response.json();
                     get().setTokens(responseData.accessToken || "", responseData.refreshToken || "");
                     get().setLoginStatus('authenticated');
                     get().getUserInfo();
@@ -108,10 +108,13 @@ const useAuthStore = create<AuthStore>()(
                     return { successful: false, response: await response.text() };
                 }
             },
-            signIn: async (token) => {
+            signIn: async () => {
                 const response = await fetch('/api/signin', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}
+                    headers: {
+                        'Content-Type': 'application/json', 
+                        //'Authorization': `Bearer ${token}`
+                    }
                 });
 
                 if (response.ok) {
@@ -127,7 +130,10 @@ const useAuthStore = create<AuthStore>()(
 
                     const response = await fetch('/api/refresh', {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${refreshToken}`}
+                        headers: {
+                            'Content-Type': 'application/json', 
+                            //'Authorization': `Bearer ${refreshToken}`
+                        }
                     });
 
                     if (response.ok) {
@@ -192,7 +198,7 @@ const useAuthStore = create<AuthStore>()(
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
+                        //'Authorization': `Bearer ${accessToken}`
                     }
                 });
                 if (response.ok) {

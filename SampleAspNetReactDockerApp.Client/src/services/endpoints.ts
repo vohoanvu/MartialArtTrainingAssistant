@@ -26,7 +26,7 @@ export interface paths {
       };
     };
   };
-  "/api/auth/v1/login": {
+  "/api/fighter/login": {
     post: {
       parameters: {
         query?: {

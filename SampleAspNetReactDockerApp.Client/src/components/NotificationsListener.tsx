@@ -7,6 +7,7 @@ const NotificationListener: React.FC = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [notification, setNotification] = useState({ bannerTitle: '', videoTitle: '', userName: '' });
     const [showNotification, setShowNotification] = useState(false);
+    
     useEffect(() => {
         if (!isConnected && connection.state === signalR.HubConnectionState.Disconnected) {
             console.log('Starting SignalR connection...');

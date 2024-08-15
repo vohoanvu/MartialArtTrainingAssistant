@@ -39,7 +39,7 @@ export async function getTrainingSessions({ currentTry = 0, jwtToken, refreshTok
     const response = await fetch("api/trainingsession", {
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${jwtToken}`
+            //'Authorization': `Bearer ${jwtToken}`
         }
     });
     console.log("Inspecting response: ", response);
@@ -56,12 +56,13 @@ export async function getTrainingSessions({ currentTry = 0, jwtToken, refreshTok
 }
 
 export async function createTrainingSession(newSession: CreateTrainingSessionRequest, jwtToken: string): Promise<CreateTrainingSessionResponse> {
+    console.log("Do we have jwt token here?...", jwtToken)
     try {
         const response = await fetch('/api/trainingsession', {
             method: 'POST',
             headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json',
+                //'Authorization': `Bearer ${jwtToken}`,
             },
             body: JSON.stringify(newSession),
         });
@@ -137,7 +138,7 @@ export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, h
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${jwtToken}`
+            //'Authorization': `Bearer ${jwtToken}`
         }
     });
     console.log("Inspecting Fighter Info response: ", response);
@@ -161,7 +162,7 @@ export async function getTrainingSessionDetails(sessionId: number, { currentTry 
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${jwtToken}`
+            //'Authorization': `Bearer ${jwtToken}`
         }
     });
     if (response.ok) {
@@ -180,17 +181,16 @@ export async function getTrainingSessionDetails(sessionId: number, { currentTry 
 
 export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, { currentTry = 0, jwtToken, refreshToken, hydrate }) : Promise<SessionDetailViewModel>
 {
-    console.log("Updating training session details...");
+    console.log("Updating training session details...", updateRequest);
     
     const response = await fetch(`/api/trainingsession/${sessionId}`, {
         method: "PUT",
         body: JSON.stringify(updateRequest),
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${jwtToken}`
+            //'Authorization': `Bearer ${jwtToken}`
         }
     });
-    console.log("Inspecting response: ", response);
     if (response.ok) {
         console.log("Training session details fetched successfully!");
         return await response.json() as SessionDetailViewModel;

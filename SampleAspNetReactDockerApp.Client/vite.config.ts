@@ -36,7 +36,7 @@ import https from "https";
 
 const possibleBackendUrls: string[] = process.env.ASPNETCORE_URLS ?
     process.env.ASPNETCORE_URLS.split(';') :
-    ["http://localhost:5136"];
+    ["http://localhost:5136", "http://localhost:5137" , "http://localhost:5138"];
 
 const aspNetCore_environment: string = process.env.ASPNETCORE_ENVIRONMENT || "Development";
 
@@ -44,7 +44,11 @@ const aspNetCore_environment: string = process.env.ASPNETCORE_ENVIRONMENT || "De
 const aspNetCore_shouldShowSwaggerInProduction: boolean = process.env.ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION === "true";
 
 const backendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[0];
-console.log(`Backend URL: ${backendUrl}`);
+console.log(`Main Backend URL: ${backendUrl}`);
+
+const VideoShareBackendUrl = "https://localhost:7192"
+const MatchMakerBackendUrl = "https://localhost:7193"
+console.log(`MatchMaker service Backend URL: ${MatchMakerBackendUrl}`);
 
 const runAsHttps: boolean = backendUrl.startsWith("https");
 
@@ -61,7 +65,7 @@ let serverProxies: Record<string, ProxyOptions> =
                 agent: httpsAgent
             },
             '/videoShareHub': {
-                target: backendUrl,
+                target: VideoShareBackendUrl,
                 ws: true,
                 changeOrigin: true,
                 secure: false,
@@ -73,7 +77,7 @@ let serverProxies: Record<string, ProxyOptions> =
                 target: backendUrl,
             },
             "/videoShareHub": {
-                target: backendUrl,
+                target: VideoShareBackendUrl,
                 ws: true,
                 changeOrigin: true,
                 secure: false,
