@@ -30,7 +30,7 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
 
             if (source.TrainingDate.HasValue)
             {
-                destination.TrainingDate = source.TrainingDate.Value;
+                destination.TrainingDate = DateTime.SpecifyKind(source.TrainingDate.Value, DateTimeKind.Utc);
             }
 
             if (source.Capacity.HasValue)

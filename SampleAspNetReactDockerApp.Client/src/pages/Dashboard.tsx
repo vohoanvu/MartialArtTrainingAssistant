@@ -1,8 +1,8 @@
 ﻿import {ReactElement, useEffect, useState } from "react";
 import useAuthStore from "@/store/authStore.ts";
 import {useNavigate} from "react-router-dom";
-import { TrainingSessionResponse } from "@/types/global";
-import { getTrainingSessions } from "@/services/api";
+import { FighterInfo, TrainingSessionResponse } from "@/types/global";
+import { getTrainingSessions, getFighterInfo } from "@/services/api";
 import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
@@ -13,6 +13,7 @@ export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
     const navigate = useNavigate();
     const [data, setData] = useState<TrainingSessionResponse[] | null>(null);
+    const [fighterInfo, setFighterInfo] = useState<FighterInfo>();
     const jwtToken = useAuthStore((state) => state.accessToken);
     const refreshToken = useAuthStore((state) => state.refreshToken);
     const hydrate = useAuthStore((state) => state.hydrate);
@@ -37,6 +38,8 @@ export default function Dashboard(): ReactElement {
         try {
             const trainingSessions = await getTrainingSessions({ jwtToken, refreshToken, hydrate });
             setData(trainingSessions);
+            const authenticatedFighter = await getFighterInfo({ jwtToken, refreshToken, hydrate });
+            setFighterInfo(authenticatedFighter);
         } catch (error) {
             console.error("Error fetching training sessions: ", error);
         }
@@ -88,6 +91,35 @@ export default function Dashboard(): ReactElement {
         }
     ];
 
+    const ActionCell:  React.FC<ActionCellProps> = ({ sessionId }) => {
+        const navigate = useNavigate();
+    
+        const handleEdit = () => {
+            navigate(`/edit-session/${sessionId}`);
+        };
+    
+        const handleCheckIn = () => {
+            navigate(`/check-in/${sessionId}`);
+        };
+    
+        return (
+            <div className="flex space-x-2">
+                {
+                    //Student role is 0, Instructor is 1
+                    fighterInfo && fighterInfo.fighter.role == 0 ? (
+                        <Button type="button" onClick={handleCheckIn}>
+                            Check-In
+                        </Button>
+                    ) : (
+                        <Button type="button" onClick={handleEdit}>
+                            Edit
+                        </Button>
+                    )
+                }
+            </div>
+        );
+    };
+
     return (
         <div className="flex flex-col items-center">
             <h1 className="text-2xl font-bold my-4">
@@ -118,35 +150,6 @@ export default function Dashboard(): ReactElement {
         </div>
     );
 }
-
-const ActionCell:  React.FC<ActionCellProps> = ({ sessionId }) => {
-    const navigate = useNavigate();
-
-    const handleEdit = () => {
-        navigate(`/edit-session/${sessionId}`);
-    };
-
-    const handleCheckIn = () => {
-        navigate(`/check-in/${sessionId}`);
-    };
-
-    return (
-        <div className="flex space-x-2">
-            <button
-                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                onClick={handleEdit}
-            >
-                Edit
-            </button>
-            <button
-                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                onClick={handleCheckIn}
-            >
-                Check-In
-            </button>
-        </div>
-    );
-};
 
 // <section className="container mt-10 flex flex-col items-center text-center">
 //     <SharedVideosList/>

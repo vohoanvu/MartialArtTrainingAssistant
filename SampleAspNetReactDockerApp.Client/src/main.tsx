@@ -50,6 +50,10 @@ const router = createBrowserRouter([
             {
                 path: '/create-session',
                 element: <TrainingSessionForm/>,
+            },
+            {
+                path: '/edit-session/:sessionId',
+                element: <TrainingSessionForm/>
             }
         ]
     }

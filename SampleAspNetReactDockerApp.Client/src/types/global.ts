@@ -14,6 +14,21 @@ export type User = {
     avatarUrl?: string;
 }
 
+export interface Fighter {
+    id: number;
+    fighterName: string;
+    belkRank: number;
+    role: number;
+    birthdate: string; // or Date if you plan to handle it as a Date object
+}
+
+export interface FighterInfo {
+    email: string;
+    isEmailConfirmed: boolean;
+    fighter: Fighter;
+}
+
+
 /**
  * Login request type
  * @property {string} email - User email
@@ -62,6 +77,8 @@ export interface SessionDetailViewModel {
     status: string;
     instructor: FighterViewModel;
     students: FighterViewModel[];
+    instructorId: number;
+    studentIds: number[];
 }
 
 export interface CreateTrainingSessionRequest {

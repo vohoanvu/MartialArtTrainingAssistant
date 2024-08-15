@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import ConfirmationDialog from '@/components/ConfirmationDialog';  // Ensure this component is imported correctly
 import { Button } from '@/components/ui/button';
-import { CreateTrainingSessionRequest } from '@/types/global';
-import { createTrainingSession } from '@/services/api';
+import { CreateTrainingSessionRequest, UpdateTrainingSessionRequest } from '@/types/global';
+import { createTrainingSession, updateTrainingSessionDetails , getTrainingSessionDetails } from '@/services/api';
 import useAuthStore from '@/store/authStore';
 
 
 const TrainingSessionForm = () => {
+    const { sessionId  } = useParams<{ sessionId?: string }>();
+    const sessionIdNumber = sessionId ? Number(sessionId) : undefined
     const navigate = useNavigate();
     const jwtToken = useAuthStore((state) => state.accessToken);
+    const refreshToken = useAuthStore((state) => state.refreshToken);
+    const hydrate = useAuthStore((state) => state.hydrate);
 
     const [instructorName, setInstructorName] = useState('');
     const [trainingDate, setTrainingDate] = useState('');
@@ -18,27 +22,60 @@ const TrainingSessionForm = () => {
     const [description, setDescription] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+    useEffect(() => {
+        if (sessionIdNumber) {
+            const fetchSessionDetails = async () => {
+                try {
+                    const details = await getTrainingSessionDetails(sessionIdNumber, { jwtToken, refreshToken, hydrate });
+                    setInstructorName(details.instructor.fighterName);
+                    setTrainingDate(details.trainingDate.slice(0, 16));
+                    setCapacity(details.capacity.toString());
+                    setDuration(details.duration.toString());
+                    setDescription(details.description);
+                } catch (error) {
+                    console.error("Failed to load session details:", error);
+                }
+            };
+            fetchSessionDetails();
+        }
+    }, [hydrate, jwtToken, refreshToken, sessionIdNumber])
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setIsDialogOpen(true);
     };
 
     const handleConfirm = async () => {
-        const newSession : CreateTrainingSessionRequest = {
-            trainingDate,
-            description,
-            capacity: parseInt(capacity, 10),
-            duration: parseInt(duration, 10),
-            status: 'Active',
-        };
-
-        try {
-            await createTrainingSession(newSession, jwtToken!);
-            setIsDialogOpen(false);
-            // After successful creation, navigate back to the dashboard or another page
-            navigate('/dashboard');
-        } catch (error) {
-            console.error("Failed to create a new session:", error);
+        if (!sessionIdNumber) {
+            const newSession: CreateTrainingSessionRequest = {
+                trainingDate,
+                description,
+                capacity: parseInt(capacity, 10),
+                duration: parseInt(duration, 10),
+                status: 'Active',
+            };
+            try {
+                await createTrainingSession(newSession, jwtToken!);
+                setIsDialogOpen(false);
+                navigate('/dashboard');
+            } catch (error) {
+                console.error("Failed to create a new session:", error);
+            }
+        } else {
+            const updatedSession: UpdateTrainingSessionRequest = {
+                trainingDate,
+                description,
+                capacity: parseInt(capacity, 10),
+                duration: parseInt(duration, 10),
+                status: 'Active',
+            };
+            try {
+                await updateTrainingSessionDetails(sessionIdNumber, updatedSession, { jwtToken, refreshToken, hydrate });
+                setIsDialogOpen(false);
+                navigate('/dashboard');
+            } catch (error) {
+                console.error("Failed to update the session:", error);
+            }
         }
     };
 
@@ -48,7 +85,9 @@ const TrainingSessionForm = () => {
 
     return (
         <div className="container mx-auto max-w-lg p-8 shadow-lg rounded-lg">
-            <h1 className="text-3xl font-bold mb-6">Create New Session</h1>
+            <h1 className="text-3xl font-bold mb-6">
+                {sessionId ? 'Update Session Details' : 'Create New Session'}
+            </h1>
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Instructor Name field */}
                 <div>
@@ -66,7 +105,7 @@ const TrainingSessionForm = () => {
                     />
                 </div>
 
-                {/* Training Date field */}
+                {/* Training DateTime field */}
                 <div>
                     <label htmlFor="trainingDate" className="block text-sm font-medium">
                         Training Date
@@ -154,7 +193,7 @@ const TrainingSessionForm = () => {
                 </div>
 
                 <Button type="submit" className="w-full">
-                    Create
+                    {sessionId ? 'Update' : 'Create'}
                 </Button>
             </form>
 

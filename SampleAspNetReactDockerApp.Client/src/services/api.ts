@@ -1,7 +1,13 @@
 ﻿// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { paths } from './endpoints';
-import { CreateTrainingSessionRequest, CreateTrainingSessionResponse, TrainingSessionResponse, SharedVideo } from "@/types/global.ts";
+import { 
+    CreateTrainingSessionRequest, 
+    CreateTrainingSessionResponse, 
+    TrainingSessionResponse, 
+    SharedVideo,
+    SessionDetailViewModel
+} from "@/types/global.ts";
 
 type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
@@ -23,7 +29,7 @@ export const apiCall = <P extends Path, M extends PathMethod<P>>(
     ...params: RequestParams<P, M> extends undefined ? [] : [RequestParams<P, M>]
 ): Promise<ResponseType<P, M>> => {
     console.log("Inspecting url: ", url);
-    console.log("Inspecting method: ", method);
+    console.log("Inspecting method: ", method)
     console.log("Inspecting params: ", params);
 };
 
@@ -123,35 +129,60 @@ export async function uploadYoutubeVideo({
     }
 }
 
-export async function getTrainingSessionDetails(sessionId: number, jwtToken: string) : Promise<SessionDetailViewModel>
+export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, hydrate }) : Promise<FighterInfo>
 {
-    console.log("Trying to get training session details...");
+    console.log("Fetching Fighter Info details...");
     
-    const response = await fetch(`api/trainingsession/${sessionId}`, {
+    const response = await fetch(`/api/fighter/info`, {
         method: "GET",
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${jwtToken}`
         }
     });
-    console.log("Inspecting response: ", response);
+    console.log("Inspecting Fighter Info response: ", response);
     if (response.ok) {
-        console.log("Training session details fetched successfully!");
-        return await response.json() as SessionDetailViewModel[];
+        console.log("Fighter Info details fetched successfully!");
+        return await response.json() as FighterInfo;
     } else if (response.status === 401 && currentTry === 0) {
         await hydrate();
         console.log("Refresh token and try again...", refreshToken);
-        return await getTrainingSessions({ currentTry: 1, jwtToken, refreshToken, hydrate });
+        return await getFighterInfo({ currentTry: 1, jwtToken, refreshToken, hydrate });
+    }
+    
+    throw new Error("Error fetching Info details details");
+}
+
+export async function getTrainingSessionDetails(sessionId: number, { currentTry = 0, jwtToken, refreshToken, hydrate }) : Promise<SessionDetailViewModel>
+{
+    console.log("Trying to get training session details...");
+    
+    const response = await fetch(`/api/trainingsession/${sessionId}`, {
+        method: "GET",
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        console.log("Training session details fetched successfully!");   
+        console.log("Inspecting response: ", data);
+        return data as SessionDetailViewModel;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        console.log("Refresh token and try again...", refreshToken);
+        return await getTrainingSessionDetails(sessionId, { currentTry: 1, jwtToken, refreshToken, hydrate });
     }
     
     throw new Error("Error fetching training session details");
 }
 
-export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, jwtToken: string) : Promise<SessionDetailViewModel>
+export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, { currentTry = 0, jwtToken, refreshToken, hydrate }) : Promise<SessionDetailViewModel>
 {
     console.log("Updating training session details...");
     
-    const response = await fetch(`api/trainingsession/${sessionId}`, {
+    const response = await fetch(`/api/trainingsession/${sessionId}`, {
         method: "PUT",
         body: JSON.stringify(updateRequest),
         headers: {
@@ -166,7 +197,7 @@ export async function updateTrainingSessionDetails(sessionId: number, updateRequ
     } else if (response.status === 401 && currentTry === 0) {
         await hydrate();
         console.log("Refresh token and try again...", refreshToken);
-        return await getTrainingSessions({ currentTry: 1, jwtToken, refreshToken, hydrate });
+        return await updateTrainingSessionDetails({ currentTry: 1, jwtToken, refreshToken, hydrate });
     }
     
     throw new Error("Error fetching training session details");
