@@ -82,7 +82,7 @@ export async function createTrainingSession(newSession: CreateTrainingSessionReq
 }
 
 export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken, hydrate}): Promise<SharedVideo[]> {
-    console.log("Trying to fetch all shared videos...");
+    console.log("Fetching shared videos from Microservice D...");
     const response = await fetch("https://localhost:7192/api/video/getall", {
         headers: {
             'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ export async function uploadYoutubeVideo({
     hydrate
 }): Promise<SharedVideo> 
 {
-    console.log("Trying to upload YouTube video metadata...");
+    console.log("Uploading YouTube video metadata onto Microservice D...");
 
     const response = await fetch(`https://localhost:7192/api/video/metadata`, {
         method: 'POST',
@@ -184,7 +184,7 @@ export async function getTrainingSessionDetails(sessionId: number, { currentTry 
 
 export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, { currentTry = 0, jwtToken, refreshToken, hydrate }) : Promise<SessionDetailViewModel>
 {
-    console.log("Updating training session details...", updateRequest);
+    console.log("Updating training session details from Microservice A...", updateRequest);
     
     const response = await fetch(`/api/trainingsession/${sessionId}`, {
         method: "PUT",
@@ -212,7 +212,7 @@ export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest,
     hydrate
 }): Promise<FighterPairResult> 
 {
-    console.log("Generating Fighter Pair...");
+    console.log("Generating Fighter Pairs from Microservice C...");
 
     const response = await fetch(`https://localhost:7193/api/matchmaker`, {
         method: 'POST',
@@ -237,6 +237,8 @@ export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest,
 
 export async function CalculateBMI(height : number, weight: number) : Promise<GetBMIResponse>
 {
+    console.log("Calculating BMI from microservice A...");
+
     try {
         const response = await fetch('http://localhost:1111/calculate-bmi', {
             method: 'POST',
