@@ -152,6 +152,23 @@ namespace SampleAspNetReactDockerApp.Server
                     ValidIssuer = Global.Configuration["Jwt:Issuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.Configuration["Jwt:Key"]!))
                 };
+
+                //Error logging
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogError(context.Exception, "Authentication failed.");
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogInformation("Token validated successfully.");
+                        return Task.CompletedTask;
+                    }
+                };
             });
             builder.Services.AddAuthorization();
 

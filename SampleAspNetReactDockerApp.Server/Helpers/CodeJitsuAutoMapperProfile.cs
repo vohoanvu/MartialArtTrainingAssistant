@@ -31,10 +31,30 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ReverseMap();
 
         CreateMap<TrainingSessionDtoBase, TrainingSession>()
-            .ForMember(x => x.Status, y => y.MapFrom(z => Enum.Parse<SessionStatus>(z.Status)))
-            .ForMember(dest => dest.TrainingDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.TrainingDate, DateTimeKind.Utc)))
-            .ReverseMap();
+            .ForMember(x => x.Status, y => y.MapFrom(z => string.IsNullOrEmpty(z.Status) ? SessionStatus.Active : Enum.Parse<SessionStatus>(z.Status) ))
+            .ForMember(dest => dest.TrainingDate, opt => opt.MapFrom(src => 
+                src.TrainingDate.HasValue ? DateTime.SpecifyKind(src.TrainingDate.Value, DateTimeKind.Utc) 
+                : (DateTime?)null)
+            )
+            .ForMember(dest => dest.Capacity, opt => opt.MapFrom(src => src.Capacity ?? default))
+            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration ?? default))
+            .ForMember(dest => dest.InstructorId, opt => opt.MapFrom(src => src.InstructorId ?? default))
+            .ReverseMap()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
-        CreateMap<TrainingSession, GetSessionDetailResponse>();
+        CreateMap<TrainingSession, GetSessionDetailResponse>()
+            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()  ));
+
+        CreateMap<TrainingSessionFighterJoint, ViewFighterDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Fighter!.Id))
+            .ForMember(dest => dest.FighterName, opt => opt.MapFrom(src => src.Fighter!.FighterName))
+            .ForMember(dest => dest.BeltColor, opt => opt.MapFrom(src => src.Fighter!.BelkRank.ToString()))
+            .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Fighter!.Gender.ToString()))
+            .ForMember(dest => dest.FighterRole, opt => opt.MapFrom(src => src.Fighter!.Role.ToString()))
+            .ForMember(dest => dest.Weight, opt => opt.MapFrom(src => src.Fighter!.Weight))
+            .ForMember(dest => dest.Height, opt => opt.MapFrom(src => src.Fighter!.Height))
+            .ForMember(dest => dest.MaxWorkoutDuration, opt => opt.MapFrom(src => src.Fighter!.MaxWorkoutDuration))
+            .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.Fighter!.Experience.ToString()))
+            .ForMember(dest => dest.BMI, opt => opt.MapFrom(src => src.Fighter!.BMI));
     }
 }

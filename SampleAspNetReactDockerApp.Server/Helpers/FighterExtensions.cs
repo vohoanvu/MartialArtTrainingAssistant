@@ -1,4 +1,5 @@
-﻿using SampleAspNetReactDockerApp.Server.Models;
+﻿using SampleAspNetReactDockerApp.Server.Data;
+using SampleAspNetReactDockerApp.Server.Models;
 using SampleAspNetReactDockerApp.Server.Models.Dtos;
 
 namespace SampleAspNetReactDockerApp.Server.Helpers
@@ -15,6 +16,64 @@ namespace SampleAspNetReactDockerApp.Server.Helpers
             destination.Weight = source.Weight;
             destination.MaxWorkoutDuration = source.MaxWorkoutDuration;
             destination.Birthdate = source.Birthdate;
+        }
+    }
+
+    public static class TrainingSessionExtensions
+    {
+        public static void Update(this TrainingSession destination, UpdateSessionDetailsRequest source, MyDatabaseContext context)
+        {
+            if (source.Description != null)
+            {
+                destination.Description = source.Description;
+            }
+
+            if (source.TrainingDate.HasValue)
+            {
+                destination.TrainingDate = source.TrainingDate.Value;
+            }
+
+            if (source.Capacity.HasValue)
+            {
+                destination.Capacity = source.Capacity.Value;
+            }
+
+            if (source.Duration.HasValue)
+            {
+                destination.Duration = source.Duration.Value;
+            }
+
+            if (!string.IsNullOrEmpty(source.Status))
+            {
+                destination.Status = Enum.Parse<SessionStatus>(source.Status);
+            }
+
+            if (source.InstructorId.HasValue)
+            {
+                destination.InstructorId = source.InstructorId.Value;
+            }
+
+            if (source.StudentIds != null && source.StudentIds.Count > 0)
+            {
+                // Ensure no duplicates by filtering out existing student IDs
+                var existingStudentIds = destination.Students?.Select(s => s.FighterId).ToList() ?? new List<int>();
+
+                var newStudentIds = source.StudentIds.Where(id => !existingStudentIds.Contains(id)).ToList();
+
+                foreach (var studentId in newStudentIds)
+                {
+                    var studentFighter = context.Fighters.Find(studentId);
+                    if (studentFighter != null)
+                    {
+                        destination.Students ??= new List<TrainingSessionFighterJoint>();
+                        destination.Students.Add(new TrainingSessionFighterJoint
+                        {
+                            FighterId = studentId,
+                            TrainingSessionId = destination.Id
+                        });
+                    }
+                }
+            }
         }
     }
 }

@@ -6,19 +6,15 @@ namespace SampleAspNetReactDockerApp.Server.Models.Dtos
     {
         public int? Id { get; set; }
 
-        [Required]
-        public DateTime TrainingDate { get; set; }
+        public DateTime? TrainingDate { get; set; }
 
         public string? Description { get; set; }
 
-        [Required]
-        public int Capacity { get; set; }
+        public int? Capacity { get; set; }
 
-        [Required]
-        public double Duration { get; set; } // in hours
+        public double? Duration { get; set; } // in hours
 
-        [Required]
-        public string Status { get; set; } // Assuming SessionStatus is an enum, use string for flexibility
+        public string? Status { get; set; } // Assuming SessionStatus is an enum, use string for flexibility
 
         public int? InstructorId { get; set; }
 
@@ -32,5 +28,10 @@ namespace SampleAspNetReactDockerApp.Server.Models.Dtos
         public ViewFighterDto Instructor { get; set; }
 
         public List<ViewFighterDto> Students { get; set; }
+    }
+
+    public class UpdateSessionDetailsRequest : TrainingSessionDtoBase 
+    {
+
     }
 }
