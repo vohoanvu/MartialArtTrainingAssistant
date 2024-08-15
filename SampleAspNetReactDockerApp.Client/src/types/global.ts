@@ -20,6 +20,8 @@ export interface Fighter {
     belkRank: number;
     role: number;
     birthdate: string; // or Date if you plan to handle it as a Date object
+    height: number;
+    weight: number;
 }
 
 export interface FighterInfo {
@@ -165,4 +167,15 @@ export interface FighterPair {
 
 export type FighterPairResult = FighterPair[];
 
+export interface GetBMIResponse {
+    bmi: string,
+    category: string,
+    description: string,
+}
+
+// {
+//     "bmi": 21.50,
+//     "category": "Normal Weight",
+//     "description": "You are within the healthy weight range for your height."
+// }
 

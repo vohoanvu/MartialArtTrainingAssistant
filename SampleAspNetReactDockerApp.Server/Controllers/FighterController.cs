@@ -3,17 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using SampleAspNetReactDockerApp.Server.Domain.FighterService;
 using SampleAspNetReactDockerApp.Server.Helpers;
 using SampleAspNetReactDockerApp.Server.Models;
 using SampleAspNetReactDockerApp.Server.Models.Dtos;
-using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
-using System.Security.Claims;
-using System.Text;
-
 namespace SampleAspNetReactDockerApp.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -169,7 +163,9 @@ namespace SampleAspNetReactDockerApp.Server.Controllers
                     user.Fighter.FighterName,
                     user.Fighter.BelkRank,
                     user.Fighter.Role,
-                    user.Fighter.Birthdate
+                    user.Fighter.Birthdate,
+                    user.Fighter.Height,
+                    user.Fighter.Weight,
                 }
             };
 

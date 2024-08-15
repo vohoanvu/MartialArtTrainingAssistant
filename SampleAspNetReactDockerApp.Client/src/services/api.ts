@@ -8,7 +8,8 @@ import {
     SharedVideo,
     SessionDetailViewModel,
     MatchMakerRequest,
-    FighterPairResult
+    FighterPairResult,
+    GetBMIResponse
 } from "@/types/global.ts";
 
 type Path = keyof paths;
@@ -233,6 +234,24 @@ export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest,
         throw new Error(`Error generating fighter pairs: ${errorText}`);
     }
 }
+
+export async function CalculateBMI(height : number, weight: number) : Promise<GetBMIResponse>
+{
+    try {
+        const response = await fetch('http://localhost:1111/calculate-bmi', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ height, weight }),
+        });
+
+        return await response.json();
+    } catch (error) {
+        throw new Error(`Failed to call Microservice A: ${error}`);
+    }
+}
+
 
 
   

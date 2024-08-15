@@ -3,11 +3,12 @@ import {
     getTrainingSessionDetails, 
     updateTrainingSessionDetails, 
     getFighterInfo,
-    GenerateFighterPairs
+    GenerateFighterPairs,
+    CalculateBMI
 } from '@/services/api';// Assuming these API functions exist
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
-import { FighterInfo, FighterPairResult, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest } from '@/types/global';
+import { FighterInfo, FighterPairResult, GetBMIResponse, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest } from '@/types/global';
 import { useParams } from 'react-router-dom';
 
 const TrainingSessionDetails = () => {
@@ -21,6 +22,7 @@ const TrainingSessionDetails = () => {
     const hydrate = useAuthStore((state) => state.hydrate);
     const [fighterInfo, setFighterInfo] = useState<FighterInfo>();
     const [fighterPairResult, setFighterPairResult] = useState<FighterPairResult>();
+    const [instructorBMI, setInstructorBMI] = useState<GetBMIResponse>();
 
     useEffect(() => {
         const fetchSessionDetails = async () => {
@@ -83,6 +85,21 @@ const TrainingSessionDetails = () => {
         }
     };
 
+    const handleCalculateBMI = async () => {
+        if (!fighterInfo) {
+            setError('Failed to retrieve fighter information');
+            return;
+        }
+
+        try {
+            const result = await CalculateBMI(fighterInfo.fighter.height, fighterInfo.fighter.weight);
+            setInstructorBMI(result);
+        } catch (err) {
+            setError('Failed generate pairs');
+            console.error(err);
+        }
+    }
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
@@ -98,6 +115,16 @@ const TrainingSessionDetails = () => {
                         <p><strong>Duration:</strong> {sessionDetails.duration} hour(s)</p>
                         <p><strong>Status:</strong> {sessionDetails.status}</p>
                         <p><strong>Description Notes:</strong> {sessionDetails.description}</p>
+                        {
+                            instructorBMI && (
+                                <>
+                                    <p><strong>Instructor BMI:</strong> {instructorBMI.bmi}</p>
+                                    <p><strong>Category:</strong> {instructorBMI.category}</p>
+                                    <p><strong>Description:</strong> {instructorBMI.description}</p>
+                                </>
+                            )
+                        }
+
                         <div>
                             <h2 className="text-2xl font-bold mt-4">Students roster</h2>
                             {
@@ -141,9 +168,14 @@ const TrainingSessionDetails = () => {
                                     Check-In
                                 </Button>
                             ) : (
-                                <Button type="button" onClick={handlePairUp} className="mt-4">
-                                    PAIR UP
-                                </Button>
+                                <div className="flex space-x-2">
+                                    <Button type="button" onClick={handlePairUp} className="mt-4">
+                                        PAIR UP
+                                    </Button>
+                                    <Button type="button" onClick={handleCalculateBMI} className="mt-4">
+                                        GET MY BMI
+                                    </Button>
+                                </div>
                             )
                         }
                     </div>
