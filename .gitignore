@@ -433,3 +433,6 @@ Runtime/Data/*
 Runtime/Data/**/*
 Runtime/Logs/*
 Runtime/Logs/**/*
+/FighterManager.Server/appsettings.Development.json
+/MatchMaker.Server/appsettings.Development.json
+/VideoSharing.Server/appsettings.Development.json
