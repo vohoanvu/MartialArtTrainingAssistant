@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
-using SampleAspNetReactDockerApp.Server.Data;
-using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
-using SampleAspNetReactDockerApp.Server.Models;
-using SampleAspNetReactDockerApp.Server.Repository;
 using System.Globalization;
+using VideoSharing.Server.Data;
+using VideoSharing.Server.Domain.YoutubeSharingService;
+using VideoSharing.Server.Models;
+using VideoSharing.Server.Repository;
 
 
 namespace SampleAspNetReactDockerApp.Tests
@@ -14,14 +14,14 @@ namespace SampleAspNetReactDockerApp.Tests
     public class SharedVideoRepositoryTests
     {
         private readonly Mock<DbSet<SharedVideo>> _mockDbSet;
-        private readonly Mock<DatabaseContext> _mockContext;
+        private readonly Mock<MyDatabaseContext> _mockContext;
         private readonly Mock<IHubContext<VideoShareHub>> _mockHubContext;
         private readonly ISharedVideoRepository _repository;
 
         public SharedVideoRepositoryTests()
         {
             _mockDbSet = new Mock<DbSet<SharedVideo>>();
-            _mockContext = new Mock<DatabaseContext>();
+            _mockContext = new Mock<MyDatabaseContext>();
             _mockHubContext = new Mock<IHubContext<VideoShareHub>>();
 
             _repository = new SharedVideoRepository(_mockContext.Object, _mockHubContext.Object);

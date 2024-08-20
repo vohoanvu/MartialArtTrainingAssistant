@@ -5,13 +5,13 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "SampleAspNetReactDockerApp.Client", "SampleAspNetReactDockerApp.Client\SampleAspNetReactDockerApp.Client.esproj", "{D6385E03-2113-47EC-9B7A-7CE172EA71CB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleAspNetReactDockerApp.Server", "SampleAspNetReactDockerApp.Server\SampleAspNetReactDockerApp.Server.csproj", "{CCB7B61C-2A4B-4E14-B630-CCAA639258C6}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleAspNetReactDockerApp.Tests", "SampleAspNetReactDockerApp.Tests\SampleAspNetReactDockerApp.Tests.csproj", "{994F81E1-B262-451C-AE67-E7E48F69E3B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VideoSharing.Server", "VideoSharing.Server\VideoSharing.Server.csproj", "{51E5F5C5-1D8D-4DF5-9F84-C577ED82D9D0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatchMaker.Server", "MatchMaker.Server\MatchMaker.Server.csproj", "{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FighterManager.Server", "FighterManager.Server\FighterManager.Server.csproj", "{FC28FE14-D5C1-4E28-B2DB-EDE27B5F6E05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,6 @@ Global
 		{D6385E03-2113-47EC-9B7A-7CE172EA71CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6385E03-2113-47EC-9B7A-7CE172EA71CB}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{D6385E03-2113-47EC-9B7A-7CE172EA71CB}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{CCB7B61C-2A4B-4E14-B630-CCAA639258C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CCB7B61C-2A4B-4E14-B630-CCAA639258C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CCB7B61C-2A4B-4E14-B630-CCAA639258C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CCB7B61C-2A4B-4E14-B630-CCAA639258C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{994F81E1-B262-451C-AE67-E7E48F69E3B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{994F81E1-B262-451C-AE67-E7E48F69E3B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{994F81E1-B262-451C-AE67-E7E48F69E3B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +35,10 @@ Global
 		{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA782110-9AAE-4E7F-860B-9EF6AE49B8F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC28FE14-D5C1-4E28-B2DB-EDE27B5F6E05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC28FE14-D5C1-4E28-B2DB-EDE27B5F6E05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC28FE14-D5C1-4E28-B2DB-EDE27B5F6E05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC28FE14-D5C1-4E28-B2DB-EDE27B5F6E05}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

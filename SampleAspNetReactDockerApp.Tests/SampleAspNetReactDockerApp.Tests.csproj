@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SampleAspNetReactDockerApp.Server\SampleAspNetReactDockerApp.Server.csproj" />
+    <ProjectReference Include="..\VideoSharing.Server\VideoSharing.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

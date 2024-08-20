@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using SampleAspNetReactDockerApp.Server.Controllers;
-using SampleAspNetReactDockerApp.Server.Domain.YoutubeSharingService;
-using SampleAspNetReactDockerApp.Server.Models;
-using SampleAspNetReactDockerApp.Server.Repository;
 using System.Security.Claims;
-using static SampleAspNetReactDockerApp.Server.Controllers.VideoController;
-
+using VideoSharing.Server.Controllers;
+using VideoSharing.Server.Domain.YoutubeSharingService;
+using VideoSharing.Server.Models;
+using VideoSharing.Server.Repository;
 namespace SampleAspNetReactDockerApp.Tests
 {
     public class VideoControllerTests
@@ -16,12 +14,14 @@ namespace SampleAspNetReactDockerApp.Tests
         private readonly Mock<IYoutubeDataService> _mockYoutubeDataService;
         private readonly Mock<ISharedVideoRepository> _mockSharedVideoRepository;
         private readonly Mock<HttpContext> _mockHttpContext;
+        private readonly Mock<IServiceProvider> _mockServiceProvider;
 
         public VideoControllerTests()
         {
             _mockYoutubeDataService = new Mock<IYoutubeDataService>();
             _mockSharedVideoRepository = new Mock<ISharedVideoRepository>();
             _mockHttpContext = new Mock<HttpContext>();
+            _mockServiceProvider = new Mock<IServiceProvider>();
 
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
             {
@@ -31,7 +31,10 @@ namespace SampleAspNetReactDockerApp.Tests
 
             _mockHttpContext.Setup(m => m.User).Returns(user);
 
-            _controller = new VideoController(_mockYoutubeDataService.Object, _mockSharedVideoRepository.Object)
+            _controller = new VideoController(
+                _mockYoutubeDataService.Object, 
+                _mockSharedVideoRepository.Object,
+                _mockServiceProvider.Object)
             {
                 ControllerContext = new ControllerContext
                 {
