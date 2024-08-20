@@ -45,11 +45,10 @@ const aspNetCore_shouldShowSwaggerInProduction: boolean = process.env.ASPNETCORE
 
 const backendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[0];
 console.log(`Main Backend URL: ${backendUrl}`);
-
-const VideoShareBackendUrl = "https://localhost:7192"
-const MatchMakerBackendUrl = "https://localhost:7193"
-console.log(`VideoShare service Backend URL: ${VideoShareBackendUrl}`);
-console.log(`MatchMaker service Backend URL: ${MatchMakerBackendUrl}`);
+const videoBackendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[1];
+const pairBackendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[2];
+console.log(`VideoShare service Backend URL: ${videoBackendUrl}`);
+console.log(`MatchMaker service Backend URL: ${pairBackendUrl}`);
 
 const runAsHttps: boolean = backendUrl.startsWith("https");
 
@@ -66,11 +65,23 @@ let serverProxies: Record<string, ProxyOptions> =
                 agent: httpsAgent
             },
             '/videoShareHub': {
-                target: VideoShareBackendUrl,
+                target: videoBackendUrl,
                 ws: true,
                 changeOrigin: true,
                 secure: false,
-            }
+            },
+            "/vid/api": {
+                target: videoBackendUrl,
+                agent: httpsAgent,
+                changeOrigin: true,
+                secure: true,
+            },
+            "/pair/api": {
+                target: pairBackendUrl,
+                agent: httpsAgent,
+                changeOrigin: true,
+                secure: true,
+            },
         }
         : 
         {
@@ -78,11 +89,24 @@ let serverProxies: Record<string, ProxyOptions> =
                 target: backendUrl,
             },
             "/videoShareHub": {
-                target: VideoShareBackendUrl,
+                target: videoBackendUrl,
                 ws: true,
                 changeOrigin: true,
                 secure: false,
-            }
+            },
+            
+            "/vid/api": {
+                target: videoBackendUrl,
+                agent: httpsAgent,
+                changeOrigin: true,
+                secure: false,
+            },
+            "/pair/api": {
+                target: pairBackendUrl,
+                agent: httpsAgent,
+                changeOrigin: true,
+                secure: false,
+            },
         }
 
 if (aspNetCore_environment === "Development" || aspNetCore_shouldShowSwaggerInProduction) {

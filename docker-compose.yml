@@ -19,18 +19,52 @@ services:
   # Backend of the application (ASP.NET Core)
   app-api:
     build:
-      context: ./SampleAspNetReactDockerApp.Server
+      context: ./FighterManager.Server
       dockerfile: Dockerfile
     ports:
-      - "${ASPNETCORE_APP_PORT}:${ASPNETCORE_APP_PORT}"
+      - "${ASPNETCORE_APP_PORT_1}:${ASPNETCORE_APP_PORT_1}"
     environment:
         ASPNETCORE_ENVIRONMENT: "PRODUCTION"
         ASPNETCORE_APP_DB: "${ASPNETCORE_APP_DB}"
         ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "${ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION}"
-        ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT}"
+        ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT_1}"
+        CLIENT_APP_PORTS: "${CLIENT_APP_PORTS}"
+        POSTGRES_PORT: "${POSTGRES_PORT}"
+    depends_on:
+      - app-db
+    networks:
+      - appnet
+  video-api:
+    build:
+      context: ./VideoSharing.Server
+      dockerfile: Dockerfile
+    ports:
+      - "${ASPNETCORE_APP_PORT_2}:${ASPNETCORE_APP_PORT_2}"
+    environment:
+        ASPNETCORE_ENVIRONMENT: "PRODUCTION"
+        ASPNETCORE_APP_DB: "${ASPNETCORE_APP_DB}"
+        ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "${ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION}"
+        ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT_2}"
         CLIENT_APP_PORTS: "${CLIENT_APP_PORTS}"
         POSTGRES_PORT: "${POSTGRES_PORT}"
         YOUTUBE_API_KEY: "${YOUTUBE_API_KEY}"
+    depends_on:
+      - app-db
+    networks:
+      - appnet
+  pair-api:
+    build:
+      context: ./MatchMaker.Server
+      dockerfile: Dockerfile
+    ports:
+      - "${ASPNETCORE_APP_PORT_3}:${ASPNETCORE_APP_PORT_3}"
+    environment:
+        ASPNETCORE_ENVIRONMENT: "PRODUCTION"
+        ASPNETCORE_APP_DB: "${ASPNETCORE_APP_DB}"
+        ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "${ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION}"
+        ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT_3}"
+        CLIENT_APP_PORTS: "${CLIENT_APP_PORTS}"
+        POSTGRES_PORT: "${POSTGRES_PORT}"
     depends_on:
       - app-db
     networks:
@@ -46,7 +80,7 @@ services:
       ASPNETCORE_ENVIRONMENT: "PRODUCTION"
       ASPNETCORE_APP_DB: "${ASPNETCORE_APP_DB}"
       ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "${ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION}"
-      ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT}"
+      ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT_1}"
       CLIENT_APP_PORTS: "${CLIENT_APP_PORTS}"
     volumes:
       - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
