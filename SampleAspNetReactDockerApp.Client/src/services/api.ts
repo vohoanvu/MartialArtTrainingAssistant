@@ -83,7 +83,7 @@ export async function createTrainingSession(newSession: CreateTrainingSessionReq
 
 export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken, hydrate}): Promise<SharedVideo[]> {
     console.log("Fetching shared videos from Microservice D...");
-    const response = await fetch("https://localhost:7192/api/video/getall", {
+    const response = await fetch("/vid/api/video/getall", {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${jwtToken}`
@@ -110,7 +110,7 @@ export async function uploadYoutubeVideo({
 {
     console.log("Uploading YouTube video metadata onto Microservice D...");
 
-    const response = await fetch(`https://localhost:7192/api/video/metadata`, {
+    const response = await fetch(`/vid/api/video/metadata`, {
         method: 'POST',
         body: JSON.stringify({
             videoUrl: encodeURIComponent(videoUrl)
@@ -214,7 +214,7 @@ export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest,
 {
     console.log("Generating Fighter Pairs from Microservice C...");
 
-    const response = await fetch(`https://localhost:7193/api/matchmaker`, {
+    const response = await fetch(`/pair/api/matchmaker`, {
         method: 'POST',
         body: JSON.stringify(matchMakerRequest),
         headers: {
