@@ -97,13 +97,13 @@ let serverProxies: Record<string, ProxyOptions> =
             
             "/vid/api": {
                 target: videoBackendUrl,
-                agent: httpsAgent,
+                ws: true,
                 changeOrigin: true,
                 secure: false,
             },
             "/pair/api": {
                 target: pairBackendUrl,
-                agent: httpsAgent,
+                ws: true,
                 changeOrigin: true,
                 secure: false,
             },
