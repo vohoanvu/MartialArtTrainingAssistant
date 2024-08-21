@@ -175,7 +175,14 @@ namespace MatchMaker.Server
 
             app.MapFallbackToFile("/index.html");
 
-            await app.RunAsync();
+            if (builder.Environment.IsDevelopment()) 
+            {
+                await app.RunAsync();
+            } 
+            else 
+            {
+                await app.RunAsync("http://0.0.0.0:7082");
+            }
         }
     }
 }
