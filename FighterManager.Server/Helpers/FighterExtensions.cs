@@ -25,7 +25,7 @@ namespace FighterManager.Server.Helpers
         {
             if (source.Description != null)
             {
-                destination.Description = source.Description;
+                destination.SessionNotes = source.Description;
             }
 
             if (source.TrainingDate.HasValue)

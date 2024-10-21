@@ -8,7 +8,7 @@ namespace FighterManager.Server.Models
         [Key]
         public int Id { get; set; }
 
-        public string? Description { get; set; }
+        public string? SessionNotes { get; set; }
 
         public required DateTime TrainingDate { get; set; }
 
@@ -18,11 +18,28 @@ namespace FighterManager.Server.Models
 
         public required SessionStatus Status { get; set; }
 
+        public required SessionType SessionType { get; set; }
+
+        public required TargetLevel TargetLevel { get; set; }
+
+        public string? Warmup { get; set; } // JSONB in PostgreSQL
+
+        public string? Cooldown { get; set; } // JSONB in PostgreSQL
+
         public int InstructorId { get; set; }
         [ForeignKey("InstructorId")]
         public virtual Fighter? Instructor { get; set; }
 
         public virtual List<TrainingSessionFighterJoint>? Students { get; set; }
+    }
+
+    public enum SessionType
+    {
+        Fundamentals,
+        Submissions,
+        SelfDefense,
+        Sparring,
+        OpenMat
     }
 
     public class TrainingSessionFighterJoint
@@ -39,12 +56,21 @@ namespace FighterManager.Server.Models
         public Fighter? Fighter { get; set; }
     }
 
-    /*public string? LevelDescription { get; set; }
-    public int? TotalSessionTime { get; set; }
-    public int? HowManyDifferentPairs { get; set; }
-    public int? PositionalSparringRounds { get; set; }
-    public int? PositionalSparringTime { get; set; }
-    public int? FreeSparringRounds { get; set; }
-    public int? FreeSparringTime { get; set; }
-    public List<Technique>? Techniques { get; set; }*/
+    public class TrainingPrograms
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public required string Name { get; set; }
+        
+        public TargetLevel TargetLevel { get; set; }
+    }
+
+    public enum TargetLevel
+    {
+        Beginner,
+        Intermediate,
+        Advanced,
+        Expert
+    }
 }
