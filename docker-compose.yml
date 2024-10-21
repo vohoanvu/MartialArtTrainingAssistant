@@ -1,6 +1,4 @@
-﻿version: "3.8"
-
-services:
+﻿services:
   # Database of the application (Postgres)
   app-db:
     image: postgres:latest
