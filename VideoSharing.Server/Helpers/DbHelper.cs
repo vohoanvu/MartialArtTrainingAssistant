@@ -1,4 +1,5 @@
-﻿using SharedEntities.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using SharedEntities.Data;
 
 namespace VideoSharing.Server.Helpers;
 
@@ -20,7 +21,7 @@ public static class DbHelper
 
         if(deleteIfExists)
             await dbContext.Database.EnsureDeletedAsync();
-        
-        await dbContext.Database.EnsureCreatedAsync();
+
+        await dbContext.Database.CanConnectAsync(); //EnsureCreatedAsync();
     }
 }

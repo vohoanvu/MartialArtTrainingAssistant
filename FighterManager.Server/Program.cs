@@ -71,7 +71,15 @@ namespace FighterManager.Server
 
                 // Add XML comments to Swagger
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                opts.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFile));
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    opts.IncludeXmlComments(xmlPath);
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: XML documentation file '{xmlPath}' not found. Swagger will run without XML comments.");
+                }
             });
 
             builder.Services.AddRouting(opts =>
