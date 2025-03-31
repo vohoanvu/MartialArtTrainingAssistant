@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FighterManager.Server.Helpers;
-using FighterManager.Server.Models;
 using FighterManager.Server.Models.Dtos;
 using System.Net;
 using System.Security.Claims;
+using SharedEntities.Models;
 
 namespace FighterManager.Server.Controllers
 {

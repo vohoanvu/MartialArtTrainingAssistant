@@ -1,6 +1,6 @@
-﻿using FighterManager.Server.Data;
-using FighterManager.Server.Models;
+﻿using SharedEntities.Data;
 using FighterManager.Server.Models.Dtos;
+using SharedEntities.Models;
 
 namespace FighterManager.Server.Helpers
 {

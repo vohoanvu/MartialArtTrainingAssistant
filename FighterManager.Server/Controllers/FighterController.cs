@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FighterManager.Server.Domain.FighterService;
 using FighterManager.Server.Helpers;
-using FighterManager.Server.Models;
 using FighterManager.Server.Models.Dtos;
 using System.Net;
+using SharedEntities.Models;
 
 
 namespace FighterManager.Server.Controllers

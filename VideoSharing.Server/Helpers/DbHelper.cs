@@ -1,4 +1,4 @@
-﻿using VideoSharing.Server.Data;
+﻿using SharedEntities.Data;
 
 namespace VideoSharing.Server.Helpers;
 

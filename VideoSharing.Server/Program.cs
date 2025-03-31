@@ -10,11 +10,11 @@ using VideoSharing.Server.Repository;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
-using VideoSharing.Server.Data;
+using SharedEntities.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Newtonsoft.Json.Linq;
+using SharedEntities;
 
 namespace VideoSharing.Server
 {

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using FighterManager.Server.Data;
+using SharedEntities.Data;
 using FighterManager.Server.Helpers;
-using FighterManager.Server.Models;
 using System.Net;
+using SharedEntities.Models;
 
 namespace FighterManager.Server.Repository
 {

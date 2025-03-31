@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VideoSharing.Server.Domain.YoutubeSharingService;
-using VideoSharing.Server.Models;
 using VideoSharing.Server.Repository;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
-using VideoSharing.Server.Data;
+using SharedEntities.Data;
+using SharedEntities.Models;
 
 namespace VideoSharing.Server.Controllers
 {

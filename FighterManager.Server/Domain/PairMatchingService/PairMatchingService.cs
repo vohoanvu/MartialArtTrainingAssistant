@@ -1,4 +1,5 @@
 ﻿using FighterManager.Server.Models;
+using SharedEntities.Models;
 
 namespace FighterManager.Server.Domain.PairMatchingService
 {

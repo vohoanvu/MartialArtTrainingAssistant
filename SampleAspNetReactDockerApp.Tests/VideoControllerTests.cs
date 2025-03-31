@@ -4,7 +4,7 @@ using Moq;
 using System.Security.Claims;
 using VideoSharing.Server.Controllers;
 using VideoSharing.Server.Domain.YoutubeSharingService;
-using VideoSharing.Server.Models;
+using SharedEntities.Models;
 using VideoSharing.Server.Repository;
 namespace SampleAspNetReactDockerApp.Tests
 {

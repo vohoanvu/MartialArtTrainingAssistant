@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using FighterManager.Server.Helpers;
-using FighterManager.Server.Models;
 using FighterManager.Server.Models.Dtos;
+using SharedEntities.Models;
 
 namespace FighterManager.Server.Domain.FighterService
 {

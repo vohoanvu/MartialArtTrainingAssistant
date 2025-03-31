@@ -6,7 +6,8 @@ using MatchMaker.Server.Helpers;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
-using MatchMaker.Server.Data;
+using SharedEntities;
+using SharedEntities.Data;
 
 namespace MatchMaker.Server
 {

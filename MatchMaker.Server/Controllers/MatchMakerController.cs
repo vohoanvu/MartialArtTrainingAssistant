@@ -1,4 +1,4 @@
-﻿using MatchMaker.Server.Data;
+﻿using SharedEntities.Data;
 using MatchMaker.Server.Domain.PairMatchingService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

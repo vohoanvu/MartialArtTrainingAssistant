@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using VideoSharing.Server.Data;
+using SharedEntities.Data;
+using SharedEntities.Models;
 using VideoSharing.Server.Domain.YoutubeSharingService;
-using VideoSharing.Server.Models;
 
 namespace VideoSharing.Server.Repository
 {

@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using System.Globalization;
-using VideoSharing.Server.Data;
+using SharedEntities.Data;
 using VideoSharing.Server.Domain.YoutubeSharingService;
-using VideoSharing.Server.Models;
+using SharedEntities.Models;
 using VideoSharing.Server.Repository;
 
 

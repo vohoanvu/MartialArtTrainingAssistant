@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SharedEntities.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace FighterManager.Server.Models.Dtos
 {

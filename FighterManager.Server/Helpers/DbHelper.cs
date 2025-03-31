@@ -1,4 +1,4 @@
-﻿using FighterManager.Server.Data;
+﻿using SharedEntities.Data;
 
 namespace FighterManager.Server.Helpers;
 

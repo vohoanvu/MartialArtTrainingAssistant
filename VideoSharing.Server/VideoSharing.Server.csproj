@@ -44,6 +44,7 @@
     <ProjectReference Include="..\sampleaspnetreactdockerapp.client\SampleAspNetReactDockerApp.Client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\SharedEntities\SharedEntities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

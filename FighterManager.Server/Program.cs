@@ -6,13 +6,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using FighterManager.Server.Data;
 using FighterManager.Server.Domain.FighterService;
 using FighterManager.Server.Helpers;
-using FighterManager.Server.Models;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
+using SharedEntities;
+using SharedEntities.Data;
+using SharedEntities.Models;
 
 namespace FighterManager.Server
 {

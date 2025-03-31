@@ -1,4 +1,4 @@
-﻿using MatchMaker.Server.Models;
+﻿using SharedEntities.Models;
 
 namespace MatchMaker.Server.Domain.PairMatchingService
 {

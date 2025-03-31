@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using FighterManager.Server.Data;
-using System.Linq.Expressions;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using SharedEntities.Data;
 
 namespace FighterManager.Server.Helpers
 {
