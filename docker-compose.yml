@@ -17,8 +17,8 @@
   # Backend of the application (ASP.NET Core)
   app-api:
     build:
-      context: ./FighterManager.Server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: FighterManager.Server/Dockerfile
     ports:
       - "${ASPNETCORE_APP_PORT_1}:${ASPNETCORE_APP_PORT_1}"
     environment:
@@ -34,8 +34,8 @@
       - appnet
   video-api:
     build:
-      context: ./VideoSharing.Server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: VideoSharing.Server/Dockerfile
     ports:
       - "${ASPNETCORE_APP_PORT_2}:${ASPNETCORE_APP_PORT_2}"
     environment:
@@ -52,8 +52,8 @@
       - appnet
   pair-api:
     build:
-      context: ./MatchMaker.Server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: MatchMaker.Server/Dockerfile
     ports:
       - "${ASPNETCORE_APP_PORT_3}:${ASPNETCORE_APP_PORT_3}"
     environment:

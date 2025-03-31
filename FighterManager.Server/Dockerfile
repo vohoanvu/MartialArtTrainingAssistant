@@ -8,15 +8,16 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["FighterManager.Server.csproj", "."]
-RUN dotnet restore "./FighterManager.Server.csproj"
+COPY ["FighterManager.Server/FighterManager.Server.csproj", "FighterManager.Server/"]
+COPY ["SharedEntities/SharedEntities.csproj", "SharedEntities/"]
+RUN dotnet restore "./FighterManager.Server/FighterManager.Server.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./FighterManager.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./FighterManager.Server/FighterManager.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./FighterManager.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./FighterManager.Server/FighterManager.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
