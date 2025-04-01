@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SharedEntities;
+using VideoSharing.Server.Domain.GoogleCloudStorageService;
 
 namespace VideoSharing.Server
 {
@@ -47,6 +48,7 @@ namespace VideoSharing.Server
                 return new YoutubeServiceWrapper(youtubeService);
             });
             builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
+            builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
             builder.Services.AddControllers();

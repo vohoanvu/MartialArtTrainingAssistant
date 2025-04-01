@@ -7,12 +7,13 @@ import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
 import { Button } from "@/components/ui/button";
+import VideoUploadForm from "@/components/VideoUploadForm";
 
 export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
     const navigate = useNavigate();
     const [data, setData] = useState<TrainingSessionResponse[] | null>(null);
-    const [fighterInfo, setFighterInfo] = useState<FighterInfo>();
+    const [fighterInfo, setFighterInfo] = useState<FighterInfo | null>(null);
     const jwtToken = useAuthStore((state) => state.accessToken);
     const refreshToken = useAuthStore((state) => state.refreshToken);
     const hydrate = useAuthStore((state) => state.hydrate);
@@ -150,6 +151,10 @@ export default function Dashboard(): ReactElement {
                         <Button type="button" onClick={handleCreateNewSession}>
                             Create New Session
                         </Button>
+                        {/* Show VideoUploadForm only for authenticated users with a role */}
+                        {fighterInfo && jwtToken && (fighterInfo.fighter.role === 0 || fighterInfo.fighter.role === 1) && (
+                            <VideoUploadForm fighterRole={fighterInfo.fighter.role} jwtToken={jwtToken} />
+                        )}
                     </div>
                 </div>
             ) : (
