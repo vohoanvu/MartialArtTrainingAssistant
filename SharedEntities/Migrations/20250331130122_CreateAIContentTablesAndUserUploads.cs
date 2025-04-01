@@ -41,7 +41,8 @@ namespace SharedEntities.Migrations
                     InstructorId = table.Column<string>(type: "text", nullable: false),
                     FilePath = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    TechniqueTag = table.Column<string>(type: "text", nullable: false)
+                    TechniqueTag = table.Column<string>(type: "text", nullable: false),
+                    UploadTimestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 },
                 constraints: table =>
                 {

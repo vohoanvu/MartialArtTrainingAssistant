@@ -51,6 +51,7 @@ namespace SharedEntities.Models
         public int Id { get; set; }
         public string InstructorId { get; set; }
         public string FilePath { get; set; }
+        public DateTime UploadTimestamp { get; set; }
         public string? Description { get; set; }
         public string TechniqueTag { get; set; }
 

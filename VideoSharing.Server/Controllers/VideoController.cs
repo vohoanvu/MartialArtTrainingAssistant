@@ -7,17 +7,31 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 using SharedEntities.Data;
 using SharedEntities.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
+using AutoMapper;
+using VideoSharing.Server.Domain.GoogleCloudStorageService;
 
 namespace VideoSharing.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class VideoController(IYoutubeDataService youtubeDataService,
-        ISharedVideoRepository sharedVideoRepository, IServiceProvider serviceProvider) : ControllerBase
+        ISharedVideoRepository sharedVideoRepository, IServiceProvider serviceProvider,
+        UserManager<AppUserEntity> userManager,
+        MyDatabaseContext myDatabaseContext,
+        IMapper mapper,
+        IGoogleCloudStorageService googleCloudStorageService,
+        IHubContext<VideoShareHub> hubContext) : ControllerBase
     {
         private readonly IYoutubeDataService _youtubeDataService = youtubeDataService;
         private readonly ISharedVideoRepository _sharedVideoRepository = sharedVideoRepository;
         private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly UserManager<AppUserEntity> _userManager = userManager;
+        private readonly MyDatabaseContext _dbContext = myDatabaseContext;
+        private readonly IMapper _mapper = mapper;
+        private readonly IGoogleCloudStorageService _gcsService = googleCloudStorageService;
+        private readonly IHubContext<VideoShareHub> _hubContext = hubContext;
 
         [HttpPost("metadata")]
         [Authorize]
@@ -87,6 +101,83 @@ namespace VideoSharing.Server.Controllers
                 }
             }).ToList());
         }
+
+        [HttpPost("upload-sparring")]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> UploadSparringVideoAsync(IFormFile videoFile, [FromForm] string description)
+        {
+            if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
+                return BadRequest(new { Message = "Invalid video file" });
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user?.Fighter?.Role != FighterRole.Student)
+                return Forbid();
+
+            using var stream = videoFile.OpenReadStream();
+            var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
+
+            var uploadedVideo = new UploadedVideo
+            {
+                UserId = userId,
+                FilePath = filePath,
+                Description = description,
+                UploadTimestamp = DateTime.UtcNow
+            };
+
+            _dbContext.UploadedVideos.Add(uploadedVideo);
+            await _dbContext.SaveChangesAsync();
+
+            var signedUrl = await _gcsService.GenerateSignedUrlAsync(filePath, TimeSpan.FromHours(1));
+            await _hubContext.Clients.All.SendAsync(
+                "ReceiveVideoSharedNotification",
+                "New Sparring Video Uploaded!",
+                uploadedVideo.Description,
+                user.UserName
+            );
+
+            return Ok(new { VideoId = uploadedVideo.Id, SignedUrl = signedUrl });
+        }
+
+        [HttpPost("upload-demonstration")]
+        [Authorize(Roles = "Instructor")]
+        public async Task<IActionResult> UploadDemonstrationAsync(IFormFile videoFile, [FromForm] string description)
+        {
+            if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
+                return BadRequest(new { Message = "Invalid video file" });
+
+            var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.FindByIdAsync(instructorId);
+            if (user?.Fighter?.Role != FighterRole.Instructor)
+                return Forbid();
+
+            using var stream = videoFile.OpenReadStream();
+            var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
+
+            var demonstration = new Demonstration
+            {
+                InstructorId = instructorId,
+                FilePath = filePath,
+                Description = description,
+                UploadTimestamp = DateTime.UtcNow
+            };
+
+            _dbContext.Demonstrations.Add(demonstration);
+            await _dbContext.SaveChangesAsync();
+
+            var signedUrl = await _gcsService.GenerateSignedUrlAsync(filePath, TimeSpan.FromHours(1));
+            await _hubContext.Clients.All.SendAsync(
+                "ReceiveVideoSharedNotification",
+                "New Demonstration Video Uploaded!",
+                demonstration.Description,
+                user.UserName
+            );
+
+            return Ok(new { DemonstrationId = demonstration.Id, SignedUrl = signedUrl });
+        }
+
+        private bool IsValidVideoFormat(string contentType) =>
+            contentType is "video/mp4" or "video/avi";
     }
 
     public class UploadVideoRequest
