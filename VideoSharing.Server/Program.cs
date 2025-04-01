@@ -16,6 +16,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SharedEntities;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using SharedEntities.Models;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace VideoSharing.Server
 {
@@ -195,14 +199,18 @@ namespace VideoSharing.Server
             });
             builder.Services.AddAuthorization();
 
-            //builder.Services.AddIdentityApiEndpoints<AppUserEntity>(opts =>
-            //{
-            //    opts.User.RequireUniqueEmail = true;
-            //    opts.Password.RequiredLength = 8;
-            //})
-            //.AddEntityFrameworkStores<MyDatabaseContext>();
+            builder.Services.AddIdentity<AppUserEntity, IdentityRole>(opts =>
+            {
+                opts.User.RequireUniqueEmail = true;
+                opts.Password.RequiredLength = 8;
+            })
+            .AddEntityFrameworkStores<MyDatabaseContext>().AddDefaultTokenProviders();
 
             builder.Services.AddSignalR();
+            builder.Services.Configure<KestrelServerOptions>(options =>
+            {
+                options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50MB
+            });
 
             var app = builder.Build();
 

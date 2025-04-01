@@ -103,16 +103,41 @@ namespace VideoSharing.Server.Controllers
         }
 
         [HttpPost("upload-sparring")]
-        [Authorize(Roles = "Student")]
+        [Authorize]
+        [RequestSizeLimit(100 * 1024 * 1024)]
         public async Task<IActionResult> UploadSparringVideoAsync(IFormFile videoFile, [FromForm] string description)
         {
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
                 return BadRequest(new { Message = "Invalid video file" });
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user?.Fighter?.Role != FighterRole.Student)
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+            Console.WriteLine($"UserId: {userId}, Role Claim: {roleClaim}");
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                Console.WriteLine("No user ID found in token");
                 return Forbid();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                Console.WriteLine("User not found in database");
+                return Forbid();
+            }
+
+            if (user.Fighter == null)
+            {
+                Console.WriteLine("No fighter profile linked to user");
+                return Forbid();
+            }
+
+            if (user.Fighter.Role != FighterRole.Student)
+            {
+                Console.WriteLine($"Role mismatch - Expected: Student (0), Actual: {user.Fighter.Role}");
+                return Forbid();
+            }
 
             using var stream = videoFile.OpenReadStream();
             var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
@@ -140,14 +165,16 @@ namespace VideoSharing.Server.Controllers
         }
 
         [HttpPost("upload-demonstration")]
-        [Authorize(Roles = "Instructor")]
+        [Authorize]
+        [RequestSizeLimit(100 * 1024 * 1024)]
         public async Task<IActionResult> UploadDemonstrationAsync(IFormFile videoFile, [FromForm] string description)
         {
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
                 return BadRequest(new { Message = "Invalid video file" });
 
             var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = await _userManager.FindByIdAsync(instructorId);
+            var userManagerService = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<UserManager<AppUserEntity>>();
+            var user = await userManagerService.FindByIdAsync(instructorId);
             if (user?.Fighter?.Role != FighterRole.Instructor)
                 return Forbid();
 

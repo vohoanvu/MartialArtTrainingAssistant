@@ -14,7 +14,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken }: VideoUploadFormProps) => {
     const [error, setError] = useState<string | null>(null);
 
     const uploadType = fighterRole === 0 ? 'sparring' : 'demonstration';
-    const endpoint = fighterRole === 0 ? '/api/video/upload-sparring' : '/api/video/upload-demonstration';
+    const endpoint = fighterRole === 0 ? '/vid/api/video/upload-sparring' : '/vid/api/video/upload-demonstration';
     const title = fighterRole === 0 ? 'Upload Sparring Video' : 'Upload Demonstration Video';
 
     const handleSubmit = async (e: React.FormEvent) => {
