@@ -207,10 +207,10 @@ namespace VideoSharing.Server
             .AddEntityFrameworkStores<MyDatabaseContext>().AddDefaultTokenProviders();
 
             builder.Services.AddSignalR();
-            builder.Services.Configure<KestrelServerOptions>(options =>
-            {
-                options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50MB
-            });
+            //builder.Services.Configure<KestrelServerOptions>(options =>
+            //{
+            //    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50MB
+            //});
 
             var app = builder.Build();
 

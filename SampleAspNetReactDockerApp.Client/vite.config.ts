@@ -37,12 +37,13 @@ import https from "https";
 const possibleBackendUrls: string[] = process.env.ASPNETCORE_URLS ?
     process.env.ASPNETCORE_URLS.split(';') :
     ["http://localhost:5136", "http://localhost:5137" , "http://localhost:5138"];
-
+console.log('process.env.ASPNETCORE_URLS is ', process.env.ASPNETCORE_URLS);
 const aspNetCore_environment: string = process.env.ASPNETCORE_ENVIRONMENT || "Development";
 
 // The application was designed so that the swagger UI is only shown in development mode or when the ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION environment variable is set to true.
 const aspNetCore_shouldShowSwaggerInProduction: boolean = process.env.ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION === "true";
-
+console.log("possibleBackendUrls is ", possibleBackendUrls);
+console.log("Currently in ",aspNetCore_environment);
 const backendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[0];
 console.log(`Main Backend URL: ${backendUrl}`);
 const videoBackendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[1];
