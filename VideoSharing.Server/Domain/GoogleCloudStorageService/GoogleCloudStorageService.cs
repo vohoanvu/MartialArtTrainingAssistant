@@ -30,8 +30,7 @@ namespace VideoSharing.Server.Domain.GoogleCloudStorageService
                 _bucketName,
                 objectName,
                 contentType,
-                fileStream,
-                new UploadObjectOptions { PredefinedAcl = PredefinedObjectAcl.Private }
+                fileStream
             );
             return $"gs://{_bucketName}/{objectName}";
         }

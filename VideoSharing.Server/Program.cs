@@ -199,13 +199,6 @@ namespace VideoSharing.Server
             });
             builder.Services.AddAuthorization();
 
-            builder.Services.AddIdentity<AppUserEntity, IdentityRole>(opts =>
-            {
-                opts.User.RequireUniqueEmail = true;
-                opts.Password.RequiredLength = 8;
-            })
-            .AddEntityFrameworkStores<MyDatabaseContext>().AddDefaultTokenProviders();
-
             builder.Services.AddSignalR();
             //builder.Services.Configure<KestrelServerOptions>(options =>
             //{
@@ -226,7 +219,6 @@ namespace VideoSharing.Server
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
-            app.UseRouting();
             app.UseAuthentication();
 
             // Configure the HTTP request pipeline.
