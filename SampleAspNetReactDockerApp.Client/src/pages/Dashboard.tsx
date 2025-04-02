@@ -153,7 +153,10 @@ export default function Dashboard(): ReactElement {
                         </Button>
                         {/* Show VideoUploadForm only for authenticated users with a role */}
                         {fighterInfo && jwtToken && (fighterInfo.fighter.role === 0 || fighterInfo.fighter.role === 1) && (
-                            <VideoUploadForm fighterRole={fighterInfo.fighter.role} jwtToken={jwtToken} />
+                            <VideoUploadForm 
+                                fighterRole={fighterInfo.fighter.role} 
+                                jwtToken={jwtToken} 
+                                hydrateFn={hydrate}/>
                         )}
                     </div>
                 </div>

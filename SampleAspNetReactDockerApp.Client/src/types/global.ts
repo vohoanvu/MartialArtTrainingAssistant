@@ -190,6 +190,12 @@ export interface GetBMIResponse {
     description: string,
 }
 
+export interface VideoUploadResponse {
+    VideoId?: number; // For sparring
+    DemonstrationId?: number; // For demonstration
+    SignedUrl: string;
+}
+
 // {
 //     "bmi": 21.50,
 //     "category": "Normal Weight",

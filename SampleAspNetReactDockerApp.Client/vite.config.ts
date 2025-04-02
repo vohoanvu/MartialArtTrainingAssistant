@@ -33,10 +33,10 @@ import https from "https";
 //         throw new Error("Could not create certificate.");
 //     }
 // }
+//process.env.ASPNETCORE_URLS ? process.env.ASPNETCORE_URLS.split(';') : 
+const possibleBackendUrls: string[] = ["https://localhost:7191", "https://localhost:7192", "https://localhost:7193"];
+//["http://localhost:5136", "http://localhost:5137" , "http://localhost:5138"];
 
-const possibleBackendUrls: string[] = process.env.ASPNETCORE_URLS ?
-    process.env.ASPNETCORE_URLS.split(';') :
-    ["http://localhost:5136", "http://localhost:5137" , "http://localhost:5138"];
 console.log('process.env.ASPNETCORE_URLS is ', process.env.ASPNETCORE_URLS);
 const aspNetCore_environment: string = process.env.ASPNETCORE_ENVIRONMENT || "Development";
 
@@ -44,10 +44,13 @@ const aspNetCore_environment: string = process.env.ASPNETCORE_ENVIRONMENT || "De
 const aspNetCore_shouldShowSwaggerInProduction: boolean = process.env.ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION === "true";
 console.log("possibleBackendUrls is ", possibleBackendUrls);
 console.log("Currently in ",aspNetCore_environment);
-const backendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[0];
+const backendUrl: string = possibleBackendUrls[0];
+//possibleBackendUrls.find(url => url.startsWith("https")) || 
 console.log(`Main Backend URL: ${backendUrl}`);
-const videoBackendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[1];
-const pairBackendUrl: string = possibleBackendUrls.find(url => url.startsWith("https")) || possibleBackendUrls[2];
+const videoBackendUrl: string = possibleBackendUrls[1];
+//possibleBackendUrls.find(url => url.startsWith("https")) || 
+const pairBackendUrl: string = possibleBackendUrls[2];
+//possibleBackendUrls.find(url => url.startsWith("https")) || 
 console.log(`VideoShare service Backend URL: ${videoBackendUrl}`);
 console.log(`MatchMaker service Backend URL: ${pairBackendUrl}`);
 
@@ -76,6 +79,11 @@ let serverProxies: Record<string, ProxyOptions> =
                 agent: httpsAgent,
                 changeOrigin: true,
                 secure: true,
+                rewrite: (path) => {
+                    const newPath = path.replace(/^\/vid\/api/, '/api');
+                    console.log(`Proxying ${path} to ${videoBackendUrl}${newPath}`);
+                    return newPath;
+                },
             },
             "/pair/api": {
                 target: pairBackendUrl,
@@ -98,13 +106,16 @@ let serverProxies: Record<string, ProxyOptions> =
             
             "/vid/api": {
                 target: videoBackendUrl,
-                ws: true,
                 changeOrigin: true,
                 secure: false,
+                rewrite: (path) => {
+                    const newPath = path.replace(/^\/vid\/api/, '/api');
+                    console.log(`Proxying ${path} to ${videoBackendUrl}${newPath}`);
+                    return newPath;
+                },
             },
             "/pair/api": {
                 target: pairBackendUrl,
-                ws: true,
                 changeOrigin: true,
                 secure: false,
             },

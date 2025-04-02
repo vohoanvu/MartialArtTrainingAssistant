@@ -1,20 +1,21 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { uploadVideoFile } from '@/services/api'; // Import the new function
 import { Button } from './ui/button';
 
 interface VideoUploadFormProps {
     fighterRole: number; // 0 for Student, 1 for Instructor
     jwtToken: string;
+    hydrateFn: () => Promise<void>;
 }
 
-const VideoUploadForm = ({ fighterRole, jwtToken }: VideoUploadFormProps) => {
+const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormProps) => {
     const [file, setFile] = useState<File | null>(null);
     const [description, setDescription] = useState('');
     const [signedUrl, setSignedUrl] = useState('');
+    const [isLoading, setIsLoading] = useState(false); // Added for loading state
     const [error, setError] = useState<string | null>(null);
 
     const uploadType = fighterRole === 0 ? 'sparring' : 'demonstration';
-    const endpoint = fighterRole === 0 ? '/vid/api/video/upload-sparring' : '/vid/api/video/upload-demonstration';
     const title = fighterRole === 0 ? 'Upload Sparring Video' : 'Upload Demonstration Video';
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -24,24 +25,27 @@ const VideoUploadForm = ({ fighterRole, jwtToken }: VideoUploadFormProps) => {
             return;
         }
 
+        setIsLoading(true);
         setError(null);
-        const formData = new FormData();
-        formData.append('videoFile', file);
-        formData.append('description', description);
 
         try {
-            const response = await axios.post(endpoint, formData, {
-                headers: {
-                    'Authorization': `Bearer ${jwtToken}`,
-                    'Content-Type': 'multipart/form-data',
-                },
+            const response = await uploadVideoFile({
+                file,
+                description,
+                uploadType,
+                jwtToken: jwtToken,
+                hydrate: hydrateFn
             });
-            setSignedUrl(response.data.signedUrl);
+            setSignedUrl(response.SignedUrl);
             setFile(null);
             setDescription('');
+            console.log(`${uploadType} video uploaded successfully:`, response);
         } catch (err) {
-            const axiosError = err as { response?: { data?: { Message?: string } }, message?: string };
-            setError('Upload failed: ' + (axiosError.response?.data?.Message || axiosError.message));
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            setError(`Upload failed: ${errorMessage}`);
+            console.error(`Error uploading ${uploadType} video:`, err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -59,6 +63,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken }: VideoUploadFormProps) => {
                         accept="video/mp4,video/avi"
                         onChange={(e) => setFile(e.target.files?.[0] || null)}
                         className="mt-1 block w-full border rounded-md p-2"
+                        disabled={isLoading}
                     />
                 </div>
                 <div>
@@ -72,14 +77,15 @@ const VideoUploadForm = ({ fighterRole, jwtToken }: VideoUploadFormProps) => {
                         placeholder="Enter a description"
                         className="mt-1 block w-full border rounded-md p-2"
                         rows={4}
+                        disabled={isLoading}
                     />
                 </div>
                 <Button
                     type="submit"
-                    disabled={!file}
+                    disabled={!file || isLoading}
                     className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
                 >
-                    Upload {uploadType === 'sparring' ? 'Sparring' : 'Demonstration'} Video
+                    {isLoading ? 'Uploading...' : `Upload ${uploadType === 'sparring' ? 'Sparring' : 'Demonstration'} Video`}
                 </Button>
             </form>
             {error && <p className="text-red-500 mt-2">{error}</p>}

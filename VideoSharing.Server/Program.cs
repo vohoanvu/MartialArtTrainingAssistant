@@ -226,6 +226,7 @@ namespace VideoSharing.Server
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
+            app.UseRouting();
             app.UseAuthentication();
 
             // Configure the HTTP request pipeline.

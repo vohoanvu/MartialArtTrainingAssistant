@@ -9,7 +9,8 @@ import {
     SessionDetailViewModel,
     MatchMakerRequest,
     FighterPairResult,
-    GetBMIResponse
+    GetBMIResponse,
+    VideoUploadResponse
 } from "@/types/global.ts";
 
 type Path = keyof paths;
@@ -109,7 +110,7 @@ export async function uploadYoutubeVideo({
 }): Promise<SharedVideo> 
 {
     console.log("Uploading YouTube video metadata onto Microservice D...");
-
+    console.log("Bearer token is: ", jwtToken);
     const response = await fetch(`/vid/api/video/metadata`, {
         method: 'POST',
         body: JSON.stringify({
@@ -251,6 +252,51 @@ export async function CalculateBMI(height : number, weight: number) : Promise<Ge
         return await response.json();
     } catch (error) {
         throw new Error(`Failed to call Microservice A: ${error}`);
+    }
+}
+
+
+export async function uploadVideoFile({
+    file,
+    description,
+    uploadType, // 'sparring' or 'demonstration'
+    jwtToken,
+    currentTry = 0,
+    hydrate,
+}: {
+    file: File;
+    description: string;
+    uploadType: 'sparring' | 'demonstration';
+    jwtToken: string;
+    currentTry?: number;
+    hydrate: () => Promise<void>;
+}): Promise<VideoUploadResponse> {
+    console.log(`Uploading ${uploadType} video to Microservice D...`);
+
+    const formData = new FormData();
+    formData.append('videoFile', file);
+    formData.append('description', description);
+
+    const endpoint = uploadType === 'sparring' ? '/vid/api/video/upload-sparring' : '/vid/api/video/upload-demonstration';
+    console.log("Bearer Token is: ", jwtToken);
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${jwtToken}`,
+            // Note: Don't set 'Content-Type' manually with FormData; fetch sets it to multipart/form-data with the boundary
+        },
+        body: formData,
+    });
+
+    if (response.ok) {
+        console.log(`${uploadType} video uploaded successfully!`);
+        return await response.json() as VideoUploadResponse;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await uploadVideoFile({ file, description, uploadType, jwtToken, currentTry: 1, hydrate });
+    } else {
+        const errorText = await response.text();
+        throw new Error(`Error uploading ${uploadType} video: ${errorText}`);
     }
 }
 
