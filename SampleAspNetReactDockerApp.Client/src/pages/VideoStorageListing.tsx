@@ -6,10 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2 } from 'lucide-react'; // Assuming you use lucide-react for icons
 
 interface UploadedVideo {
-    Id: number;
-    FilePath: string;
-    Description: string;
-    UploadTimestamp: string;
+    id: number;
+    userId: string;
+    filePath: string;
+    description: string;
+    uploadTimestamp: string;
+    aiSummary: string;
+    appUser: string;
 }
 
 const VideoStorageListing = () => {
@@ -33,6 +36,7 @@ const VideoStorageListing = () => {
             });
             if (!response.ok) throw new Error('Failed to fetch videos');
             const data = await response.json();
+            console.log("Listing all video response json: ", data);
             setVideos(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
@@ -51,7 +55,7 @@ const VideoStorageListing = () => {
                 jwtToken: accessToken,
                 hydrate,
             });
-            setVideos(videos.filter(v => v.Id !== videoId));
+            setVideos(videos.filter(v => v.id !== videoId));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
         } finally {
@@ -69,23 +73,23 @@ const VideoStorageListing = () => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>ID</TableHead>
+                            <TableHead>Cloud Filepath</TableHead>
                             <TableHead>Description</TableHead>
-                            <TableHead>Uploaded</TableHead>
+                            <TableHead>Uploaded At</TableHead>
                             <TableHead>Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {videos.map(video => (
-                            <TableRow key={video.Id}>
-                                <TableCell>{video.Id}</TableCell>
-                                <TableCell>{video.Description}</TableCell>
-                                <TableCell>{new Date(video.UploadTimestamp).toLocaleString()}</TableCell>
+                            <TableRow key={video.id}>
+                                <TableCell>{video.filePath}</TableCell>
+                                <TableCell>{video.description}</TableCell>
+                                <TableCell>{new Date(video.uploadTimestamp).toLocaleString()}</TableCell>
                                 <TableCell>
                                     <Button
                                         variant="destructive"
                                         size="icon"
-                                        onClick={() => handleDelete(video.Id)}
+                                        onClick={() => handleDelete(video.id)}
                                         disabled={isLoading}
                                     >
                                         <Trash2 className="h-4 w-4" />
