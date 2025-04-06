@@ -192,7 +192,7 @@ namespace FighterManager.Server
             // Initialize the database if it doesn't exist
             await using (var serviceScope = app.Services.CreateAsyncScope())
             {
-                await DbHelper.EnsureDbIsCreatedAsync(
+                await DbHelper.EnsureDbIsCreatedAndSeededAsync(
                     serviceScope,
                     app.Environment.IsDevelopment() &&
                     Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
