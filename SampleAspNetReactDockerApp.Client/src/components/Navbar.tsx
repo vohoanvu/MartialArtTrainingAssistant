@@ -49,6 +49,13 @@ export default function Navbar(
                                         </Link>
                                     </li>
                                     <li>
+                                        <Link to="/video-listing">
+                                            <Button size="sm" variant="outline" className="w-full">
+                                                Manage Video Storage
+                                            </Button>
+                                        </Link>
+                                    </li>
+                                    <li>
                                         <button onClick={() => { logout(); }}>
                                             {t("navbar.logout")}
                                         </button>

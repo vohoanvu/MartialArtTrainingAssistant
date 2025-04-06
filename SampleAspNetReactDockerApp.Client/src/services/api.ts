@@ -10,7 +10,8 @@ import {
     MatchMakerRequest,
     FighterPairResult,
     GetBMIResponse,
-    VideoUploadResponse
+    VideoUploadResponse,
+    VideoDeleteResponse,
 } from "@/types/global.ts";
 
 type Path = keyof paths;
@@ -297,6 +298,39 @@ export async function uploadVideoFile({
     } else {
         const errorText = await response.text();
         throw new Error(`Error uploading ${uploadType} video: ${errorText}`);
+    }
+}
+
+
+export async function deleteUploadedVideo({
+    videoId,
+    jwtToken,
+    currentTry = 0,
+    hydrate,
+}: {
+    videoId: number;
+    jwtToken: string | null;
+    currentTry?: number;
+    hydrate: () => Promise<void>;
+}): Promise<VideoDeleteResponse> {
+    console.log(`Deleting uploaded video with ID ${videoId}...`);
+
+    const response = await fetch(`/vid/api/video/delete-uploaded/${videoId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${jwtToken}`,
+        },
+    });
+
+    if (response.ok) {
+        console.log(`Video with ID ${videoId} deleted successfully!`);
+        return await response.json() as VideoDeleteResponse;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await deleteUploadedVideo({ videoId, jwtToken, currentTry: 1, hydrate });
+    } else {
+        const errorText = await response.text();
+        throw new Error(`Error deleting video: ${errorText}`);
     }
 }
 

@@ -196,6 +196,10 @@ export interface VideoUploadResponse {
     SignedUrl: string;
 }
 
+export interface VideoDeleteResponse {
+    Message: string;
+}
+
 // {
 //     "bmi": 21.50,
 //     "category": "Normal Weight",

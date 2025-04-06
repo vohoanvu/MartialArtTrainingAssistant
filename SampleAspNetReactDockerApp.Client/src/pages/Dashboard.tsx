@@ -130,38 +130,50 @@ export default function Dashboard(): ReactElement {
     };
 
     return (
-        <div className="flex flex-col items-center">
-            <h1 className="text-2xl font-bold my-4">
-                Find your training session to check in
-            </h1>
-            <div className="w-1/2">
-                <p className="text-center text-lg mb-4">
-                    Create new class session below
-                </p>
+        <div className="flex flex-col items-center space-y-8">
+            {/* Training Sessions Section */}
+            <div className="w-full max-w-4xl">
+                <h1 className="text-2xl font-bold my-4 text-center">
+                    Find your training session to check in
+                </h1>
+                <div className="w-full">
+                    <p className="text-center text-lg mb-4">
+                        Create new class session below
+                    </p>
+                </div>
+                {data ? (
+                    <div className="rounded-lg dark:shadow-accent p-4 transition duration-500 ease-in-out transform hover:scale-105">
+                        <DataTable
+                            columns={trainingSessionColumns}
+                            data={data}
+                            title="Active Training Sessions"
+                            titleClassName={"text-center text-xl font-bold py-2"}
+                        />
+                        <div className="flex justify-start mt-4">
+                            <Button type="button" onClick={handleCreateNewSession}>
+                                Create New Session
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <p>Loading data from API...</p>
+                )}
             </div>
-            {data ? (
-                <div className="w-1/2 rounded-lg dark:shadow-accent p-4 transition duration-500 ease-in-out transform hover:scale-105">
-                    <DataTable
-                        columns={trainingSessionColumns}
-                        data={data}
-                        title="Active Training Sessions"
-                        titleClassName={"text-center text-xl font-bold py-2"}
-                    />
-                    <div className="flex justify-start mt-4">
-                        <Button type="button" onClick={handleCreateNewSession}>
-                            Create New Session
-                        </Button>
-                        {/* Show VideoUploadForm only for authenticated users with a role */}
-                        {fighterInfo && jwtToken && (fighterInfo.fighter.role === 0 || fighterInfo.fighter.role === 1) && (
-                            <VideoUploadForm 
-                                fighterRole={fighterInfo.fighter.role} 
-                                jwtToken={jwtToken} 
-                                hydrateFn={hydrate}/>
-                        )}
+
+            {/* Video Upload Section - Only for authenticated users with role 0 or 1 */}
+            {fighterInfo && jwtToken && (fighterInfo.fighter.role === 0 || fighterInfo.fighter.role === 1) && (
+                <div className="w-full max-w-4xl">
+                    <h2 className="text-2xl font-bold my-4 text-center">
+                        Video Management
+                    </h2>
+                    <div className="rounded-lg dark:shadow-accent p-4 transition duration-500 ease-in-out transform hover:scale-105">
+                        <VideoUploadForm 
+                            fighterRole={fighterInfo.fighter.role} 
+                            jwtToken={jwtToken} 
+                            hydrateFn={hydrate}
+                        />
                     </div>
                 </div>
-            ) : (
-                <p>Loading data from API...</p>
             )}
         </div>
     );
