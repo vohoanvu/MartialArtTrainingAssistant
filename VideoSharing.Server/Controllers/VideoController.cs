@@ -15,6 +15,7 @@ namespace VideoSharing.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class VideoController(IYoutubeDataService youtubeDataService,
         ISharedVideoRepository sharedVideoRepository, IServiceProvider serviceProvider,
         IGoogleCloudStorageService googleCloudStorageService,
@@ -28,7 +29,9 @@ namespace VideoSharing.Server.Controllers
 
         [HttpPost("metadata")]
         [Authorize]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(UploadVideoRequest request)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -76,7 +79,9 @@ namespace VideoSharing.Server.Controllers
 
         [HttpGet("GetAll")]
         [AllowAnonymous]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<ActionResult<List<VideoDetailsResponse>>> GetAll()
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             var sharedVideos = await _sharedVideoRepository.GetAllAsync();
 
@@ -98,6 +103,7 @@ namespace VideoSharing.Server.Controllers
         [HttpPost("upload-sparring")]
         [Authorize]
         [RequestSizeLimit(100 * 1024 * 1024)]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<IActionResult> UploadSparringVideoAsync(IFormFile videoFile, [FromForm] string description)
         {
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
@@ -151,52 +157,103 @@ namespace VideoSharing.Server.Controllers
             return Ok(new { VideoId = uploadedVideo.Id, SignedUrl = signedUrl });
         }
 
-        //[HttpPost("upload-demonstration")]
-        //[Authorize]
-        //[RequestSizeLimit(100 * 1024 * 1024)]
-        //public async Task<IActionResult> UploadDemonstrationAsync(IFormFile videoFile, [FromForm] string description)
-        //{
-        //    if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
-        //        return BadRequest(new { Message = "Invalid video file" });
+        [HttpPost("upload-demonstration")]
+        [Authorize]
+        [RequestSizeLimit(100 * 1024 * 1024)]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public async Task<IActionResult> UploadDemonstrationAsync(IFormFile videoFile, [FromForm] string description)
+        {
+            if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
+                return BadRequest(new { Message = "Invalid video file" });
 
-        //    var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //    var userManagerService = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<UserManager<AppUserEntity>>();
-        //    var user = await userManagerService.FindByIdAsync(instructorId);
-        //    if (user?.Fighter?.Role != FighterRole.Instructor)
-        //        return Forbid();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+            Console.WriteLine($"UserId: {userId}, Role Claim: {roleClaim}");
 
-        //    using var stream = videoFile.OpenReadStream();
-        //    var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
+            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
+            var appUserEntity = dbContext.Users.Include(u => u.Fighter)
+                    .FirstOrDefault(u => u.Id == userId);
+            if (appUserEntity?.Fighter == null)
+            {
+                Console.WriteLine("No fighter profile linked to user");
+                return Forbid();
+            }
 
-        //    var demonstration = new Demonstration
-        //    {
-        //        InstructorId = instructorId,
-        //        FilePath = filePath,
-        //        Description = description,
-        //        UploadTimestamp = DateTime.UtcNow
-        //    };
+            if (appUserEntity?.Fighter.Role != FighterRole.Instructor)
+            {
+                Console.WriteLine($"Role mismatch - Expected: Instructor (1), Actual: {appUserEntity?.Fighter.Role}");
+                return Forbid();
+            }
 
-        //    _dbContext.Demonstrations.Add(demonstration);
-        //    await _dbContext.SaveChangesAsync();
+            using var stream = videoFile.OpenReadStream();
+            var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
 
-        //    var signedUrl = await _gcsService.GenerateSignedUrlAsync(filePath, TimeSpan.FromHours(1));
-        //    await _hubContext.Clients.All.SendAsync(
-        //        "ReceiveVideoSharedNotification",
-        //        "New Demonstration Video Uploaded!",
-        //        demonstration.Description,
-        //        user.UserName
-        //    );
+            var uploadedVideo = new UploadedVideo
+            {
+                UserId = userId,
+                FilePath = filePath,
+                Description = description,
+                UploadTimestamp = DateTime.UtcNow
+            };
 
-        //    return Ok(new { DemonstrationId = demonstration.Id, SignedUrl = signedUrl });
-        //}
+            dbContext.UploadedVideos.Add(uploadedVideo);
+            await dbContext.SaveChangesAsync();
+
+            var signedUrl = await _gcsService.GenerateSignedUrlAsync(filePath, TimeSpan.FromHours(1));
+            await _hubContext.Clients.All.SendAsync(
+                "ReceiveVideoSharedNotification",
+                "New Demonstration Video Uploaded!",
+                uploadedVideo.Description,
+                appUserEntity.UserName
+            );
+
+            return Ok(new { VideoId = uploadedVideo.Id, SignedUrl = signedUrl });
+        }
+
+        [HttpDelete("delete-uploaded/{videoId}")]
+        [Authorize]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public async Task<IActionResult> DeleteUploadedVideoAsync(int videoId)
+        {
+            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
+            var video = await dbContext.UploadedVideos.FindAsync(videoId);
+            if (video == null)
+            {
+                return NotFound(new { Message = $"Video with ID {videoId} not found" });
+            }
+
+            // Delete from GCS
+            await _gcsService.DeleteFileAsync(video.FilePath);
+
+            // Remove from database
+            dbContext.UploadedVideos.Remove(video);
+            await dbContext.SaveChangesAsync();
+
+            return Ok(new { Message = $"Video with ID {videoId} deleted successfully" });
+        }
+
+        [HttpGet("getall-uploaded")]
+        [Authorize]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public async Task<ActionResult<List<UploadedVideo>>> GetAllUploadedVideosAsync()
+        {
+            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
+            var videos = await dbContext.UploadedVideos.ToListAsync();
+            return Ok(videos);
+        }
 
         private bool IsValidVideoFormat(string contentType) =>
             contentType is "video/mp4" or "video/avi";
     }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class UploadVideoRequest
     {
         [JsonPropertyName("videoUrl")]
-        public string VideoUrl { get; set; }
+        public required string VideoUrl { get; set; }
     }
 }

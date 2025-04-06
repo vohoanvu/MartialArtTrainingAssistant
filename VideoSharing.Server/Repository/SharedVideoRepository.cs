@@ -6,36 +6,54 @@ using VideoSharing.Server.Domain.YoutubeSharingService;
 
 namespace VideoSharing.Server.Repository
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public interface ISharedVideoRepository
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Task<SharedVideo> GetByIdAsync(int id);
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Task<List<SharedVideo>> GetAllAsync();
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Task<int> SaveAsync(SharedVideo video);
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class SharedVideoRepository : ISharedVideoRepository
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
         private readonly MyDatabaseContext _context;
         private readonly IHubContext<VideoShareHub> _hubContext;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public SharedVideoRepository(MyDatabaseContext context, IHubContext<VideoShareHub> hubContext)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             _context = context;
             _hubContext = hubContext;
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<SharedVideo?> GetByIdAsync(int id)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             return await _context.SharedVideos.FindAsync(id);
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<List<SharedVideo>> GetAllAsync()
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             var videoList = _context.SharedVideos.Include(v => v.SharedBy).OrderByDescending(v => v.DateShared).ToList();
             return await Task.FromResult(videoList);
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<int> SaveAsync(SharedVideo video)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             // Check if a video with the same URL already exists
             var existingVideo = await _context.SharedVideos

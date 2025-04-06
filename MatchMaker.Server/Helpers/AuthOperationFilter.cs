@@ -6,9 +6,13 @@ using System.Reflection;
 
 namespace MatchMaker.Server.Helpers
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class AuthOperationFilter : IOperationFilter
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public void Apply(OpenApiOperation operation, OperationFilterContext ctx)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             if (ctx.ApiDescription.ActionDescriptor is ControllerActionDescriptor descriptor)
             {

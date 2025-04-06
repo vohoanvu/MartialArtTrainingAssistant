@@ -203,15 +203,15 @@ namespace VideoSharing.Server
 
             var app = builder.Build();
 
-            // Initialize the database if it doesn't exist
-            await using (var serviceScope = app.Services.CreateAsyncScope())
-            {
-                await DbHelper.EnsureDbIsCreatedAsync(
-                    serviceScope,
-                    app.Environment.IsDevelopment() &&
-                    Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
-                );
-            }
+            // Initialize the database already executed from FigherManage.Server thread
+            //await using (var serviceScope = app.Services.CreateAsyncScope())
+            //{
+            //    await DbHelper.EnsureDbIsCreatedAndSeededAsync(
+            //        serviceScope,
+            //        app.Environment.IsDevelopment() &&
+            //        Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
+            //    );
+            //}
 
             app.UseDefaultFiles();
             app.UseStaticFiles();

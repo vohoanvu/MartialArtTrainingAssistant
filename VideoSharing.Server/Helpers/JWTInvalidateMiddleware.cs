@@ -6,13 +6,19 @@ using System.Security.Claims;
 
 namespace VideoSharing.Server.Helpers
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class JWTInvalidateFilter : IAuthorizationFilter
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public JWTInvalidateFilter()
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public void OnAuthorization(AuthorizationFilterContext context)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             var anonymous = context.ActionDescriptor.EndpointMetadata
                    .Where(x => x.GetType() == typeof(AllowAnonymousAttribute))
@@ -48,16 +54,24 @@ namespace VideoSharing.Server.Helpers
 
     }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class BaseFilter : IActionFilter, IOrderedFilter
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public int Order { get; } = int.MinValue;
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         private readonly ILogger<BaseFilter> _logger;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public BaseFilter(ILogger<BaseFilter> logger)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             _logger = logger;
         }
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public void OnActionExecuted(ActionExecutedContext context)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             if (context.Result is Response<object> response)
             {
@@ -100,7 +114,9 @@ namespace VideoSharing.Server.Helpers
             }
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public void OnActionExecuting(ActionExecutingContext context)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
         }
     }
