@@ -16,10 +16,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SharedEntities;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using SharedEntities.Models;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 
 namespace VideoSharing.Server
 {
