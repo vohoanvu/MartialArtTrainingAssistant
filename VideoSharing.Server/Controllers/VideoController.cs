@@ -15,7 +15,6 @@ namespace VideoSharing.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class VideoController(IYoutubeDataService youtubeDataService,
         ISharedVideoRepository sharedVideoRepository, IServiceProvider serviceProvider,
         IGoogleCloudStorageService googleCloudStorageService,
@@ -29,9 +28,7 @@ namespace VideoSharing.Server.Controllers
 
         [HttpPost("metadata")]
         [Authorize]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(UploadVideoRequest request)
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -79,9 +76,7 @@ namespace VideoSharing.Server.Controllers
 
         [HttpGet("GetAll")]
         [AllowAnonymous]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<ActionResult<List<VideoDetailsResponse>>> GetAll()
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             var sharedVideos = await _sharedVideoRepository.GetAllAsync();
 
@@ -103,7 +98,6 @@ namespace VideoSharing.Server.Controllers
         [HttpPost("upload-sparring")]
         [Authorize]
         [RequestSizeLimit(100 * 1024 * 1024)]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<IActionResult> UploadSparringVideoAsync(IFormFile videoFile, [FromForm] string description)
         {
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
@@ -160,7 +154,6 @@ namespace VideoSharing.Server.Controllers
         [HttpPost("upload-demonstration")]
         [Authorize]
         [RequestSizeLimit(100 * 1024 * 1024)]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<IActionResult> UploadDemonstrationAsync(IFormFile videoFile, [FromForm] string description)
         {
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
@@ -216,7 +209,6 @@ namespace VideoSharing.Server.Controllers
 
         [HttpDelete("delete-uploaded/{videoId}")]
         [Authorize]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<IActionResult> DeleteUploadedVideoAsync(int videoId)
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
@@ -250,7 +242,6 @@ namespace VideoSharing.Server.Controllers
             contentType is "video/mp4" or "video/avi";
     }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class UploadVideoRequest
     {
         [JsonPropertyName("videoUrl")]

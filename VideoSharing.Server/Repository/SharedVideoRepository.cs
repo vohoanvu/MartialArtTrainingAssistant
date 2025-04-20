@@ -11,7 +11,7 @@ namespace VideoSharing.Server.Repository
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        Task<SharedVideo> GetByIdAsync(int id);
+        Task<SharedVideo?> GetByIdAsync(int id);
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Task<List<SharedVideo>> GetAllAsync();
