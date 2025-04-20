@@ -42,41 +42,140 @@ To get started, clone the repository and open the project in Visual Studio 2022.
 - [React](https://reactjs.org/)
 - [.Net 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 
+### .env Configuration
+
+Open the `.env` file in the project root and configure the following variables. These are essential for the Docker Compose setup and define ports and connection details:
+
+-   `ASPNETCORE_APP_DB`: The connection string used by the API containers to connect to the PostgreSQL container. The default value usually works if the database service name in `docker-compose.yml` is `app-db` and the port is 5430.
+-   `CLIENT_APP_PORTS`: Defines the host-to-container port mapping for the frontend Nginx container (e.g., `3000:80` maps host port 3000 to container port 80).
+-   `POSTGRES_PORT`: Sets the host port mapping for the PostgreSQL database container (e.g., `5430:5430`).
+-   `ASPNETCORE_APP_PORT_1`: Host port for the `FighterManager.Server` API container (e.g., `8081`). This will map to the container's internal port (7080/8080). [cite: 511]
+-   `ASPNETCORE_APP_PORT_2`: Host port for the `VideoSharing.Server` API container (e.g., `8082`). This will map to the container's internal port (7081/8081). [cite: 512]
+-   `ASPNETCORE_APP_PORT_3`: Host port for the `MatchMaker.Server` API container (e.g., `8083`). This will map to the container's internal port (7082/8082). [cite: 514]
+-   `YOUTUBE_API_KEY`: **Required** if using YouTube video sharing features. Obtain from [Google Cloud Console](https://cloud.google.com/docs/authentication/api-keys). [cite: 540]
+-   `GOOGLE_CLOUD_PROJECT_ID`: Your Google Cloud Project ID (if using GCS features).
+-   `GOOGLE_CLOUD_BUCKET_NAME`: Your Google Cloud Storage bucket name (if using GCS features).
+-   `ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION`: Set to `true` if you want Swagger UI accessible when running via Docker Compose.
+
+**Note:** `GoogleCloud__ServiceAccountKeyPath` is configured differently, see the dedicated section below.
+
 ### Running the Application
 
-You can run the application without Docker or as a collection of Docker containers. Generally, the docker-compose file was designed to run the application in a production environment, but it can also be used for development purposes.
+Choose one of the following approaches:
 
-Below are the steps to run the application in both environments:
+#### Approach 1: Running with Docker Compose (Recommended)
 
-#### Running the Application without Docker
+This approach runs the entire application stack (APIs, React Client via Nginx, Database) within Docker containers.
 
-To run the application without Docker, you can run the .Net application and the React application separately. To run the .Net application, open the project in Visual Studio 2022 and run the application. The React client application should automatically start by default, but if it does not, you can navigate to the `SampleAspNetReactDockerApp.Client` directory and run the following command:
+1.  **Ensure Docker Desktop is Running.**
+2.  **Build and Run Containers:** Open a terminal in the project root directory and run:
+    ```bash
+    docker compose --env-file ./.env up -d --build
+    ```
+    * `--env-file ./.env`: Specifies the environment variables file.
+    * `--build`: Rebuilds images if Dockerfiles have changed.
+    * `-d`: Runs containers in detached mode.
+3.  **Database Initialization:** The first time, migrations and seeding should run automatically. Monitor logs if needed: `docker compose logs -f app-api video-api pair-api`.
+4.  **Access the Application:**
+    * **Frontend:** `http://localhost:<HOST_PORT>` (where `<HOST_PORT>` is the host port specified in `CLIENT_APP_PORTS`, e.g., `http://localhost:3000`).
+    * **Swagger UIs** (if `ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION=true`):
+        * FighterManager API: `http://localhost:<HOST_PORT>/swagger` [cite: 334]
+        * VideoSharing API: `http://localhost:<HOST_PORT>/vid/swagger` [cite: 335]
+        * MatchMaker API: `http://localhost:<HOST_PORT>/pair/swagger` [cite: 336]
+5.  **Stopping:**
+    ```bash
+    docker compose down
+    ```
 
-```bash
-npm install
-npm run dev
-```
+#### Approach 2: Hybrid (Dockerized DB, Local Apps)
 
-**Create a `.env` file in the project root directory with the content of the `.env.example` file.**
+Run the database in Docker, but the .NET APIs and React client directly on your machine. Useful for direct debugging.
 
-**NOTE:** You will need to have Node.js installed to run the client application. The application requires connection to a PostgreSQL database, so you will need to have a PostgreSQL database running. You can configure the connection string in the `appsettings.json` file in the `SampleAspNetReactDockerApp.Server` directory, or you can set the `ASPNETCORE_CONNECTIONSTRING` environment variable to the connection string. You can also run the database in a Docker container (from docker-compose) by running the following command:
-**NOTE:** For this youtube video sharing app, you will have to configure your `YOUTUBE_API_KEY` value in `.env` (for Docker host) or `appsettings.json` (for localhost)
+1.  **Ensure Docker Desktop is Running.**
+2.  **Start Database Container:** In the project root terminal:
+    ```bash
+    docker compose --env-file ./.env up -d app-db
+    ```
+3.  **Verify API Connection Strings:** Ensure `AppDb` connection string in `FighterManager.Server/appsettings.json`[cite: 93], `VideoSharing.Server/appsettings.json`[cite: 478], `MatchMaker.Server/appsettings.json`[cite: 135], and `SharedEntities/appsettings.json` [cite: 432] points to `localhost:<POSTGRES_PORT>` (e.g., `localhost:5430`).
+4.  **Run Backend APIs (.NET):**
+    * **Apply Migrations:** Run *once* from one of the API project directories (e.g., `FighterManager.Server`):
+        ```bash
+        cd FighterManager.Server
+        dotnet ef database update
+        cd ..
+        ```
+    * Open **separate terminals** for each API and run them:
+        ```bash
+        # Terminal 1: FighterManager API
+        cd FighterManager.Server
+        dotnet run --launch-profile http # Runs on http://localhost:5136 [cite: 78]
 
-```bash
-docker compose --env-file ./.env up -d app-db
-```
+        # Terminal 2: VideoSharing API
+        cd VideoSharing.Server
+        dotnet run --launch-profile http # Runs on http://localhost:5137 [cite: 463]
 
-#### Running the Application with Docker
+        # Terminal 3: MatchMaker API
+        cd MatchMaker.Server
+        dotnet run --launch-profile http # Runs on http://localhost:5138 [cite: 125]
+        ```
+5.  **Run Frontend (React):**
+    * Open another terminal:
+        ```bash
+        cd SampleAspNetReactDockerApp.Client
+        npm install
+        npm run dev # Runs on https://localhost:5173 by default [cite: 96]
+        ```
+6.  **Access the Application:**
+    * **Frontend:** `https://localhost:5173` (or the URL provided by `npm run dev`).
+    * **Swagger UIs:**
+        * FighterManager API: `http://localhost:5136/swagger`
+        * VideoSharing API: `http://localhost:5137/swagger`
+        * MatchMaker API: `http://localhost:5138/swagger`
+7.  **Stopping:**
+    * Stop each `dotnet run` and `npm run dev` process (`Ctrl+C`).
+    * Stop the database container: `docker compose down`.
 
-To run the application with Docker, you can run the following command in the root directory of the project:
+### Google Cloud Service Account Key Configuration
 
-** Update the `.env` file from the project's root directory with your own Youtube API KEY from the [Google Cloud Console Dashboard](https://cloud.google.com/docs/authentication/api-keys), or you can keep it the same as the content of the `.env.example` file.**
+If using Google Cloud Storage features in the `VideoSharing.Server`, you need to configure the path to your service account key JSON file.
 
-```bash
-docker compose --env-file ./.env up -d
-```
+1.  **Obtain Key File:**
+    * You cannot re-download an existing key file's private key.
+    * If you don't have the file, create a *new* key for your service account in the Google Cloud Console (IAM & Admin -> Service Accounts -> Select Account -> Keys -> Add Key -> Create new key -> JSON). See [Google Cloud Docs](https://cloud.google.com/iam/docs/keys-create-delete).
+    * **Important:** Store this downloaded `.json` file securely and **do not commit it to Git**. Add its location to your `.gitignore` file.
 
-The above command will start the .Net application, the React-Vite application and the database in separate Docker containers. You can access the application at `http://localhost:8080`.
+2.  **Configuration for Local Setup (Approach 2):**
+    * **Place the key file** securely outside your project directory (e.g., `~/secrets/gcp-key.json`).
+    * **Configure the path** in `VideoSharing.Server/appsettings.Development.json` (create this file if it doesn't exist; it overrides `appsettings.json` locally):
+        ```json
+        {
+          // ... other settings ...
+          "GoogleCloud": {
+            "ServiceAccountKeyPath": "/Users/<your-username>/secrets/gcp-key.json" // <-- Use absolute path
+          }
+        }
+        ```
+        (Replace `<your-username>` with your macOS username)
+    * Alternatively, set an environment variable in your terminal *before* running `dotnet run` for `VideoSharing.Server`:
+        ```bash
+        export GOOGLECLOUD__SERVICEACCOUNTKEYPATH="/Users/<your-username>/secrets/gcp-key.json"
+        dotnet run --launch-profile http
+        ```
+
+3.  **Configuration for Docker Setup (Approach 1):**
+    * Place the key file in a `secrets` directory in your project root: `./secrets/gcp-key.json`.
+    * Ensure the `video-api` service in `docker-compose.yml` correctly mounts this file and sets the environment variable to the *container path*[cite: 513]:
+        ```yaml
+        services:
+          video-api:
+            # ... other config ...
+            environment:
+              # ... other env vars ...
+              GoogleCloud__ServiceAccountKeyPath: "/app/secrets/gcp-key.json" # <-- Path INSIDE container [cite: 513]
+            volumes:
+              - ./secrets/gcp-key.json:/app/secrets/gcp-key.json:ro # <-- Mounts host path to container path [cite: 513]
+            # ... potentially a secrets block pointing to the same file ...
+        ```
 
 ### Running Unit Test suite
 #### backend unit test
