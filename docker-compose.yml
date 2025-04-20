@@ -52,7 +52,7 @@
     secrets: # Optional: Use Docker Secrets for service account key
       - gcs_service_account_key
     volumes:
-      - "D:/vu-repos/bjj-training/codejitsu-cloud-storage-service-account.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro" # Mount absolute path
+      - "/Users/vohoanvu/secrets/codejitsu-cloud-storage-service-account.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro" # Mount absolute path
     depends_on:
       - app-db
     networks:
@@ -98,7 +98,7 @@ volumes:
 
 secrets: # Define Docker Secrets
   gcs_service_account_key:
-    file: ./secrets/service-account-key.json # Path to the key file on the host
+    file: ~/secrets/codejitsu-cloud-storage-service-account.json # Path to the key file on the host
 
 networks:
   appnet:
