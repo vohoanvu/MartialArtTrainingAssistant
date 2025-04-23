@@ -13,6 +13,7 @@ import {
     VideoUploadResponse,
     VideoDeleteResponse,
 } from "@/types/global.ts";
+import axios from 'axios';
 
 type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
@@ -147,6 +148,7 @@ export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, h
         }
     });
     console.log("Inspecting Fighter Info response: ", response);
+    console.log("JWT beaker token: ", jwtToken);
     if (response.ok) {
         console.log("Fighter Info details fetched successfully!");
         return await response.json() as FighterInfo;
@@ -257,46 +259,104 @@ export async function CalculateBMI(height : number, weight: number) : Promise<Ge
 }
 
 
-export async function uploadVideoFile({
-    file,
-    description,
-    uploadType, // 'sparring' or 'demonstration'
-    jwtToken,
-    currentTry = 0,
-    hydrate,
-}: {
+// export async function uploadVideoFile({
+//     file,
+//     description,
+//     uploadType, // 'sparring' or 'demonstration'
+//     jwtToken,
+//     currentTry = 0,
+//     hydrate,
+// }: {
+//     file: File;
+//     description: string;
+//     uploadType: 'sparring' | 'demonstration';
+//     jwtToken: string;
+//     currentTry?: number;
+//     hydrate: () => Promise<void>;
+// }): Promise<VideoUploadResponse> {
+//     console.log(`Uploading ${uploadType} video to Microservice D...`);
+
+//     const formData = new FormData();
+//     formData.append('videoFile', file);
+//     formData.append('description', description);
+
+//     const endpoint = uploadType === 'sparring' ? '/vid/api/video/upload-sparring' : '/vid/api/video/upload-demonstration';
+//     console.log("Bearer Token is: ", jwtToken);
+//     const response = await fetch(endpoint, {
+//         method: 'POST',
+//         headers: {
+//             'Authorization': `Bearer ${jwtToken}`,
+//             // Note: Don't set 'Content-Type' manually with FormData; fetch sets it to multipart/form-data with the boundary
+//         },
+//         body: formData,
+//     });
+
+//     if (response.ok) {
+//         console.log(`${uploadType} video uploaded successfully!`);
+//         return await response.json() as VideoUploadResponse;
+//     } else if (response.status === 401 && currentTry === 0) {
+//         await hydrate();
+//         return await uploadVideoFile({ file, description, uploadType, jwtToken, currentTry: 1, hydrate });
+//     } else {
+//         const errorText = await response.text();
+//         throw new Error(`Error uploading ${uploadType} video: ${errorText}`);
+//     }
+// }
+
+
+interface UploadVideoParams {
     file: File;
     description: string;
     uploadType: 'sparring' | 'demonstration';
     jwtToken: string;
     currentTry?: number;
     hydrate: () => Promise<void>;
-}): Promise<VideoUploadResponse> {
+    onProgress?: (percent: number) => void;
+}
+export async function uploadVideoFile({
+    file,
+    description,
+    uploadType,
+    jwtToken,
+    currentTry = 0,
+    hydrate,
+    onProgress,
+}: UploadVideoParams): Promise<VideoUploadResponse> {
     console.log(`Uploading ${uploadType} video to Microservice D...`);
 
     const formData = new FormData();
     formData.append('videoFile', file);
     formData.append('description', description);
 
-    const endpoint = uploadType === 'sparring' ? '/vid/api/video/upload-sparring' : '/vid/api/video/upload-demonstration';
-    console.log("Bearer Token is: ", jwtToken);
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${jwtToken}`,
-            // Note: Don't set 'Content-Type' manually with FormData; fetch sets it to multipart/form-data with the boundary
-        },
-        body: formData,
-    });
+    const endpoint = uploadType === 'sparring'
+        ? '/vid/api/video/upload-sparring'
+        : '/vid/api/video/upload-demonstration';
 
-    if (response.ok) {
+    try {
+        const response = await axios.post(endpoint, formData, {
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`,
+                // axios sets the Content-Type automatically when sending FormData
+            },
+            onUploadProgress: (progressEvent: ProgressEvent) => {
+                const percentCompleted = Math.round(
+                    (progressEvent.loaded * 100) / progressEvent.total
+                );
+                console.log(`Upload progress: ${percentCompleted}%`);
+                if (onProgress) onProgress(percentCompleted);
+            },
+        });
+    
         console.log(`${uploadType} video uploaded successfully!`);
-        return await response.json() as VideoUploadResponse;
-    } else if (response.status === 401 && currentTry === 0) {
-        await hydrate();
-        return await uploadVideoFile({ file, description, uploadType, jwtToken, currentTry: 1, hydrate });
-    } else {
-        const errorText = await response.text();
+        return response.data as VideoUploadResponse;
+    }
+    catch (error: any) {
+        // Handle auto-refresh on 401
+        if (error.response && error.response.status === 401 && currentTry === 0) {
+            await hydrate();
+            return await uploadVideoFile({ file, description, uploadType, jwtToken, currentTry: 1, hydrate, onProgress });
+        }
+        const errorText = error.response?.data || error.response?.statusText || error.message;
         throw new Error(`Error uploading ${uploadType} video: ${errorText}`);
     }
 }

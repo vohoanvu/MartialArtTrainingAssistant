@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { uploadVideoFile } from '@/services/api'; // Import the new function
 import { Button } from './ui/button';
+import { VideoUploadResponse } from '@/types/global';
 
 interface VideoUploadFormProps {
     fighterRole: number; // 0 for Student, 1 for Instructor
@@ -14,6 +15,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
     const [signedUrl, setSignedUrl] = useState('');
     const [isLoading, setIsLoading] = useState(false); // Added for loading state
     const [error, setError] = useState<string | null>(null);
+    const [progress, setProgress] = useState(0);
 
     const uploadType = fighterRole === 0 ? 'sparring' : 'demonstration';
     const title = fighterRole === 0 ? 'Upload Sparring Video' : 'Upload Demonstration Video';
@@ -27,14 +29,16 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
 
         setIsLoading(true);
         setError(null);
+        setProgress(0);
 
         try {
-            const response = await uploadVideoFile({
+            const response: VideoUploadResponse = await uploadVideoFile({
                 file,
                 description,
                 uploadType,
-                jwtToken: jwtToken,
-                hydrate: hydrateFn
+                jwtToken,
+                hydrate: hydrateFn,
+                onProgress: (percent: number) => setProgress(percent)
             });
             setSignedUrl(response.SignedUrl);
             setFile(null);
@@ -88,6 +92,12 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                     {isLoading ? 'Uploading...' : `Upload ${uploadType === 'sparring' ? 'Sparring' : 'Demonstration'} Video`}
                 </Button>
             </form>
+            {isLoading && (
+                <div className="mt-4">
+                    <progress value={progress} max="100" className="w-full" />
+                    <p className="text-center mt-1">{progress}%</p>
+                </div>
+            )}
             {error && <p className="text-red-500 mt-2">{error}</p>}
             {signedUrl && (
                 <div className="mt-4">
