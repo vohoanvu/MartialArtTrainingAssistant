@@ -15,30 +15,30 @@ namespace VideoSharing.Server.Controllers
         public class VideoAnalysisRequest
         {
             public int VideoId { get; set; }
-            public string VideoUrl { get; set; } = string.Empty;
+            public string VideoStoragePath { get; set; } = string.Empty;
         }
 
         [HttpPost("analyze")]
         public async Task<IActionResult> AnalyzeVideo([FromBody] VideoAnalysisRequest request)
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            if(string.IsNullOrWhiteSpace(request.VideoUrl))
-                return BadRequest("VideoUrl is required.");
+            if(string.IsNullOrWhiteSpace(request.VideoStoragePath))
+                return BadRequest("VideoStoragePath is required.");
 
             // Call the Gemini Vision API asynchronously
-            var analysisResult = await _geminiService.AnalyzeVideoAsync(request.VideoUrl);
+            var visionAnalysisResult = await _geminiService.AnalyzeVideoAsync(request.VideoStoragePath);
 
             // Store the analysis result in the database linked to the video.
             var aiResult = new AiAnalysisResult
             {
                 VideoId = request.VideoId,
-                AnalysisJson = analysisResult.AnalysisJson
+                AnalysisJson = visionAnalysisResult.AnalysisJson
             };
 
             dbContext.AiAnalysisResults.Add(aiResult);
             await dbContext.SaveChangesAsync();
 
-            return Ok(analysisResult);
+            return Ok(aiResult);
         }
     }
 }

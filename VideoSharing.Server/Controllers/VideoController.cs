@@ -97,7 +97,7 @@ namespace VideoSharing.Server.Controllers
 
         [HttpPost("upload-sparring")]
         [Authorize]
-        [RequestSizeLimit(100 * 1024 * 1024)]
+        [RequestSizeLimit(300 * 1024 * 1024)]
         public async Task<IActionResult> UploadSparringVideoAsync(IFormFile videoFile, [FromForm] string description)
         {
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
@@ -153,7 +153,7 @@ namespace VideoSharing.Server.Controllers
 
         [HttpPost("upload-demonstration")]
         [Authorize]
-        [RequestSizeLimit(100 * 1024 * 1024)]
+        [RequestSizeLimit(300 * 1024 * 1024)]
         public async Task<IActionResult> UploadDemonstrationAsync(IFormFile videoFile, [FromForm] string description)
         {
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))

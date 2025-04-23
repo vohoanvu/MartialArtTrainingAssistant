@@ -16,6 +16,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SharedEntities;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
+using VideoSharing.Server.Domain.GeminiService;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace VideoSharing.Server
 {
@@ -50,6 +52,8 @@ namespace VideoSharing.Server
             builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
             builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
             builder.Services.AddAutoMapper(typeof(Program));
+
+            builder.Services.AddHttpClient<IGeminiVisionService, GeminiVisionService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -196,10 +200,10 @@ namespace VideoSharing.Server
             builder.Services.AddAuthorization();
 
             builder.Services.AddSignalR();
-            //builder.Services.Configure<KestrelServerOptions>(options =>
-            //{
-            //    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50MB
-            //});
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 300 * 1024 * 1024; // 300MB
+            });
 
             var app = builder.Build();
 

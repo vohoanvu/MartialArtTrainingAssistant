@@ -86,7 +86,7 @@ namespace SharedEntities.Models
     {
         public int Id { get; set; }
         public int VideoId { get; set; }
-        public string AnalysisJson { get; set; }
+        public required string AnalysisJson { get; set; }
 
         [ForeignKey("VideoId")]
         public virtual UploadedVideo Video { get; set; }
