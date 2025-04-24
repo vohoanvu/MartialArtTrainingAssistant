@@ -53,7 +53,7 @@ namespace VideoSharing.Server
             builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
-            builder.Services.AddHttpClient<IGeminiVisionService, GeminiVisionService>();
+            builder.Services.AddScoped<IGeminiVisionService, GeminiVisionService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

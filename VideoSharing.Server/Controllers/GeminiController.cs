@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using VideoSharing.Server.Domain.GeminiService;
@@ -7,38 +9,79 @@ namespace VideoSharing.Server.Controllers
 {
     [ApiController]
     [Route("api/video")]
-    public class GeminiController(IGeminiVisionService geminiService, IServiceProvider context) : ControllerBase
+    public class GeminiController : ControllerBase
     {
-        private readonly IGeminiVisionService _geminiService = geminiService;
-        private readonly IServiceProvider _serviceProvider = context;
+        private readonly IGeminiVisionService _geminiService;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<GeminiController> _logger;
+
+        public GeminiController(IGeminiVisionService geminiService, IServiceProvider serviceProvider, ILogger<GeminiController> logger)
+        {
+            _geminiService = geminiService;
+            _serviceProvider = serviceProvider;
+            _logger = logger;
+        }
 
         public class VideoAnalysisRequest
         {
-            public int VideoId { get; set; }
-            public string VideoStoragePath { get; set; } = string.Empty;
+            public required int VideoId { get; set; }
         }
 
         [HttpPost("analyze")]
         public async Task<IActionResult> AnalyzeVideo([FromBody] VideoAnalysisRequest request)
         {
-            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            if(string.IsNullOrWhiteSpace(request.VideoStoragePath))
-                return BadRequest("VideoStoragePath is required.");
+            // Store the structured JSON in the database
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
-            // Call the Gemini Vision API asynchronously
-            var visionAnalysisResult = await _geminiService.AnalyzeVideoAsync(request.VideoStoragePath);
+            if (!await dbContext.UploadedVideos.AnyAsync(v => v.Id == request.VideoId))
+                return BadRequest("Invalid VideoId.");
 
-            // Store the analysis result in the database linked to the video.
-            var aiResult = new AiAnalysisResult
+            var uploadedVideo = await dbContext.UploadedVideos.FindAsync(request.VideoId);
+
+            try
             {
-                VideoId = request.VideoId,
-                AnalysisJson = visionAnalysisResult.AnalysisJson
-            };
+                // Call the Gemini Vision API asynchronously
+                var visionAnalysisResult = await _geminiService.AnalyzeVideoAsync(uploadedVideo!.FilePath);
 
-            dbContext.AiAnalysisResults.Add(aiResult);
-            await dbContext.SaveChangesAsync();
+                // Validate the response is valid JSON
+                string? structuredJson = ValidateStructuredJson(visionAnalysisResult.AnalysisJson);
+                if (structuredJson == null)
+                    return StatusCode(500, "Invalid or empty JSON response from the API.");
 
-            return Ok(aiResult);
+                var aiResult = new AiAnalysisResult
+                {
+                    VideoId = request.VideoId,
+                    AnalysisJson = structuredJson ?? string.Empty
+                };
+
+                dbContext.AiAnalysisResults.Add(aiResult);
+                await dbContext.SaveChangesAsync();
+
+                return Ok(aiResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error analyzing video with path {Path}", uploadedVideo!.FilePath);
+                return StatusCode(500, $"Error analyzing video: {ex.Message}");
+            }
+        }
+
+        private static string? ValidateStructuredJson(string apiResponseJson)
+        {
+            if (string.IsNullOrWhiteSpace(apiResponseJson))
+                return null;
+
+            try
+            {
+                // Validate that the response is valid JSON
+                JsonDocument.Parse(apiResponseJson);
+                return apiResponseJson;
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
         }
     }
 }

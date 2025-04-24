@@ -191,9 +191,9 @@ export interface GetBMIResponse {
 }
 
 export interface VideoUploadResponse {
-    VideoId?: number; // For sparring
-    DemonstrationId?: number; // For demonstration
-    SignedUrl: string;
+    videoId: number | null; // For sparring
+    demonstrationId: number | null; // For demonstration
+    signedUrl: string;
 }
 
 export interface VideoDeleteResponse {

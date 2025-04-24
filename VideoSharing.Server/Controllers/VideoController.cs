@@ -18,13 +18,14 @@ namespace VideoSharing.Server.Controllers
     public class VideoController(IYoutubeDataService youtubeDataService,
         ISharedVideoRepository sharedVideoRepository, IServiceProvider serviceProvider,
         IGoogleCloudStorageService googleCloudStorageService,
-        IHubContext<VideoShareHub> hubContext) : ControllerBase
+        IHubContext<VideoShareHub> hubContext, ILogger<VideoController> logger) : ControllerBase
     {
         private readonly IYoutubeDataService _youtubeDataService = youtubeDataService;
         private readonly ISharedVideoRepository _sharedVideoRepository = sharedVideoRepository;
         private readonly IServiceProvider _serviceProvider = serviceProvider;
         private readonly IGoogleCloudStorageService _gcsService = googleCloudStorageService;
         private readonly IHubContext<VideoShareHub> _hubContext = hubContext;
+        private readonly ILogger<VideoController> _logger = logger;
 
         [HttpPost("metadata")]
         [Authorize]
@@ -100,6 +101,9 @@ namespace VideoSharing.Server.Controllers
         [RequestSizeLimit(300 * 1024 * 1024)]
         public async Task<IActionResult> UploadSparringVideoAsync(IFormFile videoFile, [FromForm] string description)
         {
+            if (videoFile.Length > 300 * 1024 * 1024)
+                return BadRequest(new { Message = "Video file exceeds 300 MB limit." });
+
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
                 return BadRequest(new { Message = "Invalid video file" });
 
@@ -127,6 +131,7 @@ namespace VideoSharing.Server.Controllers
             }
 
             using var stream = videoFile.OpenReadStream();
+            _logger.LogInformation("User {UserId} uploaded sparring video: {FileName}", userId, videoFile.FileName);
             var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
 
             var uploadedVideo = new UploadedVideo
@@ -156,6 +161,9 @@ namespace VideoSharing.Server.Controllers
         [RequestSizeLimit(300 * 1024 * 1024)]
         public async Task<IActionResult> UploadDemonstrationAsync(IFormFile videoFile, [FromForm] string description)
         {
+            if (videoFile.Length > 300 * 1024 * 1024)
+                return BadRequest(new { Message = "Video file exceeds 300 MB limit." });
+
             if (videoFile == null || !IsValidVideoFormat(videoFile.ContentType))
                 return BadRequest(new { Message = "Invalid video file" });
 
@@ -183,6 +191,7 @@ namespace VideoSharing.Server.Controllers
             }
 
             using var stream = videoFile.OpenReadStream();
+            _logger.LogInformation("User {UserId} uploaded sparring video: {FileName}", userId, videoFile.FileName);
             var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
 
             var uploadedVideo = new UploadedVideo
@@ -230,7 +239,6 @@ namespace VideoSharing.Server.Controllers
 
         [HttpGet("getall-uploaded")]
         [Authorize]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<ActionResult<List<UploadedVideo>>> GetAllUploadedVideosAsync()
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
@@ -239,7 +247,7 @@ namespace VideoSharing.Server.Controllers
         }
 
         private bool IsValidVideoFormat(string contentType) =>
-            contentType is "video/mp4" or "video/avi";
+            contentType is "video/mp4" or "video/avi" or "video/mov" or "video/mpeg" or "video/webm";
     }
 
     public class UploadVideoRequest
