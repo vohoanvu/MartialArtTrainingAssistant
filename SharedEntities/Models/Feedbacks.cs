@@ -50,31 +50,30 @@ namespace SharedEntities.Models
         [Key]
         public int Id { get; set; }
 
+        public double Timestamp { get; set; }  // Required for timestamped feedback
+        public string FeedbackText { get; set; }  // Required instructor feedback
+        public string? AIAnalysisJson { get; set; }  // Optional AI analysis at timestamp
+        public string FeedbackType { get; set; }  // e.g., "Posture", "Defense"
+
         public int VideoId { get; set; }
-        public string InstructorId { get; set; }
-        public double? Timestamp { get; set; }
-        public string FeedbackText { get; set; }
-
-        //JSON storing AI analysis at that timestamp (use JSONB in PostgreSQL).
-        public string? AIAnalysisJson { get; set; }
-
-
         [ForeignKey("VideoId")]
         public virtual UploadedVideo Video { get; set; }
 
+        public string InstructorId { get; set; }
         [ForeignKey("InstructorId")]
         public virtual AppUserEntity Instructor { get; set; }
     }
 
-    //Stores AI-generated feedback for specific aspects of a video.
+    // AI-generated insights on video content, including timestamps and types of feedback.
     public class AiFeedback
     {
         [Key]
         public int Id { get; set; }
 
         public int VideoId { get; set; }
-        public string AnalysisJson { get; set; }
-
+        public string AnalysisJson { get; set; }  // Required AI analysis
+        public double? Timestamp { get; set; }  // Nullable for flexibility
+        public string FeedbackType { get; set; }  // e.g., "Overall", "Posture"
 
         [ForeignKey("VideoId")]
         public virtual UploadedVideo Video { get; set; }

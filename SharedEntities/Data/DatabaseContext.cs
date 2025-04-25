@@ -66,5 +66,33 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
             e.HasOne(x => x.Fighter).WithOne().HasForeignKey<AppUserEntity>(x => x.FighterId);
         });
+
+        // Configure GIN index for AiAnalysisResult.AnalysisJson (JSONB)
+        builder.Entity<AiAnalysisResult>()
+            .HasIndex(a => a.AnalysisJson)
+            .HasMethod("GIN");
+
+        // Configure GIN index for HumanFeedback.AIAnalysisJson (JSONB)
+        builder.Entity<HumanFeedback>()
+            .HasIndex(h => h.AIAnalysisJson)
+            .HasMethod("GIN");
+
+        // Configure GIN index for AiFeedback.AnalysisJson (JSONB)
+        builder.Entity<AiFeedback>()
+            .HasIndex(a => a.AnalysisJson)
+            .HasMethod("GIN");
+
+        // Ensure JSONB columns are mapped correctly
+        builder.Entity<AiAnalysisResult>()
+            .Property(a => a.AnalysisJson)
+            .HasColumnType("jsonb");
+
+        builder.Entity<HumanFeedback>()
+            .Property(h => h.AIAnalysisJson)
+            .HasColumnType("jsonb");
+
+        builder.Entity<AiFeedback>()
+            .Property(a => a.AnalysisJson)
+            .HasColumnType("jsonb");
     }
 }

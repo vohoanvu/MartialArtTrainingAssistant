@@ -2,6 +2,8 @@ using Google.Cloud.AIPlatform.V1;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.StaticFiles;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace VideoSharing.Server.Domain.GeminiService
 {
@@ -96,6 +98,23 @@ namespace VideoSharing.Server.Domain.GeminiService
 
             string prompt = GetCustomPrompt();
 
+            // Create a sample instance of your schema (structure only, without data)
+            var sampleSchema = new GenerationConfigSchema
+            {
+                TechniquesIdentified = new List<Technique>
+                {
+                    new Technique { Name = "Example", Description = "Example", Timestamp = "00:00" }
+                },
+                TextualDescription = "Example description",
+                Strengths = new List<string> { "Example strength" },
+                AreasForImprovement = new List<string> { "Example improvement" },
+                SuggestedDrills = new List<SuggestedDrill>
+                {
+                    new SuggestedDrill { Name = "Example drill", Description = "Example drill description", Focus = "Example focus" }
+                }
+            };
+            string responseSchemaJson = JsonSerializer.Serialize(sampleSchema);
+
             // Construct the GenerateContentRequest
             var request = new GenerateContentRequest
             {
@@ -150,7 +169,8 @@ namespace VideoSharing.Server.Domain.GeminiService
                     Temperature = 0.4f,
                     TopP = 1.0f,
                     MaxOutputTokens = 65535,
-                    ResponseMimeType = "application/json"
+                    ResponseMimeType = "application/json",
+                    ResponseSchema = Google.Protobuf.JsonParser.Default.Parse<OpenApiSchema>(responseSchemaJson),
                 }
             };
 
@@ -201,5 +221,47 @@ namespace VideoSharing.Server.Domain.GeminiService
         }
 
         private string GetCustomPrompt() => _customPrompt;
+    }
+
+    public class GenerationConfigSchema
+    {
+        [JsonPropertyName("techniques_identified")]
+        public List<Technique> TechniquesIdentified { get; set; } = [];
+
+        [JsonPropertyName("textual_description")]
+        public string TextualDescription { get; set; } = string.Empty;
+
+        [JsonPropertyName("strengths")]
+        public List<string> Strengths { get; set; } = [];
+
+        [JsonPropertyName("areas_for_improvement")]
+        public List<string> AreasForImprovement { get; set; } = [];
+
+        [JsonPropertyName("suggested_drills")]
+        public List<SuggestedDrill> SuggestedDrills { get; set; } = [];
+    }
+
+    public class Technique
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
+
+        [JsonPropertyName("timestamp")]
+        public string Timestamp { get; set; } = string.Empty;
+    }
+
+    public class SuggestedDrill
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
+
+        [JsonPropertyName("focus")]
+        public string Focus { get; set; } = string.Empty;
     }
 }

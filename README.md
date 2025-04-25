@@ -49,10 +49,10 @@ Open the `.env` file in the project root and configure the following variables. 
 -   `ASPNETCORE_APP_DB`: The connection string used by the API containers to connect to the PostgreSQL container. The default value usually works if the database service name in `docker-compose.yml` is `app-db` and the port is 5430.
 -   `CLIENT_APP_PORTS`: Defines the host-to-container port mapping for the frontend Nginx container (e.g., `3000:80` maps host port 3000 to container port 80).
 -   `POSTGRES_PORT`: Sets the host port mapping for the PostgreSQL database container (e.g., `5430:5430`).
--   `ASPNETCORE_APP_PORT_1`: Host port for the `FighterManager.Server` API container (e.g., `8081`). This will map to the container's internal port (7080/8080). [cite: 511]
--   `ASPNETCORE_APP_PORT_2`: Host port for the `VideoSharing.Server` API container (e.g., `8082`). This will map to the container's internal port (7081/8081). [cite: 512]
--   `ASPNETCORE_APP_PORT_3`: Host port for the `MatchMaker.Server` API container (e.g., `8083`). This will map to the container's internal port (7082/8082). [cite: 514]
--   `YOUTUBE_API_KEY`: **Required** if using YouTube video sharing features. Obtain from [Google Cloud Console](https://cloud.google.com/docs/authentication/api-keys). [cite: 540]
+-   `ASPNETCORE_APP_PORT_1`: Host port for the `FighterManager.Server` API container (e.g., `8081`). This will map to the container's internal port (7080/8080).
+-   `ASPNETCORE_APP_PORT_2`: Host port for the `VideoSharing.Server` API container (e.g., `8082`). This will map to the container's internal port (7081/8081).
+-   `ASPNETCORE_APP_PORT_3`: Host port for the `MatchMaker.Server` API container (e.g., `8083`). This will map to the container's internal port (7082/8082).
+-   `YOUTUBE_API_KEY`: **Required** if using YouTube video sharing features. Obtain from [Google Cloud Console](https://cloud.google.com/docs/authentication/api-keys).
 -   `GOOGLE_CLOUD_PROJECT_ID`: Your Google Cloud Project ID (if using GCS features).
 -   `GOOGLE_CLOUD_BUCKET_NAME`: Your Google Cloud Storage bucket name (if using GCS features).
 -   `ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION`: Set to `true` if you want Swagger UI accessible when running via Docker Compose.
@@ -79,9 +79,9 @@ This approach runs the entire application stack (APIs, React Client via Nginx, D
 4.  **Access the Application:**
     * **Frontend:** `http://localhost:<HOST_PORT>` (where `<HOST_PORT>` is the host port specified in `CLIENT_APP_PORTS`, e.g., `http://localhost:3000`).
     * **Swagger UIs** (if `ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION=true`):
-        * FighterManager API: `http://localhost:<HOST_PORT>/swagger` [cite: 334]
-        * VideoSharing API: `http://localhost:<HOST_PORT>/vid/swagger` [cite: 335]
-        * MatchMaker API: `http://localhost:<HOST_PORT>/pair/swagger` [cite: 336]
+        * FighterManager API: `http://localhost:<HOST_PORT>/swagger`
+        * VideoSharing API: `http://localhost:<HOST_PORT>/vid/swagger`
+        * MatchMaker API: `http://localhost:<HOST_PORT>/pair/swagger`
 5.  **Stopping:**
     ```bash
     docker compose down
@@ -96,34 +96,37 @@ Run the database in Docker, but the .NET APIs and React client directly on your 
     ```bash
     docker compose --env-file ./.env up -d app-db
     ```
-3.  **Verify API Connection Strings:** Ensure `AppDb` connection string in `FighterManager.Server/appsettings.json`[cite: 93], `VideoSharing.Server/appsettings.json`[cite: 478], `MatchMaker.Server/appsettings.json`[cite: 135], and `SharedEntities/appsettings.json` [cite: 432] points to `localhost:<POSTGRES_PORT>` (e.g., `localhost:5430`).
+3.  **Verify API Connection Strings:** Ensure `AppDb` connection string in `FighterManager.Server/appsettings.json`, `VideoSharing.Server/appsettings.json`, `MatchMaker.Server/appsettings.json`, and `SharedEntities/appsettings.json` points to `localhost:<POSTGRES_PORT>` (e.g., `localhost:5430`).
 4.  **Run Backend APIs (.NET):**
-    * **Apply Migrations:** Run *once* from one of the API project directories (e.g., `FighterManager.Server`):
+  - Since SharedEntities is a class library, migrations require a startup project (e.g., FighterManager.Server) that configures the DbContext and provides the runtime environment.
+    * **Create/Update Db Schema** Run the following command from the root directory to create a new migration:
         ```bash
-        cd FighterManager.Server
-        dotnet ef database update
-        cd ..
+        dotnet ef migrations add NewMigrationName --project SharedEntities --startup-project FighterManager.Server
+        ```
+    * **Apply Db Migrations:** Run the following command from the root directory to apply migrations:
+        ```bash
+        dotnet ef database update --project SharedEntities --startup-project FighterManager.Server
         ```
     * Open **separate terminals** for each API and run them:
         ```bash
         # Terminal 1: FighterManager API
         cd FighterManager.Server
-        dotnet run --launch-profile http # Runs on http://localhost:5136 [cite: 78]
+        dotnet run --launch-profile http # Runs on http://localhost:5136
 
         # Terminal 2: VideoSharing API
         cd VideoSharing.Server
-        dotnet run --launch-profile http # Runs on http://localhost:5137 [cite: 463]
+        dotnet run --launch-profile http # Runs on http://localhost:5137
 
         # Terminal 3: MatchMaker API
         cd MatchMaker.Server
-        dotnet run --launch-profile http # Runs on http://localhost:5138 [cite: 125]
+        dotnet run --launch-profile http # Runs on http://localhost:5138
         ```
 5.  **Run Frontend (React):**
     * Open another terminal:
         ```bash
         cd SampleAspNetReactDockerApp.Client
         npm install
-        npm run dev # Runs on https://localhost:5173 by default [cite: 96]
+        npm run dev # Runs on https://localhost:5173 by default
         ```
 6.  **Access the Application:**
     * **Frontend:** `https://localhost:5173` (or the URL provided by `npm run dev`).
@@ -164,16 +167,16 @@ If using Google Cloud Storage features in the `VideoSharing.Server`, you need to
 
 3.  **Configuration for Docker Setup (Approach 1):**
     * Place the key file in a `secrets` directory in your project root: `./secrets/gcp-key.json`.
-    * Ensure the `video-api` service in `docker-compose.yml` correctly mounts this file and sets the environment variable to the *container path*[cite: 513]:
+    * Ensure the `video-api` service in `docker-compose.yml` correctly mounts this file and sets the environment variable to the *container path*
         ```yaml
         services:
           video-api:
             # ... other config ...
             environment:
               # ... other env vars ...
-              GoogleCloud__ServiceAccountKeyPath: "/app/secrets/gcp-key.json" # <-- Path INSIDE container [cite: 513]
+              GoogleCloud__ServiceAccountKeyPath: "/app/secrets/gcp-key.json" # <-- Path INSIDE container
             volumes:
-              - ./secrets/gcp-key.json:/app/secrets/gcp-key.json:ro # <-- Mounts host path to container path [cite: 513]
+              - ./secrets/gcp-key.json:/app/secrets/gcp-key.json:ro # <-- Mounts host path to container path
             # ... potentially a secrets block pointing to the same file ...
         ```
 
