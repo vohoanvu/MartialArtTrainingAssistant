@@ -4,22 +4,24 @@ import useAuthStore from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2 } from 'lucide-react'; // Assuming you use lucide-react for icons
+import { useNavigate } from 'react-router-dom';
 
-interface UploadedVideo {
+export interface UploadedVideoDto {
     id: number;
     userId: string;
     filePath: string;
     description: string;
     uploadTimestamp: string;
-    aiSummary: string;
-    appUser: string;
+    aiAnalysisResult: string;
+    signedUrl: string;
 }
 
 const VideoStorageListing = () => {
-    const [videos, setVideos] = useState<UploadedVideo[]>([]);
+    const [videos, setVideos] = useState<UploadedVideoDto[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { accessToken, hydrate } = useAuthStore();
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchVideos();
@@ -63,6 +65,10 @@ const VideoStorageListing = () => {
         }
     };
 
+    const handleReview = (videoId: number) => {
+        navigate(`/video-review/${videoId}`);
+    };
+
     return (
         <div className="max-w-4xl mx-auto my-10 p-6 border rounded-lg shadow-lg bg-white">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Uploaded Videos</h2>
@@ -85,7 +91,7 @@ const VideoStorageListing = () => {
                                 <TableCell>{video.filePath}</TableCell>
                                 <TableCell>{video.description}</TableCell>
                                 <TableCell>{new Date(video.uploadTimestamp).toLocaleString()}</TableCell>
-                                <TableCell>
+                                <TableCell className="flex space-x-2">
                                     <Button
                                         variant="destructive"
                                         size="icon"
@@ -93,6 +99,13 @@ const VideoStorageListing = () => {
                                         disabled={isLoading}
                                     >
                                         <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleReview(video.id)}
+                                    >
+                                        Review
                                     </Button>
                                 </TableCell>
                             </TableRow>

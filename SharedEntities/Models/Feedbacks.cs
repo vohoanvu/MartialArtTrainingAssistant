@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace SharedEntities.Models
 {
@@ -52,15 +53,19 @@ namespace SharedEntities.Models
 
         public double Timestamp { get; set; }  // Required for timestamped feedback
         public string FeedbackText { get; set; }  // Required instructor feedback
+        
+        [JsonIgnore]
         public string? AIAnalysisJson { get; set; }  // Optional AI analysis at timestamp
-        public string FeedbackType { get; set; }  // e.g., "Posture", "Defense"
+        public string? FeedbackType { get; set; }  // e.g., "Posture", "Defense"
 
         public int VideoId { get; set; }
         [ForeignKey("VideoId")]
+        [JsonIgnore]
         public virtual UploadedVideo Video { get; set; }
 
         public string InstructorId { get; set; }
         [ForeignKey("InstructorId")]
+        [JsonIgnore]
         public virtual AppUserEntity Instructor { get; set; }
     }
 
@@ -73,7 +78,7 @@ namespace SharedEntities.Models
         public int VideoId { get; set; }
         public string AnalysisJson { get; set; }  // Required AI analysis
         public double? Timestamp { get; set; }  // Nullable for flexibility
-        public string FeedbackType { get; set; }  // e.g., "Overall", "Posture"
+        public string? FeedbackType { get; set; }  // e.g., "Overall", "Posture"
 
         [ForeignKey("VideoId")]
         public virtual UploadedVideo Video { get; set; }

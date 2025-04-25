@@ -4,12 +4,12 @@ using VideoSharing.Server.Domain.YoutubeSharingService;
 using VideoSharing.Server.Repository;
 using System.Net;
 using System.Security.Claims;
-using System.Text.Json.Serialization;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using Microsoft.AspNetCore.SignalR;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
 using Microsoft.EntityFrameworkCore;
+using VideoSharing.Server.Models.Dtos;
 
 namespace VideoSharing.Server.Controllers
 {
@@ -239,20 +239,60 @@ namespace VideoSharing.Server.Controllers
 
         [HttpGet("getall-uploaded")]
         [Authorize]
-        public async Task<ActionResult<List<UploadedVideo>>> GetAllUploadedVideosAsync()
+        public async Task<ActionResult<List<UploadedVideoDto>>> GetAllUploadedVideosAsync()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
+
+            var videos = await (
+                from v in dbContext.UploadedVideos.AsNoTracking()
+                join ai in dbContext.AiAnalysisResults.AsNoTracking() 
+                    on v.Id equals ai.VideoId into aiGroup
+                select new UploadedVideoDto
+                {
+                    Id = v.Id,
+                    UserId = v.UserId,
+                    FilePath = v.FilePath,
+                    UploadTimestamp = v.UploadTimestamp,
+                    Description = v.Description,
+                    AiAnalysisResult = aiGroup.Select(a => a.AnalysisJson).FirstOrDefault(),
+                }
+            ).ToListAsync();
+
+            return Ok(videos);
+        }
+
+        [HttpGet("{videoId}")]
+        [Authorize]
+        public async Task<IActionResult> GetUploadedVideoAsync(int videoId)
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            var videos = await dbContext.UploadedVideos.ToListAsync();
-            return Ok(videos);
+            var video = await dbContext.UploadedVideos.FindAsync(videoId);
+            if (video == null)
+            {
+                return NotFound(new { Message = $"Video with ID {videoId} not found" });
+            }
+
+            var AiAnalysisResult = await dbContext.AiAnalysisResults
+                .Where(a => a.VideoId == videoId)
+                .Select(a => a.AnalysisJson)
+                .FirstOrDefaultAsync();
+
+            var signedUrl = await _gcsService.GenerateSignedUrlAsync(video.FilePath, TimeSpan.FromHours(1));
+
+            return Ok(new UploadedVideoDto
+            {
+                Id = video.Id,
+                UserId = video.UserId,
+                FilePath = video.FilePath,
+                UploadTimestamp = video.UploadTimestamp,
+                Description = video.Description,
+                AiAnalysisResult = AiAnalysisResult,
+                SignedUrl = signedUrl
+            });
         }
 
         private bool IsValidVideoFormat(string contentType) =>
             contentType is "video/mp4" or "video/avi" or "video/mov" or "video/mpeg" or "video/webm";
-    }
-
-    public class UploadVideoRequest
-    {
-        [JsonPropertyName("videoUrl")]
-        public required string VideoUrl { get; set; }
     }
 }

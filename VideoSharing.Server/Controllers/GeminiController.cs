@@ -1,9 +1,12 @@
+using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using VideoSharing.Server.Domain.GeminiService;
+using VideoSharing.Server.Models.Dtos;
 
 namespace VideoSharing.Server.Controllers
 {
@@ -22,15 +25,10 @@ namespace VideoSharing.Server.Controllers
             _logger = logger;
         }
 
-        public class VideoAnalysisRequest
-        {
-            public required int VideoId { get; set; }
-        }
-
         [HttpPost("analyze")]
+        [Authorize]
         public async Task<IActionResult> AnalyzeVideo([FromBody] VideoAnalysisRequest request)
         {
-            // Store the structured JSON in the database
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
@@ -65,6 +63,37 @@ namespace VideoSharing.Server.Controllers
                 _logger.LogError(ex, "Error analyzing video with path {Path}", uploadedVideo!.FilePath);
                 return StatusCode(500, $"Error analyzing video: {ex.Message}");
             }
+        }
+
+        [HttpGet("{id}/feedback")]
+        [Authorize]
+        public async Task<ActionResult> GetFeedback(int id)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
+
+            var humanFeedback = await dbContext.HumanFeedbacks.Where(f => f.VideoId == id).ToListAsync();
+            var aiFeedback = await dbContext.AiFeedbacks.Where(f => f.VideoId == id).ToListAsync();
+            return Ok(new { HumanFeedback = humanFeedback, AiFeedback = aiFeedback });
+        }
+
+        [HttpPost("{id}/feedback")]
+        [Authorize]
+        public async Task<ActionResult> AddFeedback(int id, [FromBody] HumanFeedback feedback)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
+
+            feedback.VideoId = id;
+            feedback.InstructorId = userId;
+            dbContext.HumanFeedbacks.Add(feedback);
+            await dbContext.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetFeedback), new { id }, feedback); 
         }
 
         private static string? ValidateStructuredJson(string apiResponseJson)

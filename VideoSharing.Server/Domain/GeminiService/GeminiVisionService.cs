@@ -2,25 +2,17 @@ using Google.Cloud.AIPlatform.V1;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.StaticFiles;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
-using System.Text.Json.Serialization;
-using System.Text.Json;
+using VideoSharing.Server.Models.Dtos;
+using SharedEntities.Models;
+using SharedEntities.Data;
 
 namespace VideoSharing.Server.Domain.GeminiService
 {
-    public class GeminiRequest
-    {
-        public string VideoUrl { get; set; } = string.Empty;
-        public string Prompt { get; set; } = string.Empty;
-    }
-
-    public class GeminiVisionResult
-    {
-        public string AnalysisJson { get; set; } = string.Empty;
-    }
-
     public interface IGeminiVisionService
     {
-        Task<GeminiVisionResult> AnalyzeVideoAsync(string videoInput);
+        Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput);
+
+        Task<AiFeedback> AnalyzeVideoSegment(int videoId, double timestamp);
     }
 
     public class GeminiVisionService : IGeminiVisionService
@@ -32,8 +24,10 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly string _customPrompt;
         private readonly IGoogleCloudStorageService _storageService;
         private readonly ILogger<GeminiVisionService> _logger;
+        private readonly IServiceProvider _serviceProvider;
 
-        public GeminiVisionService(IConfiguration configuration, IGoogleCloudStorageService storageService, ILogger<GeminiVisionService> logger)
+        public GeminiVisionService(IConfiguration configuration, IGoogleCloudStorageService storageService, 
+        ILogger<GeminiVisionService> logger, IServiceProvider serviceProvider)
         {
             _projectId = configuration["GoogleCloud:ProjectId"] ?? throw new ArgumentNullException("GoogleCloud:ProjectId");
             _location = configuration["GeminiVision:Location"] ?? "us-central1";
@@ -78,6 +72,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             //configuration["GeminiVision:VideoAnalysisPrompt"] ?? throw new ArgumentNullException("GeminiVision:VideoAnalysisPrompt");
             _storageService = storageService;
             _logger = logger;
+            _serviceProvider = serviceProvider;
 
             // Initialize Vertex AI's PredictionServiceClient with service account credentials
             try
@@ -112,7 +107,7 @@ namespace VideoSharing.Server.Domain.GeminiService
         }
 
         /// <inheritdoc/>
-        public async Task<GeminiVisionResult> AnalyzeVideoAsync(string videoInput)
+        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput)
         {
             string fileUri;
             string mimeType;
@@ -203,7 +198,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 string resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
                     ?? throw new InvalidOperationException("No valid JSON response received from the API.");
                 _logger.LogInformation("Received valid response for video: {FileUri}", fileUri);
-                return new GeminiVisionResult { AnalysisJson = resultJson };
+                return new GeminiVisionResponse { AnalysisJson = resultJson };
             }
             catch (Google.GoogleApiException ex)
             {
@@ -216,6 +211,32 @@ namespace VideoSharing.Server.Domain.GeminiService
                 _logger.LogError(ex, "Unexpected error during Vertex AI API call for video: {FileUri}", fileUri);
                 throw;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<AiFeedback> AnalyzeVideoSegment(int videoId, double timestamp)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
+
+            var video = await dbContext.UploadedVideos.FindAsync(videoId);
+            string analysis = await AnalyzeSegmentsWithGemini(video!.FilePath, timestamp); //TODO: Implement this method to call the Vertex AI Gemini API for segment analysis.
+            var aiFeedback = new AiFeedback
+            {
+                VideoId = videoId,
+                Timestamp = timestamp, 
+                FeedbackType = string.Empty,
+                AnalysisJson = analysis,
+            };
+            dbContext.AiFeedbacks.Add(aiFeedback);
+            await dbContext.SaveChangesAsync();
+            return aiFeedback;
+        }
+
+        private static async Task<string> AnalyzeSegmentsWithGemini(string videoPath, double timestamp)
+        {
+            await Task.Run(() => Thread.Sleep(1000));
+            throw new NotImplementedException("This method should be implemented to call the Vertex AI Gemini API for segment analysis.");
         }
 
         private string DetermineMimeType(string pathOrUri)
