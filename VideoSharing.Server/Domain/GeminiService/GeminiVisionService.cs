@@ -37,8 +37,45 @@ namespace VideoSharing.Server.Domain.GeminiService
         {
             _projectId = configuration["GoogleCloud:ProjectId"] ?? throw new ArgumentNullException("GoogleCloud:ProjectId");
             _location = configuration["GeminiVision:Location"] ?? "us-central1";
-            _model = configuration["GeminiVision:Model"] ?? "gemini-pro-vision";
-            _customPrompt = configuration["GeminiVision:VideoAnalysisPrompt"] ?? throw new ArgumentNullException("GeminiVision:VideoAnalysisPrompt");
+            _model = configuration["GeminiVision:Model"] ?? "gemini-pro-1.5";
+            _customPrompt = @"
+            Analyze what is happening in this martial arts sparring video. Provide a detailed description of the techniques used (e.g., strikes, grapples, submissions), evaluate their execution, and suggest specific improvements. 
+            Include tailored drills to practice, formatted as a JSON object with fields: technique_identified, textual_description, strengths, areas_for_improvement, suggested_drills.
+            Structure the output as a JSON object using the following format as example:
+            {
+                ""description"": ""Both fighters start from standing positions and progress toward full-guard. Fighter 1 applies a rear naked choke but struggles with leg control..."",
+                ""techniques_identified"": [
+                        {
+                            ""name"": ""Rear Naked Choke"",
+                            ""description"": ""A chokehold applied from behind the opponent."",
+                            ""timestamp"": ""00:01:23"",
+                            ""fighter_identifier"" : ""Fighter in the black uniform""
+                        },
+                        {
+                            ""name"": ""Armbar"",
+                            ""description"": ""A joint lock that hyperextends the elbow."",
+                            ""timestamp"": ""00:02:45"",
+                            ""fighter_identifier"" : ""Blue belt fighter""
+                        }
+                ],
+                ""strengths"": [
+                    ""Fighter 1"" : ""Good hand positioning and control"",
+                    ""Fighter 2"" : ""Great control and good movement""
+                ],
+                ""areas_for_improvement"": [
+                    ""Blue belt"" : ""Need to secure the legs to prevent escape"",
+                    ""White belt"" : ""should have better maintaining the rear naked choke grip""
+                ],
+                ""suggested_drills"": [
+                    {
+                        ""name"": ""Leg Hook Drill"",
+                        ""description"": ""Practice securing opponent's legs while maintaining choke grip."",
+                        ""focus"": ""Position Stabilization for White Belt, Escapes for Blue Belt"",
+                        ""duration"" : ""2 minutes""
+                    }
+                ]
+            }";
+            //configuration["GeminiVision:VideoAnalysisPrompt"] ?? throw new ArgumentNullException("GeminiVision:VideoAnalysisPrompt");
             _storageService = storageService;
             _logger = logger;
 
@@ -98,23 +135,6 @@ namespace VideoSharing.Server.Domain.GeminiService
 
             string prompt = GetCustomPrompt();
 
-            // Create a sample instance of your schema (structure only, without data)
-            var sampleSchema = new GenerationConfigSchema
-            {
-                TechniquesIdentified = new List<Technique>
-                {
-                    new Technique { Name = "Example", Description = "Example", Timestamp = "00:00" }
-                },
-                TextualDescription = "Example description",
-                Strengths = new List<string> { "Example strength" },
-                AreasForImprovement = new List<string> { "Example improvement" },
-                SuggestedDrills = new List<SuggestedDrill>
-                {
-                    new SuggestedDrill { Name = "Example drill", Description = "Example drill description", Focus = "Example focus" }
-                }
-            };
-            string responseSchemaJson = JsonSerializer.Serialize(sampleSchema);
-
             // Construct the GenerateContentRequest
             var request = new GenerateContentRequest
             {
@@ -170,7 +190,6 @@ namespace VideoSharing.Server.Domain.GeminiService
                     TopP = 1.0f,
                     MaxOutputTokens = 65535,
                     ResponseMimeType = "application/json",
-                    ResponseSchema = Google.Protobuf.JsonParser.Default.Parse<OpenApiSchema>(responseSchemaJson),
                 }
             };
 
@@ -221,47 +240,5 @@ namespace VideoSharing.Server.Domain.GeminiService
         }
 
         private string GetCustomPrompt() => _customPrompt;
-    }
-
-    public class GenerationConfigSchema
-    {
-        [JsonPropertyName("techniques_identified")]
-        public List<Technique> TechniquesIdentified { get; set; } = [];
-
-        [JsonPropertyName("textual_description")]
-        public string TextualDescription { get; set; } = string.Empty;
-
-        [JsonPropertyName("strengths")]
-        public List<string> Strengths { get; set; } = [];
-
-        [JsonPropertyName("areas_for_improvement")]
-        public List<string> AreasForImprovement { get; set; } = [];
-
-        [JsonPropertyName("suggested_drills")]
-        public List<SuggestedDrill> SuggestedDrills { get; set; } = [];
-    }
-
-    public class Technique
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
-
-        [JsonPropertyName("description")]
-        public string Description { get; set; } = string.Empty;
-
-        [JsonPropertyName("timestamp")]
-        public string Timestamp { get; set; } = string.Empty;
-    }
-
-    public class SuggestedDrill
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
-
-        [JsonPropertyName("description")]
-        public string Description { get; set; } = string.Empty;
-
-        [JsonPropertyName("focus")]
-        public string Focus { get; set; } = string.Empty;
     }
 }
