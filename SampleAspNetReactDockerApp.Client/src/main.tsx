@@ -16,7 +16,7 @@ import TrainingSessionForm from './components/TrainingSessionForm.tsx';
 import TrainingSessionDetails from './components/ui/TrainingSessionDetails.tsx';
 import VideoShareList from './pages/VideoShareList.tsx';
 import VideoStorageListing from './pages/VideoStorageListing.tsx';
-import VideoReviewWrapper from './pages/TechniqueReview.tsx';
+import VideoReviewWrapper from './pages/VideoReview.tsx';
 
 const router = createBrowserRouter([
     {

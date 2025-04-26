@@ -1,8 +1,6 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
-import 'videojs-markers-plugin';
-import 'videojs-markers-plugin/dist/videojs.markers.plugin.css';
 
 interface Feedback {
     id: number;
@@ -11,117 +9,73 @@ interface Feedback {
     feedbackText: string;
 }
 
-interface VideoPlayerProps {
+interface VideoContainerProps {
     videoUri: string;
     feedback: Feedback[];
-    onTimeUpdate: (time: number) => void;
-    onPause: () => void;
-    seekTo: number | null;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({
-    videoUri,
-    feedback,
-    onTimeUpdate,
-    onPause,
-    seekTo,
-}) => {
+type VideoJsPlayer = ReturnType<typeof videojs>;
+
+const VideoContainer: React.FC<VideoContainerProps> = ({ videoUri }) => {
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    const playerRef = useRef<any>(null);
-    console.log('VideoPlayer component initialized with Feedback:', feedback, videoUri);
+    const playerRef = useRef<VideoJsPlayer | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
-    // Memoized function to initialize Video.js
-    const initializePlayer = useCallback(() => {
-        if (!videoRef.current || !videoUri) return;
-
-        playerRef.current = videojs(videoRef.current, {
-            controls: true,
-            playbackRates: [0.5, 1, 1.5, 2],
-            fluid: true,
-        });
-
-        // Handle time updates
-        playerRef.current.on('timeupdate', () => {
-            onTimeUpdate(playerRef.current.currentTime());
-        });
-
-        // Handle pause event
-        playerRef.current.on('pause', () => {
-            onPause();
-        });
-
-        // Initialize markers plugin or additional configuration here if needed.
-    }, [videoUri, onTimeUpdate, onPause]);
-
-    // Callback ref to set videoRef and initialize player when element mounts
-    const setVideoRef = useCallback((node: HTMLVideoElement | null) => {
-        videoRef.current = node;
-        if (node) {
-            initializePlayer();
-        }
-    }, [initializePlayer]);
-
-    // Cleanup on unmount
     useEffect(() => {
+        if (!videoRef.current || !containerRef.current) return;
+
+        // Initialize Video.js only once
+        if (!playerRef.current) {
+            console.log('Initializing Video.js in VideoContainer');
+            const player = videojs(
+                videoRef.current,
+                {
+                    controls: true,
+                    autoplay: false,
+                    preload: 'auto',
+                    fluid: true,
+                    aspectRatio: '16:9',
+                },
+                () => {
+                    console.log('Video.js player initialized');
+                }
+            );
+
+            playerRef.current = player;
+
+            player.on('error', () => {
+                console.error('Video.js error:', player.error());
+            });
+        }
+
+        // Update video source if it changes
+        if (playerRef.current && videoUri) {
+            console.log('Updating video source to:', videoUri);
+            playerRef.current.src({ src: videoUri, type: 'video/mp4' });
+        }
+
+        // Cleanup on unmount
         return () => {
             if (playerRef.current) {
+                console.log('Disposing Video.js player');
                 playerRef.current.dispose();
                 playerRef.current = null;
             }
         };
-    }, []);
-
-    // Handle seeking when seekTo changes
-    useEffect(() => {
-        if (seekTo !== null && playerRef.current) {
-            playerRef.current.currentTime(seekTo);
-        }
-    }, [seekTo]);
-
-    // Keyboard shortcuts
-    useEffect(() => {
-        const handleKey = (e: KeyboardEvent) => {
-            if (!playerRef.current) return;
-
-            switch (e.key) {
-                case ' ':
-                    e.preventDefault();
-                    playerRef.current.paused()
-                        ? playerRef.current.play()
-                        : playerRef.current.pause();
-                    break;
-                case 'ArrowLeft':
-                    playerRef.current.currentTime(playerRef.current.currentTime() - 5);
-                    break;
-                case 'ArrowRight':
-                    playerRef.current.currentTime(playerRef.current.currentTime() + 5);
-                    break;
-                case 'f':
-                    if (playerRef.current.paused()) {
-                        onPause(); // Trigger feedback form
-                    }
-                    break;
-                default:
-                    break;
-            }
-        };
-
-        window.addEventListener('keydown', handleKey);
-        return () => window.removeEventListener('keydown', handleKey);
-    }, [onPause]);
+    }, [videoUri]); // Re-run when videoUri changes, but player persists
 
     return (
-        <div className="w-full">
-            {videoUri && (
-                <div data-vjs-player>
-                    <video ref={setVideoRef} className="video-js vjs-default-skin">
-                        <source src={videoUri} type="video/mp4" />
-                    </video>
-                </div>
-            )}
-            <div className="h-5 bg-gray-300 relative mt-2" />
+        <div
+            ref={containerRef}
+            style={{ width: '100%', height: '100%', minHeight: '400px' }}
+        >
+            <video
+                ref={videoRef}
+                className="video-js vjs-default-skin"
+                style={{ width: '100%', height: '100%' }}
+            />
         </div>
     );
 };
 
-export default VideoPlayer;
+export default VideoContainer;
