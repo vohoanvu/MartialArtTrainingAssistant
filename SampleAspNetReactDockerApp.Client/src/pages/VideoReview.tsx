@@ -1,152 +1,76 @@
-import { useState, useEffect, useCallback } from 'react';
-import axios, { AxiosError } from 'axios';
-import VideoContainer from '../components/VideoPlayer';
-import FeedbackForm from '../components/FeedbackForm';
-import FeedbackList from '../components/FeedbackList';
-import AIInsights, { Feedback } from '../components/AiInsights';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import VideoPlayer from '../components/VideoPlayer';
+import FeedbackList from '../components/FeedbackList';
 import useAuthStore from '@/store/authStore';
-import { UploadedVideoDto } from './VideoStorageListing';
-import AiAnalysisResults from '@/components/AiAnalysisResults';
 
-interface FeedbackResponse {
-    humanFeedback: Feedback[];
-    aiFeedback: Feedback[];
+export interface Feedback {
+    id: string;
+    timestamp: number;
+    feedback: string;
+    aiInsights?: string;
 }
 
-interface TechniqueReviewProps {
-    videoId: number;
-}
-
-const VideoReviewWrapper = () => {
+const VideoReview: React.FC = () => {
     const { videoId } = useParams<{ videoId: string }>();
-    const id = Number(videoId);
-    return <VideoReview videoId={id} />;
-};
-
-export default VideoReviewWrapper;
-
-const VideoReview: React.FC<TechniqueReviewProps> = ({ videoId }) => {
-    const [uploadedVideo, setLoadedVideo] = useState<UploadedVideoDto>();
-    const [videoUri, setVideoUri] = useState<string>('');
-    const [feedback, setFeedback] = useState<Feedback[]>([]);
-    const [aiFeedback, setAiFeedback] = useState<Feedback[]>([]);
-    const [showForm, setShowForm] = useState<boolean>(false);
-    const [currentTime, setCurrentTime] = useState<number>(0);
-    const [isPaused, setIsPaused] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const [feedbackList, setFeedbackList] = useState<Feedback[]>([]);
+    const [videoUrl, setVideoUrl] = useState('');
     const { accessToken } = useAuthStore();
-
-    const authHeaders = {
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
+    const headers = {
+        Authorization: `Bearer ${accessToken}`
     };
 
+    // Fetch video details and feedback on mount
     useEffect(() => {
+        if (!videoId) return;
         const fetchData = async () => {
             try {
-                const videoResponse = await axios.get<UploadedVideoDto>(
-                    `/vid/api/video/${videoId}`,
-                    authHeaders
-                );
-                if (videoResponse.status !== 200) {
-                    setError('Failed to fetch video');
-                    return;
-                }
-                setLoadedVideo(videoResponse.data);
-                setVideoUri(videoResponse.data.signedUrl);
-
-                const feedbackResponse = await axios.get<FeedbackResponse>(
-                    `/vid/api/video/${videoId}/feedback`,
-                    authHeaders
-                );
-                setFeedback(feedbackResponse.data.humanFeedback);
-                setAiFeedback(feedbackResponse.data.aiFeedback);
-                setError(null);
-            } catch (err) {
-                const errorMessage =
-                    err instanceof AxiosError
-                        ? err.response?.data?.message || 'Failed to fetch data'
-                        : 'An unexpected error occurred';
-                setError(errorMessage);
+                const videoResponse = await axios.get(`/vid/api/video/${videoId}`, { headers });
+                setVideoUrl(videoResponse.data.url);
+                const feedbackResponse = await axios.get(`/vid/api/video/${videoId}/feedback`, { headers });
+                // If feedbackResponse.data has the structure { HumanFeedback, AiFeedback },
+                // you can combine them as needed. For this example we assume HumanFeedback feedback.
+                const humanFeedback = Array.isArray(feedbackResponse.data.HumanFeedback)
+                    ? feedbackResponse.data.HumanFeedback
+                    : [];
+                setFeedbackList(humanFeedback);
+            } catch (error) {
+                console.error('Error fetching data:', error);
             }
         };
-
         fetchData();
-    }, [videoId, accessToken]);
+    }, [videoId]);
 
-    const handleSaveFeedback = useCallback(
-        async (newFeedback: Omit<Feedback, 'id'>) => {
-            try {
-                const response = await axios.post<Feedback>(
-                    `/vid/api/video/${videoId}/feedback`,
-                    newFeedback,
-                    authHeaders
-                );
-                setFeedback([...feedback, response.data]);
-                setShowForm(false);
-            } catch (err) {
-                const errorMessage =
-                    err instanceof AxiosError
-                        ? err.response?.data?.message || 'Failed to save feedback'
-                        : 'An unexpected error occurred';
-                console.error(errorMessage);
-            }
-        },
-        [videoId, feedback, accessToken]
-    );
+    // Handle new feedback submission
+    const handleAddFeedback = async (newFeedback: Feedback) => {
+        try {
+            const response = await axios.post(`/vid/api/video/${videoId}/feedback`, newFeedback, { headers });
+            setFeedbackList([...feedbackList, response.data]);
+        } catch (error) {
+            console.error('Error saving feedback:', error);
+        }
+    };
 
-    const handleSelectFeedback = useCallback((time: number) => {
-        setCurrentTime(time);
-    }, []);
+    // Handle seeking to a timestamp
+    const handleSeek = (timestamp: number) => {
+        // TODO: This requires communication with VideoPlayer, possibly via ref or context
+        console.log(`Seeking to ${timestamp}`);
+    };
 
     return (
-        <div className="p-5 flex flex-col md:flex-row space-y-5 md:space-y-0 md:space-x-5">
-            {error && <div className="text-red-500 mb-4">{error}</div>}
-            <div className="flex-2 w-full min-h-[500px]">
-                {videoUri ? (
-                    <VideoContainer
-                        videoUri={videoUri}
-                        feedback={[...feedback, ...aiFeedback]}
-                        key={videoId} // Stable key to prevent unmounting
-                    />
-                ) : (
-                    <p>Loading video...</p>
-                )}
+        <div style={{ display: 'flex' }}>
+            <VideoPlayer
+                videoUrl={videoUrl}
+                videoId={videoId || ""}
+                feedbackList={feedbackList}
+                onAddFeedback={handleAddFeedback}
+            />
+            <div className="feedback-panel" style={{ flex: 1, marginLeft: '20px' }}>
+                <FeedbackList feedbackList={feedbackList} onSeek={handleSeek} />
             </div>
-            {videoUri && (
-                <>
-                    <div className="mt-5">
-                        <button
-                            onClick={() => setShowForm(true)}
-                            disabled={!isPaused}
-                            className={`px-4 py-2 rounded text-white ${isPaused ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
-                                }`}
-                        >
-                            Give Feedback
-                        </button>
-                    </div>
-                    {showForm && (
-                        <FeedbackForm
-                            videoId={videoId}
-                            timestamp={currentTime}
-                            onSave={handleSaveFeedback}
-                            onCancel={() => setShowForm(false)}
-                        />
-                    )}
-                    <div className="flex-1 w-full">
-                        <FeedbackList feedback={feedback} onSelect={handleSelectFeedback} />
-                        <AIInsights
-                            aiFeedback={aiFeedback}
-                            onIncorporate={(f) => setFeedback([...feedback, f])}
-                        />
-                        <div className="mt-5">
-                            <AiAnalysisResults analysisJson={uploadedVideo?.aiAnalysisResult || ''} />
-                        </div>
-                    </div>
-                </>
-            )}
         </div>
     );
 };
+
+export default VideoReview;
