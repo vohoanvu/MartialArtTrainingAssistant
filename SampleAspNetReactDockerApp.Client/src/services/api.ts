@@ -1,10 +1,10 @@
 ﻿// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { paths } from './endpoints';
-import { 
-    CreateTrainingSessionRequest, 
-    CreateTrainingSessionResponse, 
-    TrainingSessionResponse, 
+import {
+    CreateTrainingSessionRequest,
+    CreateTrainingSessionResponse,
+    TrainingSessionResponse,
     SharedVideo,
     SessionDetailViewModel,
     MatchMakerRequest,
@@ -19,13 +19,13 @@ type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
 
 type RequestParams<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {
-        parameters: unknown;
-    }
+    parameters: unknown;
+}
     ? paths[P][M]['parameters']
     : undefined;
 type ResponseType<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {
-        responses: { 200: { schema: { [x: string]: unknown } } };
-    }
+    responses: { 200: { schema: { [x: string]: unknown } } };
+}
     ? paths[P][M]['responses'][200]['schema']
     : undefined;
 
@@ -41,7 +41,7 @@ export const apiCall = <P extends Path, M extends PathMethod<P>>(
 
 export async function getTrainingSessions({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<TrainingSessionResponse[]> {
     console.log("Trying to get training session list...");
-    
+
     const response = await fetch("api/trainingsession", {
         headers: {
             'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ export async function getTrainingSessions({ currentTry = 0, jwtToken, refreshTok
         console.log("Refresh token and try again...", refreshToken);
         return await getTrainingSessions({ currentTry: 1, jwtToken, refreshToken, hydrate });
     }
-    
+
     throw new Error("Error fetching training sessions");
 }
 
@@ -72,11 +72,11 @@ export async function createTrainingSession(newSession: CreateTrainingSessionReq
             },
             body: JSON.stringify(newSession),
         });
-    
+
         if (!response.ok) {
             throw new Error(`Failed to create a new training session: ${response.statusText}`);
         }
-    
+
         return await response.json() as CreateTrainingSessionResponse;
     } catch (error) {
         console.error('Error creating new training session:', error);
@@ -84,7 +84,7 @@ export async function createTrainingSession(newSession: CreateTrainingSessionReq
     }
 }
 
-export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken, hydrate}): Promise<SharedVideo[]> {
+export async function getAllSharedVideos({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SharedVideo[]> {
     console.log("Fetching shared videos from Microservice D...");
     const response = await fetch("/vid/api/video/getall", {
         headers: {
@@ -93,12 +93,12 @@ export async function getAllSharedVideos({currentTry = 0, jwtToken, refreshToken
         }
     });
 
-    if(response.ok) {
+    if (response.ok) {
         console.log("Shared videos fetched successfully!");
         return await response.json() as SharedVideo[];
-    } else if(response.status === 401 && currentTry === 0) {
+    } else if (response.status === 401 && currentTry === 0) {
         await hydrate();
-        return await getAllSharedVideos({currentTry: 1, jwtToken, refreshToken, hydrate});
+        return await getAllSharedVideos({ currentTry: 1, jwtToken, refreshToken, hydrate });
     }
 
     throw new Error("Error fetching shared videos");
@@ -109,8 +109,7 @@ export async function uploadYoutubeVideo({
     jwtToken,
     currentTry = 0,
     hydrate
-}): Promise<SharedVideo> 
-{
+}): Promise<SharedVideo> {
     console.log("Uploading YouTube video metadata onto Microservice D...");
     console.log("Bearer token is: ", jwtToken);
     const response = await fetch(`/vid/api/video/metadata`, {
@@ -136,10 +135,9 @@ export async function uploadYoutubeVideo({
     }
 }
 
-export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, hydrate }) : Promise<FighterInfo>
-{
+export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<FighterInfo> {
     console.log("Fetching Fighter Info details...");
-    
+
     const response = await fetch(`/api/fighter/info`, {
         method: "GET",
         headers: {
@@ -157,14 +155,13 @@ export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, h
         console.log("Refresh token and try again...", refreshToken);
         return await getFighterInfo({ currentTry: 1, jwtToken, refreshToken, hydrate });
     }
-    
+
     throw new Error("Error fetching Info details details");
 }
 
-export async function getTrainingSessionDetails(sessionId: number, { currentTry = 0, jwtToken, refreshToken, hydrate }) : Promise<SessionDetailViewModel>
-{
+export async function getTrainingSessionDetails(sessionId: number, { currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SessionDetailViewModel> {
     console.log("Trying to get training session details...");
-    
+
     const response = await fetch(`/api/trainingsession/${sessionId}`, {
         method: "GET",
         headers: {
@@ -174,7 +171,7 @@ export async function getTrainingSessionDetails(sessionId: number, { currentTry 
     });
     if (response.ok) {
         const data = await response.json();
-        console.log("Training session details fetched successfully!");   
+        console.log("Training session details fetched successfully!");
         console.log("Inspecting response: ", data);
         return data as SessionDetailViewModel;
     } else if (response.status === 401 && currentTry === 0) {
@@ -182,14 +179,13 @@ export async function getTrainingSessionDetails(sessionId: number, { currentTry 
         console.log("Refresh token and try again...", refreshToken);
         return await getTrainingSessionDetails(sessionId, { currentTry: 1, jwtToken, refreshToken, hydrate });
     }
-    
+
     throw new Error("Error fetching training session details");
 }
 
-export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, { currentTry = 0, jwtToken, refreshToken, hydrate }) : Promise<SessionDetailViewModel>
-{
+export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, { currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SessionDetailViewModel> {
     console.log("Updating training session details from Microservice A...", updateRequest);
-    
+
     const response = await fetch(`/api/trainingsession/${sessionId}`, {
         method: "PUT",
         body: JSON.stringify(updateRequest),
@@ -206,7 +202,7 @@ export async function updateTrainingSessionDetails(sessionId: number, updateRequ
         console.log("Refresh token and try again...", refreshToken);
         return await updateTrainingSessionDetails({ currentTry: 1, jwtToken, refreshToken, hydrate });
     }
-    
+
     throw new Error("Error fetching training session details");
 }
 
@@ -214,8 +210,7 @@ export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest,
     jwtToken,
     currentTry = 0,
     hydrate
-}): Promise<FighterPairResult> 
-{
+}): Promise<FighterPairResult> {
     console.log("Generating Fighter Pairs from Microservice C...");
 
     const response = await fetch(`/pair/api/matchmaker`, {
@@ -239,15 +234,14 @@ export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest,
     }
 }
 
-export async function CalculateBMI(height : number, weight: number) : Promise<GetBMIResponse>
-{
+export async function CalculateBMI(height: number, weight: number): Promise<GetBMIResponse> {
     console.log("Calculating BMI from microservice A...");
 
     try {
         const response = await fetch('http://localhost:1111/calculate-bmi', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({ height, weight }),
         });
@@ -257,51 +251,6 @@ export async function CalculateBMI(height : number, weight: number) : Promise<Ge
         throw new Error(`Failed to call Microservice A: ${error}`);
     }
 }
-
-
-// export async function uploadVideoFile({
-//     file,
-//     description,
-//     uploadType, // 'sparring' or 'demonstration'
-//     jwtToken,
-//     currentTry = 0,
-//     hydrate,
-// }: {
-//     file: File;
-//     description: string;
-//     uploadType: 'sparring' | 'demonstration';
-//     jwtToken: string;
-//     currentTry?: number;
-//     hydrate: () => Promise<void>;
-// }): Promise<VideoUploadResponse> {
-//     console.log(`Uploading ${uploadType} video to Microservice D...`);
-
-//     const formData = new FormData();
-//     formData.append('videoFile', file);
-//     formData.append('description', description);
-
-//     const endpoint = uploadType === 'sparring' ? '/vid/api/video/upload-sparring' : '/vid/api/video/upload-demonstration';
-//     console.log("Bearer Token is: ", jwtToken);
-//     const response = await fetch(endpoint, {
-//         method: 'POST',
-//         headers: {
-//             'Authorization': `Bearer ${jwtToken}`,
-//             // Note: Don't set 'Content-Type' manually with FormData; fetch sets it to multipart/form-data with the boundary
-//         },
-//         body: formData,
-//     });
-
-//     if (response.ok) {
-//         console.log(`${uploadType} video uploaded successfully!`);
-//         return await response.json() as VideoUploadResponse;
-//     } else if (response.status === 401 && currentTry === 0) {
-//         await hydrate();
-//         return await uploadVideoFile({ file, description, uploadType, jwtToken, currentTry: 1, hydrate });
-//     } else {
-//         const errorText = await response.text();
-//         throw new Error(`Error uploading ${uploadType} video: ${errorText}`);
-//     }
-// }
 
 
 interface UploadVideoParams {
@@ -346,7 +295,7 @@ export async function uploadVideoFile({
                 if (onProgress) onProgress(percentCompleted);
             },
         });
-    
+
         console.log(`${uploadType} video uploaded successfully!`);
         return response.data as VideoUploadResponse;
     }
@@ -394,6 +343,146 @@ export async function deleteUploadedVideo({
     }
 }
 
+export async function getUploadedVideos({
+    jwtToken,
+    refreshToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<UploadedVideoDto[]> {
+    console.log("Fetching uploaded videos...");
 
+    try {
+        const response = await fetch('/vid/api/video/getall-uploaded', {
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`,
+            },
+        });
 
-  
+        if (response.ok) {
+            console.log("Uploaded videos fetched successfully!");
+            return await response.json() as UploadedVideoDto[];
+        } else if (response.status === 401 && currentTry === 0) {
+            console.log("Access token expired. Attempting to refresh...");
+            await hydrate();
+            return await getUploadedVideos({ jwtToken, refreshToken, hydrate, currentTry: 1 });
+        } else {
+            const errorText = await response.text();
+            throw new Error(`Error fetching uploaded videos: ${errorText}`);
+        }
+    } catch (error) {
+        console.error("Error fetching uploaded videos:", error);
+        throw error;
+    }
+}
+
+export async function getVideoDetails({
+    videoId,
+    jwtToken,
+    refreshToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    videoId: string;
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<{ signedUrl: string }> {
+    try {
+        const response = await fetch(`/vid/api/video/${videoId}`, {
+            headers: {
+                Authorization: `Bearer ${jwtToken}`,
+            },
+        });
+
+        if (response.ok) {
+            return await response.json();
+        } else if (response.status === 401 && currentTry === 0) {
+            await hydrate();
+            return await getVideoDetails({ videoId, jwtToken, refreshToken, hydrate, currentTry: 1 });
+        } else {
+            throw new Error(`Error fetching video details: ${response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error fetching video details:", error);
+        throw error;
+    }
+}
+
+export async function getVideoFeedback({
+    videoId,
+    jwtToken,
+    refreshToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    videoId: string;
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<{ humanFeedback: Feedback[]; aiFeedback: Feedback[] }> {
+    try {
+        const response = await fetch(`/vid/api/video/${videoId}/feedback`, {
+            headers: {
+                Authorization: `Bearer ${jwtToken}`,
+            },
+        });
+
+        if (response.ok) {
+            return await response.json();
+        } else if (response.status === 401 && currentTry === 0) {
+            await hydrate();
+            return await getVideoFeedback({ videoId, jwtToken, refreshToken, hydrate, currentTry: 1 });
+        } else {
+            throw new Error(`Error fetching video feedback: ${response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error fetching video feedback:", error);
+        throw error;
+    }
+}
+
+export async function addVideoFeedback({
+    videoId,
+    feedback,
+    jwtToken,
+    refreshToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    videoId: string;
+    feedback: Feedback;
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<Feedback> {
+    try {
+        const response = await fetch(`/vid/api/video/${videoId}/feedback`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${jwtToken}`,
+            },
+            body: JSON.stringify(feedback),
+        });
+
+        if (response.ok) {
+            return await response.json();
+        } else if (response.status === 401 && currentTry === 0) {
+            await hydrate();
+            return await addVideoFeedback({ videoId, feedback, jwtToken, refreshToken, hydrate, currentTry: 1 });
+        } else {
+            throw new Error(`Error adding video feedback: ${response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error adding video feedback:", error);
+        throw error;
+    }
+}

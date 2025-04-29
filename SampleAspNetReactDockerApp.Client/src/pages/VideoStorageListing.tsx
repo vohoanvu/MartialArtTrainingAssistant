@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { deleteUploadedVideo } from '@/services/api';
+import { deleteUploadedVideo, getUploadedVideos } from '@/services/api';
 import useAuthStore from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -20,7 +20,7 @@ const VideoStorageListing = () => {
     const [videos, setVideos] = useState<UploadedVideoDto[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { accessToken, hydrate } = useAuthStore();
+    const { accessToken, refreshToken, hydrate } = useAuthStore();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,15 +31,12 @@ const VideoStorageListing = () => {
     const fetchVideos = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('/vid/api/video/getall-uploaded', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                },
+            const videoList = await getUploadedVideos({
+                jwtToken: accessToken,
+                refreshToken,
+                hydrate,
             });
-            if (!response.ok) throw new Error('Failed to fetch videos');
-            const data = await response.json();
-            console.log("Listing all video response json: ", data);
-            setVideos(data);
+            setVideos(videoList);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
         } finally {
