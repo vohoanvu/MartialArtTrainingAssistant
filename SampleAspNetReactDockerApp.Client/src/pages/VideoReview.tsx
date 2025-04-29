@@ -5,13 +5,16 @@ import VideoPlayer from '../components/VideoPlayer';
 import FeedbackList from '../components/FeedbackList';
 import useAuthStore from '@/store/authStore';
 import FeedbackForm from '@/components/FeedbackForm';
+import { Button } from '@/components/ui/button';
 
 export interface Feedback {
     id: string;
-    timestamp: number;
+    fromTimestamp: number;
+    toTimestamp: number;
     feedback: string;
     feedbackType: string;
     aiInsights?: string;
+    isPending?: boolean;
 }
 
 const VideoReview: React.FC = () => {
@@ -24,6 +27,7 @@ const VideoReview: React.FC = () => {
     const [toTimestamp, setToTimestamp] = useState('');
     const [feedbackText, setFeedbackText] = useState('');
     const [category, setCategory] = useState('');
+    const [selectedSegment, setSelectedSegment] = useState<{ from: number; to: number } | null>(null);
 
     useEffect(() => {
         if (!videoId) return;
@@ -44,8 +48,8 @@ const VideoReview: React.FC = () => {
                     refreshToken,
                     hydrate,
                 });
-                setFeedbackList(feedbackData.humanFeedback || []);
-                setAiFeedbackList(feedbackData.aiFeedback || []);
+                setFeedbackList(feedbackData.humanFeedback.map(fb => ({ ...fb, isPending: false })) || []);
+                setAiFeedbackList(feedbackData.aiFeedback.map(fb => ({ ...fb, isPending: false })) || []);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -54,31 +58,45 @@ const VideoReview: React.FC = () => {
         fetchData();
     }, [videoId, accessToken, refreshToken, hydrate]);
 
-    const handleAddFeedback = async () => {
+    const handleAddFeedback = () => {
         if (!fromTimestamp || !toTimestamp || !feedbackText) return;
 
         const newFeedback: Feedback = {
             id: Date.now().toString(),
-            timestamp: parseFloat(fromTimestamp),
+            fromTimestamp: parseFloat(fromTimestamp),
+            toTimestamp: parseFloat(toTimestamp),
             feedback: feedbackText,
             feedbackType: 'human',
+            isPending: true,
         };
 
+        setFeedbackList([newFeedback, ...feedbackList]);
+        setFromTimestamp('');
+        setToTimestamp('');
+        setFeedbackText('');
+        setCategory('');
+        setSelectedSegment(null); // Clear selection after saving
+    };
+
+    const handleSubmitFeedback = async () => {
+        const pendingFeedback = feedbackList.filter(fb => fb.isPending);
         try {
-            const addedFeedback = await addVideoFeedback({
+            const savedFeedbackPromises = pendingFeedback.map(fb => addVideoFeedback({
                 videoId: videoId || '',
-                feedback: newFeedback,
+                feedback: { ...fb, id: undefined },
                 jwtToken: accessToken,
                 refreshToken,
                 hydrate,
-            });
-            setFeedbackList([...feedbackList, addedFeedback]);
-            setFromTimestamp('');
-            setToTimestamp('');
-            setFeedbackText('');
-            setCategory('');
+            }));
+            const savedFeedback = await Promise.all(savedFeedbackPromises);
+            setFeedbackList(
+                [
+                    ...feedbackList.filter((fb: Feedback) => !fb.isPending),
+                    ...savedFeedback.map((fb: Feedback) => ({ ...fb, isPending: false }))
+                ]
+            );
         } catch (error) {
-            console.error('Error saving feedback:', error);
+            console.error('Error submitting feedback:', error);
         }
     };
 
@@ -86,14 +104,27 @@ const VideoReview: React.FC = () => {
         console.log(`Seeking to ${timestamp}`);
     };
 
+    const clearSelection = () => {
+        setSelectedSegment(null);
+        setFromTimestamp('');
+        setToTimestamp('');
+        setFeedbackText('');
+        setCategory('');
+    };
+
     return (
         <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
                 <VideoPlayer
                     videoUrl={videoUrl}
-                    videoId={videoId || ""}
+                    videoId={parseInt(videoId || "0", 10)}
                     feedbackList={feedbackList}
-                    onAddFeedback={(feedback) => setFeedbackList([...feedbackList, feedback])}
+                    onAddFeedback={(feedback) => setFeedbackList([feedback, ...feedbackList])}
+                    setFromTimestamp={setFromTimestamp}
+                    setToTimestamp={setToTimestamp}
+                    selectedSegment={selectedSegment}
+                    setSelectedSegment={setSelectedSegment}
+                    clearSelection={clearSelection}
                 />
             </div>
             <div className="w-full md:w-1/3">
@@ -105,18 +136,14 @@ const VideoReview: React.FC = () => {
                     feedbackText={feedbackText}
                     category={category}
                     onSave={handleAddFeedback}
-                    onCancel={() => {
-                        setFromTimestamp('');
-                        setToTimestamp('');
-                        setFeedbackText('');
-                        setCategory('');
-                    }}
+                    onCancel={clearSelection}
                     setFromTimestamp={setFromTimestamp}
                     setToTimestamp={setToTimestamp}
                     setFeedbackText={setFeedbackText}
                     setCategory={setCategory}
                 />
                 <FeedbackList feedbackList={feedbackList || aiFeedbackList} onSeek={handleSeek} />
+                <Button onClick={handleSubmitFeedback} className="mt-2">Submit Feedback</Button>
             </div>
         </div>
     );

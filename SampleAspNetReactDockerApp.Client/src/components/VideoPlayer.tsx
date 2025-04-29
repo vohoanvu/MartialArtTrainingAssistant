@@ -1,6 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import axios from 'axios';
-import useAuthStore from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Feedback } from '@/pages/VideoReview';
 
@@ -9,21 +7,31 @@ interface VideoPlayerProps {
     videoId: string;
     feedbackList: Feedback[];
     onAddFeedback: (feedback: Feedback) => void;
+    setFromTimestamp: (timestamp: string) => void;
+    setToTimestamp: (timestamp: string) => void;
+    selectedSegment: { from: number; to: number } | null;
+    setSelectedSegment: (segment: { from: number; to: number } | null) => void;
+    clearSelection: () => void;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, videoId, feedbackList, onAddFeedback }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
+    videoUrl,
+    feedbackList,
+    setFromTimestamp,
+    setToTimestamp,
+    selectedSegment,
+    setSelectedSegment,
+}) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const timelineRef = useRef<HTMLDivElement>(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [playing, setPlaying] = useState(false);
-    const [showFeedbackForm, setShowFeedbackForm] = useState(false);
-    const [feedbackText, setFeedbackText] = useState('');
-    const [aiInsights, setAiInsights] = useState('');
-    const [feedbackType, setFeedbackType] = useState('Posture');
-    const { accessToken } = useAuthStore();
-    const headers = {
-        Authorization: `Bearer ${accessToken}`
-    };
+    const [dragStart, setDragStart] = useState<number | null>(null);
+    const [dragEnd, setDragEnd] = useState<number | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [mouseDownPosition, setMouseDownPosition] = useState<number | null>(null);
+    const DRAG_THRESHOLD = 5; // Pixels to consider as a drag
 
     useEffect(() => {
         const video = videoRef.current!;
@@ -39,6 +47,66 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, videoId, feedbackLi
         };
     }, []);
 
+    const calculateTimestamp = (e: React.MouseEvent<HTMLDivElement> | MouseEvent) => {
+        const timeline = timelineRef.current;
+        if (!timeline) return 0;
+        const rect = timeline.getBoundingClientRect();
+        const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const timelineWidth = rect.width;
+        return (clickX / timelineWidth) * duration;
+    };
+
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        const startTimestamp = calculateTimestamp(e);
+        setDragStart(startTimestamp);
+        setDragEnd(startTimestamp);
+        setIsDragging(true);
+        setMouseDownPosition(e.clientX);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+        if (isDragging && timelineRef.current) {
+            const currentTimestamp = calculateTimestamp(e);
+            setDragEnd(currentTimestamp);
+            videoRef.current!.currentTime = currentTimestamp; // Real-time seeking
+        }
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+        if (isDragging && timelineRef.current && mouseDownPosition !== null) {
+            const endTimestamp = calculateTimestamp(e);
+            const mouseUpPosition = e.clientX;
+            const movement = Math.abs(mouseUpPosition - mouseDownPosition);
+
+            if (movement < DRAG_THRESHOLD) {
+                videoRef.current!.currentTime = endTimestamp;
+            } else {
+                const from = Math.min(dragStart!, endTimestamp);
+                const to = Math.max(dragStart!, endTimestamp);
+                setSelectedSegment({ from, to }); // Persist the segment
+                setFromTimestamp(from.toFixed(2));
+                setToTimestamp(to.toFixed(2));
+            }
+
+            setIsDragging(false);
+            setDragStart(null);
+            setDragEnd(null);
+            setMouseDownPosition(null);
+        }
+    };
+
+    useEffect(() => {
+        if (isDragging) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDragging, dragStart, duration]);
+
     const handlePlayPause = () => {
         const video = videoRef.current!;
         if (playing) {
@@ -50,64 +118,137 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, videoId, feedbackLi
     };
 
     const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const timelineWidth = rect.width;
-        const seekTime = (clickX / timelineWidth) * duration;
+        const seekTime = calculateTimestamp(e);
         videoRef.current!.currentTime = seekTime;
     };
 
-    const handleGiveFeedback = async () => {
-        setShowFeedbackForm(true);
-        try {
-            const response = await axios.post(
-                `/vid/api/video/${videoId}/feedback`,
-                { timestamp: currentTime },
-                { headers }
-            );
-            setAiInsights(response.data.insights || 'No insights available');
-        } catch (error) {
-            console.error('Error fetching AI analysis:', error);
-            setAiInsights('Error fetching AI insights');
-        }
-    };
-
-    const handleSubmitFeedback = () => {
-        if (feedbackText.trim()) {
-            onAddFeedback({
-                id: Date.now().toString(),
-                timestamp: currentTime,
-                feedback: feedbackText,
-                feedbackType: 'human',
-                aiInsights,
-            });
-            setFeedbackText('');
-            setShowFeedbackForm(false);
-        }
+    const generateAIFeedback = async () => {
+        // TODO: capture the currently selected video segment and send it to the server
+        console.log("dragStart", dragStart);
+        console.log("dragEnd", dragEnd);
     };
 
     const handleRightClick = (e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
-        const rect = e.currentTarget.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const timelineWidth = rect.width;
-        const seekTime = (clickX / timelineWidth) * duration;
+        const seekTime = calculateTimestamp(e);
         videoRef.current!.currentTime = seekTime;
         setCurrentTime(seekTime);
-        handleGiveFeedback();
+        generateAIFeedback();
+    };
+
+    const getSelectedRangeStyle = () => {
+        if (!selectedSegment) return {};
+        const leftPercent = (selectedSegment.from / duration) * 100;
+        const widthPercent = ((selectedSegment.to - selectedSegment.from) / duration) * 100;
+        return {
+            left: `${leftPercent}%`,
+            width: `${widthPercent}%`,
+            backgroundColor: 'rgba(0, 0, 255, 0.3)', // Blue selection effect
+            position: 'absolute',
+            height: '100%',
+            zIndex: 1,
+        } as React.CSSProperties;
+    };
+
+    const getFromMarkerStyle = () => {
+        if (!selectedSegment) return {};
+        const leftPercent = (selectedSegment.from / duration) * 100;
+        return {
+            left: `calc(${leftPercent}% - 5px)`, // Center the triangle
+            position: 'absolute',
+            top: '-10px', // Position so the tip touches the timeline border
+            width: '0',
+            height: '0',
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderTop: '10px solid red', // Red triangle pointing down
+            zIndex: 2,
+        } as React.CSSProperties;
+    };
+
+    const getToMarkerStyle = () => {
+        if (!selectedSegment) return {};
+        const leftPercent = (selectedSegment.to / duration) * 100;
+        return {
+            left: `calc(${leftPercent}% - 5px)`,
+            position: 'absolute',
+            top: '-10px',
+            width: '0',
+            height: '0',
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderTop: '10px solid blue', // Blue triangle for "To"
+            zIndex: 2,
+        } as React.CSSProperties;
+    };
+
+    const getFromDottedLineStyle = () => {
+        if (!selectedSegment) return {};
+        const leftPercent = (selectedSegment.from / duration) * 100;
+        return {
+            left: `${leftPercent}%`,
+            position: 'absolute',
+            top: '0',
+            width: '1px',
+            height: '100%',
+            borderLeft: '1px dotted black', // Dotted line for "From"
+            zIndex: 2,
+        } as React.CSSProperties;
+    };
+
+    const getToDottedLineStyle = () => {
+        if (!selectedSegment) return {};
+        const leftPercent = (selectedSegment.to / duration) * 100;
+        return {
+            left: `${leftPercent}%`,
+            position: 'absolute',
+            top: '0',
+            width: '1px',
+            height: '100%',
+            borderLeft: '1px dotted black', // Dotted line for "To"
+            zIndex: 2,
+        } as React.CSSProperties;
+    };
+
+    const getTemporaryRangeStyle = () => {
+        if (!isDragging || dragStart === null || dragEnd === null) return {};
+        const leftPercent = (Math.min(dragStart, dragEnd) / duration) * 100;
+        const widthPercent = (Math.abs(dragEnd - dragStart) / duration) * 100;
+        return {
+            left: `${leftPercent}%`,
+            width: `${widthPercent}%`,
+            backgroundColor: 'rgba(0, 0, 255, 0.1)', // Temporary highlight
+            position: 'absolute',
+            height: '100%',
+            zIndex: 1,
+        } as React.CSSProperties;
     };
 
     return (
         <div className="video-container">
             <div style={{ overflow: 'hidden' }}>
-                <video ref={videoRef} src={videoUrl} controls className='w-full h-full' style={{ objectFit: 'contain' }}/> 
+                <video ref={videoRef} src={videoUrl} controls className='w-full h-full' style={{ objectFit: 'contain' }} />
             </div>
-            <div className="timeline-container mt-2">
+            <div className="timeline-container mt-2 relative">
                 <div
+                    ref={timelineRef}
                     className="timeline w-full h-6 bg-gray-300 relative rounded-md cursor-pointer"
                     onClick={handleTimelineClick}
                     onContextMenu={handleRightClick}
+                    onMouseDown={handleMouseDown}
                 >
+                    {isDragging && dragStart !== null && dragEnd !== null && (
+                        <div style={getTemporaryRangeStyle()} />
+                    )}
+                    {selectedSegment && (
+                        <>
+                            <div style={getFromMarkerStyle()} /> {/* "From" marker */}
+                            <div style={getToMarkerStyle()} />   {/* "To" marker */}
+                            <div style={getFromDottedLineStyle()} /> {/* "From" dotted line */}
+                            <div style={getToDottedLineStyle()} />   {/* "To" dotted line */}
+                            <div style={getSelectedRangeStyle()} />  {/* Selected range */}
+                        </>
+                    )}
                     <div
                         className="progress absolute h-full bg-green-500 rounded-md"
                         style={{ width: `${(currentTime / duration) * 100}%` }}
@@ -117,10 +258,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, videoId, feedbackLi
                             key={feedback.id}
                             className={`marker absolute top-0 h-full cursor-pointer ${feedback.feedbackType === 'human' ? 'bg-blue-500' : 'bg-green-500'}`}
                             style={{
-                                left: `${(feedback.timestamp / duration) * 100}%`,
+                                left: `${(feedback.fromTimestamp / duration) * 100}%`,
                                 width: '5px',
                             }}
-                            onClick={() => (videoRef.current!.currentTime = feedback.timestamp)}
+                            onClick={() => (videoRef.current!.currentTime = feedback.fromTimestamp)}
                             title={`${feedback.feedbackType === 'human' ? 'Human' : 'AI'} Feedback: ${feedback.feedback.substring(0, 50)}...`}
                         />
                     ))}
@@ -133,40 +274,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, videoId, feedbackLi
                 <Button onClick={() => videoRef.current!.playbackRate = 2.0}>Fast Forward (2.0x)</Button>
                 <Button onClick={() => videoRef.current!.currentTime -= 0.04}>Frame Back</Button>
                 <Button onClick={() => videoRef.current!.currentTime += 0.04}>Frame Forward</Button>
-                <Button onClick={handleGiveFeedback}>Give Feedback</Button>
+                <Button onClick={generateAIFeedback}>Generate AI Feedback</Button>
             </div>
-            {showFeedbackForm && (
-                <div className="feedback-form p-4 border rounded-md shadow-md mt-4">
-                    <h3 className="text-lg font-semibold mb-2">Give Feedback</h3>
-                    <p className="text-sm text-gray-600">Timestamp: {currentTime.toFixed(2)}s</p>
-                    <p className="text-sm text-gray-600">AI Insights: {aiInsights || 'No AI insights available'}</p>
-                    <select
-                        value={feedbackType}
-                        onChange={(e) => setFeedbackType(e.target.value)}
-                        className="mb-2 p-2 border rounded-md"
-                    >
-                        <option value="Posture">Posture</option>
-                        <option value="Technique Execution">Technique Execution</option>
-                        <option value="Defense">Defense</option>
-                        <option value="Movement Efficiency">Movement Efficiency</option>
-                    </select>
-                    <textarea
-                        className="w-full h-24 p-2 border rounded-md mb-2"
-                        placeholder="Enter feedback..."
-                        value={feedbackText}
-                        onChange={(e) => setFeedbackText(e.target.value)}
-                    />
-                    <div className="flex justify-end">
-                        <Button onClick={() => {
-                            handleSubmitFeedback();
-                            setFeedbackText('');
-                            setFeedbackType('Posture');
-                        }}>Save and Add Another</Button>
-                        <Button variant="secondary" onClick={handleSubmitFeedback}>Save</Button>
-                        <Button variant="ghost" onClick={() => setShowFeedbackForm(false)}>Cancel</Button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

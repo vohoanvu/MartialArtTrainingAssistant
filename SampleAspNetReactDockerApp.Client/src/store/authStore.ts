@@ -109,11 +109,12 @@ const useAuthStore = create<AuthStore>()(
                 }
             },
             signIn: async () => {
-                const response = await fetch('/api/signin', {
+                const accessToken = get().accessToken;
+                const response = await fetch('/api/auth/v1/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json', 
-                        //'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${accessToken}`
                     }
                 });
 
@@ -128,11 +129,11 @@ const useAuthStore = create<AuthStore>()(
                         return;
                     }
 
-                    const response = await fetch('/api/refresh', {
+                    const response = await fetch('/api/auth/v1/refresh', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json', 
-                            //'Authorization': `Bearer ${refreshToken}`
+                            'Authorization': `Bearer ${refreshToken}`
                         }
                     });
 
@@ -198,7 +199,7 @@ const useAuthStore = create<AuthStore>()(
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        //'Authorization': `Bearer ${accessToken}`
+                        'Authorization': `Bearer ${accessToken}`
                     }
                 });
                 if (response.ok) {
