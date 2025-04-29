@@ -34,6 +34,18 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
 
+    const feedbackCategories = [
+        { value: 'takedown', label: 'Takedown' },
+        { value: 'submission', label: 'Submission' },
+        { value: 'guard_pass', label: 'Guard Pass' },
+        { value: 'striking', label: 'Striking' },
+        { value: 'positioning', label: 'Positioning' },
+        { value: 'posture', label: 'Posture' },
+        { value: 'movement', label: 'Movement Efficiency' },
+        { value: 'defense', label: 'Defense Execution' },
+        { value: 'offense', label: 'Offense Execution' },
+    ];
+
     return (
         <div className="p-4 border rounded-md shadow-md">
             <h3 className="text-lg font-semibold mb-4">Feedback</h3>
@@ -85,11 +97,12 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full p-2 border rounded-md"
                 >
-                    <option value="">No options</option>
-                    <option value="Posture">Posture</option>
-                    <option value="Technique Execution">Technique Execution</option>
-                    <option value="Defense">Defense</option>
-                    <option value="Movement Efficiency">Movement Efficiency</option>
+                    <option value="">Select a category</option>
+                    {feedbackCategories.map((cat) => (
+                        <option key={cat.value} value={cat.value}>
+                            {cat.label}
+                        </option>
+                    ))}
                 </select>
             </div>
             <div className="flex justify-end gap-2">
