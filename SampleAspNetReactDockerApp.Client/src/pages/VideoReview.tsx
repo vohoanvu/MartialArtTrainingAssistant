@@ -117,7 +117,7 @@ const VideoReview: React.FC = () => {
             <div className="flex-1">
                 <VideoPlayer
                     videoUrl={videoUrl}
-                    videoId={parseInt(videoId || "0", 10)}
+                    videoId={videoId || "0"}
                     feedbackList={feedbackList}
                     onAddFeedback={(feedback) => setFeedbackList([feedback, ...feedbackList])}
                     setFromTimestamp={setFromTimestamp}
