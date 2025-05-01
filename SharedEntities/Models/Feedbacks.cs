@@ -4,59 +4,21 @@ using System.Text.Json.Serialization;
 
 namespace SharedEntities.Models
 {
-    // public class Feedback
-    // {
-    //     [Key]
-    //     public int FeedbackId { get; set; }
-
-    //     public int InstructorId { get; set; }
-    //     [ForeignKey("InstructorId")]
-    //     public virtual Instructor? Instructor { get; set; }
-
-    //     public int ProgramId { get; set; }
-    //     [ForeignKey("ProgramId")]
-    //     public virtual TrainingPrograms? Program { get; set; }
-
-    //     public int? TechniqueId { get; set; }
-    //     [ForeignKey("TechniqueId")]
-    //     public virtual Techniques? Technique { get; set; }
-
-    //     public int? DrillId { get; set; }
-    //     [ForeignKey("DrillId")]
-    //     public virtual Drills? Drill { get; set; }
-
-    //     public int? SessionId { get; set; }
-    //     [ForeignKey("SessionId")]
-    //     public virtual TrainingSession? Session { get; set; }
-
-    //     public required FeedbackType FeedbackType { get; set; }
-
-    //     [Range(1, 5)]
-    //     public required int Rating { get; set; }
-
-    //     public required string Comments { get; set; }
-
-    //     public required DateTime FeedbackDate { get; set; }
-    // }
-
-    // public enum FeedbackType
-    // {
-    //     Technique,
-    //     Drill
-    // }
-
     //Captures instructor feedback on specific video timestamps, including AI analysis for later fine-tuning.
     public class HumanFeedback
     {
         [Key]
         public int Id { get; set; }
 
-        public double Timestamp { get; set; }  // Required for timestamped feedback
-        public string FeedbackText { get; set; }  // Required instructor feedback
+        public TimeSpan? StartTimestamp { get; set; }
+        public TimeSpan? EndTimestamp { get; set; }
+
+        public string? FeedbackText { get; set; }
         
+        public int TechniqueId { get; set; }
+        [ForeignKey("TechniqueId")]
         [JsonIgnore]
-        public string? AIAnalysisJson { get; set; }  // Optional AI analysis at timestamp
-        public string? FeedbackType { get; set; }  // e.g., "Posture", "Defense"
+        public virtual Techniques Technique { get; set; }
 
         public int VideoId { get; set; }
         [ForeignKey("VideoId")]
@@ -67,6 +29,11 @@ namespace SharedEntities.Models
         [ForeignKey("InstructorId")]
         [JsonIgnore]
         public virtual AppUserEntity Instructor { get; set; }
+
+        public int? AiFeedbackId { get; set; }
+        [ForeignKey("AiFeedbackId")]
+        [JsonIgnore]
+        public virtual AiFeedback? AiFeedback { get; set; }
     }
 
     // AI-generated insights on video content, including timestamps and types of feedback.
@@ -76,9 +43,9 @@ namespace SharedEntities.Models
         public int Id { get; set; }
 
         public int VideoId { get; set; }
-        public string AnalysisJson { get; set; }  // Required AI analysis
-        public double? Timestamp { get; set; }  // Nullable for flexibility
-        public string? FeedbackType { get; set; }  // e.g., "Overall", "Posture"
+        public string? AnalysisJson { get; set; }
+        public TimeSpan? StartTimestamp { get; set; }
+        public TimeSpan? EndTimestamp { get; set; }
 
         [ForeignKey("VideoId")]
         public virtual UploadedVideo Video { get; set; }
@@ -89,10 +56,23 @@ namespace SharedEntities.Models
     public class AiAnalysisResult
     {
         public int Id { get; set; }
-        public int VideoId { get; set; }
-        public required string AnalysisJson { get; set; }
 
+        public int VideoId { get; set; }
         [ForeignKey("VideoId")]
         public virtual UploadedVideo Video { get; set; }
+
+        public required string AnalysisJson { get; set; } //need to keep this JSON Blob for storing AI-generated data
+
+        //Optional fields for parsing AI-generated insights into structured data
+        [JsonIgnore]
+        public virtual List<AiTechniqueIdentification>? TechniquesIdentified { get; set; }
+        [JsonIgnore]
+        public virtual List<AiStrength>? Strengths { get; set; }
+        [JsonIgnore]
+        public virtual List<AiImprovementArea>? ImprovementAreas { get; set; }
+        [JsonIgnore]
+        public virtual List<AiSuggestedDrill>? SuggestedDrills { get; set; }
+        [JsonIgnore]
+        public string? OverallDescription { get; set; }
     }
 }

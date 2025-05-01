@@ -10,9 +10,9 @@ namespace VideoSharing.Server.Domain.GeminiService
 {
     public interface IGeminiVisionService
     {
-        Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput);
+        Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, string martialArt, string studentIdentifier);
 
-        Task<AiFeedback> AnalyzeVideoSegment(int videoId, double timestamp);
+        Task<AiFeedback> AnalyzeVideoSegment(int videoId, string startTimestamp, string endTimestamp);
     }
 
     public class GeminiVisionService : IGeminiVisionService
@@ -26,49 +26,46 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly ILogger<GeminiVisionService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
-        public GeminiVisionService(IConfiguration configuration, IGoogleCloudStorageService storageService, 
+        public GeminiVisionService(IConfiguration configuration, IGoogleCloudStorageService storageService,
         ILogger<GeminiVisionService> logger, IServiceProvider serviceProvider)
         {
             _projectId = configuration["GoogleCloud:ProjectId"] ?? throw new ArgumentNullException("GoogleCloud:ProjectId");
             _location = configuration["GeminiVision:Location"] ?? "us-central1";
             _model = configuration["GeminiVision:Model"] ?? "gemini-pro-1.5";
             _customPrompt = @"
-            Analyze what is happening in this martial arts sparring video. Provide a detailed description of the techniques used (e.g., strikes, grapples, submissions), evaluate their execution, and suggest specific improvements. 
-            Include tailored drills to practice, formatted as a JSON object with fields: technique_identified, textual_description, strengths, areas_for_improvement, suggested_drills.
-            Structure the output as a JSON object using the following format as example:
+            Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] sparring video. Provide a detailed description of the techniques used by the student, evaluate their execution, and suggest specific improvements. Include tailored drills for the student to practice, formatted as a JSON object with fields: overall_description, techniques_identified, strengths, areas_for_improvement, suggested_drills.
+            Structure the output as follows:
             {
-                ""description"": ""Both fighters start from standing positions and progress toward full-guard. Fighter 1 applies a rear naked choke but struggles with leg control..."",
+                ""overall_description"": ""Description of the student's performance..."",
                 ""techniques_identified"": [
-                        {
-                            ""name"": ""Rear Naked Choke"",
-                            ""description"": ""A chokehold applied from behind the opponent."",
-                            ""timestamp"": ""00:01:23"",
-                            ""fighter_identifier"" : ""Fighter in the black uniform""
-                        },
-                        {
-                            ""name"": ""Armbar"",
-                            ""description"": ""A joint lock that hyperextends the elbow."",
-                            ""timestamp"": ""00:02:45"",
-                            ""fighter_identifier"" : ""Blue belt fighter""
-                        }
+                    {
+                        ""technique_name"": ""Rear Naked Choke"",
+                        ""description"": ""A chokehold applied from behind."",
+                        ""timestamp"": ""00:01:23""
+                    }
                 ],
                 ""strengths"": [
-                    ""Fighter 1"" : ""Good hand positioning and control"",
-                    ""Fighter 2"" : ""Great control and good movement""
+                    {
+                        ""description"": ""Good hand positioning""
+                    }
                 ],
                 ""areas_for_improvement"": [
-                    ""Blue belt"" : ""Need to secure the legs to prevent escape"",
-                    ""White belt"" : ""should have better maintaining the rear naked choke grip""
+                    {
+                        ""description"": ""Secure legs to prevent escape""
+                    }
                 ],
                 ""suggested_drills"": [
                     {
                         ""name"": ""Leg Hook Drill"",
-                        ""description"": ""Practice securing opponent's legs while maintaining choke grip."",
-                        ""focus"": ""Position Stabilization for White Belt, Escapes for Blue Belt"",
-                        ""duration"" : ""2 minutes""
+                        ""description"": ""Practice securing legs..."",
+                        ""focus"": ""Position Stabilization"",
+                        ""duration"": ""2 minutes""
                     }
                 ]
-            }";
+            }
+            Replace [MartialArt] with the specific martial art (e.g., 'BJJ', 'Muay Thai') and [StudentIdentifier] with the identifier of the student (e.g., 'Fighter in blue gi') provided as input.
+            ";
+
             //configuration["GeminiVision:VideoAnalysisPrompt"] ?? throw new ArgumentNullException("GeminiVision:VideoAnalysisPrompt");
             _storageService = storageService;
             _logger = logger;
@@ -77,7 +74,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             // Initialize Vertex AI's PredictionServiceClient with service account credentials
             try
             {
-                var keyPath = configuration["GoogleCloud:ServiceAccountKeyPath"] 
+                var keyPath = configuration["GoogleCloud:ServiceAccountKeyPath"]
                     ?? throw new ArgumentNullException("GoogleCloud:ServiceAccountKeyPath");
                 if (!File.Exists(keyPath))
                     throw new FileNotFoundException($"Service account key file not found at {keyPath}");
@@ -107,7 +104,7 @@ namespace VideoSharing.Server.Domain.GeminiService
         }
 
         /// <inheritdoc/>
-        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput)
+        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, string martialArt, string studentIdentifier)
         {
             string fileUri;
             string mimeType;
@@ -128,7 +125,10 @@ namespace VideoSharing.Server.Domain.GeminiService
                 fileUri = await _storageService.UploadFileAsync(fileStream, Path.GetFileName(videoInput), mimeType);
             }
 
-            string prompt = GetCustomPrompt();
+            // Replace placeholders in the prompt
+            string prompt = _customPrompt
+                .Replace("[MartialArt]", martialArt)
+                .Replace("[StudentIdentifier]", studentIdentifier);
 
             // Construct the GenerateContentRequest
             var request = new GenerateContentRequest
@@ -194,7 +194,6 @@ namespace VideoSharing.Server.Domain.GeminiService
                 _logger.LogInformation("Sending GenerateContent request for video: {FileUri} to model {Model} in project {ProjectId}", 
                     fileUri, _model, _projectId);
                 GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
-                _logger.LogDebug("Raw API response: {Response}", response.ToString());
                 string resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
                     ?? throw new InvalidOperationException("No valid JSON response received from the API.");
                 _logger.LogInformation("Received valid response for video: {FileUri}", fileUri);
@@ -214,18 +213,18 @@ namespace VideoSharing.Server.Domain.GeminiService
         }
 
         /// <inheritdoc/>
-        public async Task<AiFeedback> AnalyzeVideoSegment(int videoId, double timestamp)
+        public async Task<AiFeedback> AnalyzeVideoSegment(int videoId, string startTimestamp, string endTimestamp)
         {
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
             var video = await dbContext.UploadedVideos.FindAsync(videoId);
-            string analysis = await AnalyzeSegmentsWithGemini(video!.FilePath, timestamp); //TODO: Implement this method to call the Vertex AI Gemini API for segment analysis.
+            string analysis = await AnalyzeSegmentsWithGemini(video!.FilePath, startTimestamp, endTimestamp); //TODO: Implement this method to call the Vertex AI Gemini API for segment analysis.
             var aiFeedback = new AiFeedback
             {
                 VideoId = videoId,
-                Timestamp = timestamp, 
-                FeedbackType = string.Empty,
+                StartTimestamp = TimeSpan.Parse(startTimestamp),
+                EndTimestamp = TimeSpan.Parse(endTimestamp),
                 AnalysisJson = analysis,
             };
             dbContext.AiFeedbacks.Add(aiFeedback);
@@ -233,7 +232,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             return aiFeedback;
         }
 
-        private static async Task<string> AnalyzeSegmentsWithGemini(string videoPath, double timestamp)
+        private static async Task<string> AnalyzeSegmentsWithGemini(string videoPath, string startTimestamp, string endTimestamp)
         {
             await Task.Run(() => Thread.Sleep(1000));
             throw new NotImplementedException("This method should be implemented to call the Vertex AI Gemini API for segment analysis.");
@@ -259,7 +258,5 @@ namespace VideoSharing.Server.Domain.GeminiService
             }
             return contentType;
         }
-
-        private string GetCustomPrompt() => _customPrompt;
     }
 }

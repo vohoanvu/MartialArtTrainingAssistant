@@ -3,14 +3,90 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SharedEntities.Models
 {
-    public class Techniques
+    public enum TargetLevel
+    {
+        Kids,
+        Beginner,
+        Intermediate,
+        Advanced,
+        Expert
+    }
+
+    public enum FocusModule
+    {
+        General,
+        SelfDefense,
+        Competition,
+    }
+
+    public class PositionalScenario
+    {
+        [Key]
+        public int Id { get; set; }
+    
+        public required string Name { get; set; } //Example: "Standing Techniques", "Guard", "Mount", "Back", "Side Control"
+
+        public FocusModule FocusModule { get; set; } = FocusModule.General;
+
+        public TargetLevel TargetLevel { get; set; } = TargetLevel.Beginner;
+    }
+
+    public class TechniqueType 
     {
         [Key]
         public int Id { get; set; }
 
-        public required string Name { get; set; }
+        public required string Name { get; set; } //Example: "Offensive", "Submission", "Defensive"
 
-        public required string Description { get; set; }
+        public int PositionalScenarioId { get; set; }
+        [ForeignKey("PositionalScenarioId")]
+        public virtual PositionalScenario PositionalScenario { get; set; }
+    }
+
+    public class Techniques
+    {
+        [Key]
+        public int Id { get; set; }
+        public required string Name { get; set; } //Example: "Armbar", "Hip Escape"
+        public string? Description { get; set; }
+
+        
+        public int? CategoryId { get; set; }
+        [ForeignKey("CategoryId")]
+        public virtual PointScoringTechnique? Category { get; set; }
+
+        public int TechniqueTypeId { get; set; }
+        [ForeignKey("TechniqueTypeId")]
+        public TechniqueType TechniqueType { get; set; }
+
+        public int? DemonstrationId { get; set; }
+        [ForeignKey("DemonstrationId")]
+        public virtual Demonstration? DemonstrationVideo { get; set; } //Link to the video of the technique
+    }
+
+    public class PointScoringTechnique
+    {
+        [Key]
+        public int Id { get; set; }
+        public required string Name { get; set; } //Example: "Knee on Belly"
+        public string? Description { get; set; } //Example: "Hold the position using knee-on-belly for 3 seconds"
+        public int Points { get; set; }
+        public MartialArt MartialArt { get; set; } = MartialArt.BrazilianJiuJitsu_GI;
+    }
+
+    public enum MartialArt
+    {
+        None,
+        BrazilianJiuJitsu_GI,
+        BrazilianJiuJitsu_NO_GI,
+        Wrestling,
+        Boxing,
+        MuayThai,
+        Judo,
+        Karate,
+        Taekwondo,
+        Kickboxing,
+        Sumo,
     }
 
     public class Drills
@@ -21,25 +97,21 @@ namespace SharedEntities.Models
         public required string Name { get; set; }
 
         public required string Description { get; set; }
-    }
 
-    public class SessionContent
-    {
-        [Key]
-        public int Id { get; set; }
+        public string? Focus { get; set; }
 
-        public int SessionId { get; set; }
-        [ForeignKey("SessionId")]
-        public virtual TrainingSession? Session { get; set; }
+        public TimeSpan Duration { get; set; }
 
-        public int? TechniqueId { get; set; }
+        public int TechniqueId { get; set; }
         [ForeignKey("TechniqueId")]
-        public virtual Techniques? Technique { get; set; }
+        public virtual Techniques Technique { get; set; }
 
-        public int? DrillId { get; set; }
-        [ForeignKey("DrillId")]
-        public virtual Drills? Drill { get; set; }
+        public int? FeedbackId { get; set; }
+        [ForeignKey("FeedbackId")]
+        public virtual HumanFeedback? Feedback { get; set; }
 
-        public int? DurationMinutes { get; set; }
+        public int? DemonstrationId { get; set; }
+        [ForeignKey("DemonstrationId")]
+        public virtual Demonstration? DemonstrationVideo { get; set; } //Link to the video of the technique
     }
 }

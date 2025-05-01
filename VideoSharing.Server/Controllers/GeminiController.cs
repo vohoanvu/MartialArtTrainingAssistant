@@ -40,7 +40,7 @@ namespace VideoSharing.Server.Controllers
             try
             {
                 // Call the Gemini Vision API asynchronously
-                var visionAnalysisResult = await _geminiService.AnalyzeVideoAsync(uploadedVideo!.FilePath);
+                var visionAnalysisResult = await _geminiService.AnalyzeVideoAsync(uploadedVideo!.FilePath, uploadedVideo.MartialArt.ToString(), uploadedVideo.StudentIdentifier);
 
                 // Validate the response is valid JSON
                 string? structuredJson = ValidateStructuredJson(visionAnalysisResult.AnalysisJson);

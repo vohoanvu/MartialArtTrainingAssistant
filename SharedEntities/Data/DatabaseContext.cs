@@ -37,7 +37,12 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
     public virtual DbSet<AiAnalysisResult> AiAnalysisResults { get; set; }
 
+    public virtual DbSet<Techniques> Techniques { get; set; }
+    public virtual DbSet<PointScoringTechnique> PointScoringTechniques { get; set; }
+
     public virtual DbSet<Demonstration> Demonstrations { get; set; }
+
+    public virtual DbSet<Drills> Drills { get; set; }
 
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -72,11 +77,6 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
             .HasIndex(a => a.AnalysisJson)
             .HasMethod("GIN");
 
-        // Configure GIN index for HumanFeedback.AIAnalysisJson (JSONB)
-        builder.Entity<HumanFeedback>()
-            .HasIndex(h => h.AIAnalysisJson)
-            .HasMethod("GIN");
-
         // Configure GIN index for AiFeedback.AnalysisJson (JSONB)
         builder.Entity<AiFeedback>()
             .HasIndex(a => a.AnalysisJson)
@@ -85,10 +85,6 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
         // Ensure JSONB columns are mapped correctly
         builder.Entity<AiAnalysisResult>()
             .Property(a => a.AnalysisJson)
-            .HasColumnType("jsonb");
-
-        builder.Entity<HumanFeedback>()
-            .Property(h => h.AIAnalysisJson)
             .HasColumnType("jsonb");
 
         builder.Entity<AiFeedback>()

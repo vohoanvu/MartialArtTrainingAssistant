@@ -15,6 +15,10 @@ namespace SharedEntities.Data
             if (deleteIfExists) await dbContext.Database.EnsureDeletedAsync();
             await dbContext.Database.MigrateAsync();
 
+            await SeedDatabaseAsync(dbContext, userManager);
+        }
+        private static async Task SeedDatabaseAsync(MyDatabaseContext dbContext, UserManager<AppUserEntity> userManager)
+        {
             if (!await dbContext.Users.AnyAsync())
             {
                 using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -88,6 +92,48 @@ namespace SharedEntities.Data
                     throw;
                 }
             }
+
+            // if (!dbContext.PointScoringTechniques.Any())
+            // {
+            //     using var transaction = await dbContext.Database.BeginTransactionAsync();
+            //     try
+            //     {
+            //         // Define technique categories based on IBJJF rules
+            //         var techniques = new List<PointScoringTechnique>
+            //         {
+            //             // GI Competition Categories
+            //             new() { Name = "Takedown", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+            //             new() { Name = "Sweep", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+            //             new() { Name = "Guard Pass", Points = 3, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+            //             new() { Name = "Knee on Belly", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+            //             new() { Name = "Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+            //             new() { Name = "Back Control", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+            //             new() { Name = "Back Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+            //             new() { Name = "Submission", Points = 0, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+
+            //             // NO GI Competition Categories
+            //             new() { Name = "Takedown", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+            //             new() { Name = "Sweep", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+            //             new() { Name = "Guard Pass", Points = 3, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+            //             new() { Name = "Knee on Belly", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+            //             new() { Name = "Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+            //             new() { Name = "Back Control", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+            //             new() { Name = "Submission", Points = 0, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+            //         };
+
+            //         // Add categories to the database and save changes
+            //         dbContext.PointScoringTechniques.AddRange(techniques);
+            //         await dbContext.SaveChangesAsync();
+            //         await transaction.CommitAsync();
+            //         Console.WriteLine("Seeded Technique Categories.");
+            //     }
+            //     catch (Exception ex)
+            //     {
+            //         await transaction.RollbackAsync();
+            //         Console.WriteLine($"Seeding Technique Categories failed: {ex.Message}");
+            //         throw;
+            //     }
+            // }
         }
     }
 }

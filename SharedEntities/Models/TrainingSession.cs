@@ -11,35 +11,41 @@ namespace SharedEntities.Models
         public string? SessionNotes { get; set; }
 
         public required DateTime TrainingDate { get; set; }
-
         public required int Capacity { get; set; }
-
         public required double Duration { get; set; } // in hours
-
         public required SessionStatus Status { get; set; }
-
-        public required SessionType SessionType { get; set; }
-
         public required TargetLevel TargetLevel { get; set; }
-
-        public string? Warmup { get; set; } // JSONB in PostgreSQL
-
-        public string? Cooldown { get; set; } // JSONB in PostgreSQL
 
         public int InstructorId { get; set; }
         [ForeignKey("InstructorId")]
         public virtual Fighter? Instructor { get; set; }
 
+        //Tracking Student attendance
         public virtual List<TrainingSessionFighterJoint>? Students { get; set; }
+        //Activities for the session
+        public virtual List<TrainingSessionTechniqueLink>? SessionContents { get; set; }
+
+        public MartialArt MartialArt { get; set; } = MartialArt.BrazilianJiuJitsu_GI;
     }
 
-    public enum SessionType
+    public class TrainingSessionTechniqueLink
     {
-        Fundamentals,
-        Submissions,
-        SelfDefense,
-        Sparring,
-        OpenMat
+        [Key]
+        public int Id { get; set; }
+
+        public int SessionId { get; set; }
+        [ForeignKey("SessionId")]
+        public virtual TrainingSession Session { get; set; }
+
+        public int TechniqueId { get; set; }
+        [ForeignKey("TechniqueId")]
+        public virtual Techniques Technique { get; set; }
+
+        public int? DrillId { get; set; }
+        [ForeignKey("DrillId")]
+        public virtual Drills? Drill { get; set; }
+
+        public int? DurationMinutes { get; set; } // e.g., 20 minutes for a technique
     }
 
     public class TrainingSessionFighterJoint
@@ -54,23 +60,5 @@ namespace SharedEntities.Models
         public int FighterId { get; set; }
         [ForeignKey("FighterId")]
         public Fighter? Fighter { get; set; }
-    }
-
-    public class TrainingPrograms
-    {
-        [Key]
-        public int Id { get; set; }
-
-        public required string Name { get; set; }
-        
-        public TargetLevel TargetLevel { get; set; }
-    }
-
-    public enum TargetLevel
-    {
-        Beginner,
-        Intermediate,
-        Advanced,
-        Expert
     }
 }

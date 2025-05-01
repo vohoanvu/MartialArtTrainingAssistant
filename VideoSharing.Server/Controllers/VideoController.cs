@@ -29,7 +29,7 @@ namespace VideoSharing.Server.Controllers
 
         [HttpPost("metadata")]
         [Authorize]
-        public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(UploadVideoRequest request)
+        public async Task<ActionResult<VideoDetailsResponse>> GetVideoMetadata(SharingVideoRequest request)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -99,7 +99,7 @@ namespace VideoSharing.Server.Controllers
         [HttpPost("upload-sparring")]
         [Authorize]
         [RequestSizeLimit(300 * 1024 * 1024)]
-        public async Task<IActionResult> UploadSparringVideoAsync(IFormFile videoFile, [FromForm] string description)
+        public async Task<IActionResult> UploadSparringVideoAsync(IFormFile videoFile, [FromForm] UploadVideoRequest request)
         {
             if (videoFile.Length > 300 * 1024 * 1024)
                 return BadRequest(new { Message = "Video file exceeds 300 MB limit." });
@@ -138,7 +138,9 @@ namespace VideoSharing.Server.Controllers
             {
                 UserId = userId,
                 FilePath = filePath,
-                Description = description,
+                Description = request.Description,
+                StudentIdentifier = request.StudentIdentifier,
+                MartialArt = request.MartialArt,
                 UploadTimestamp = DateTime.UtcNow
             };
 

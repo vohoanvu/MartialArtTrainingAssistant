@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using SharedEntities.Models;
 
 namespace VideoSharing.Server.Models.Dtos
 {
@@ -8,7 +9,7 @@ namespace VideoSharing.Server.Models.Dtos
     }
 
     //For Youtube sharing url
-    public class UploadVideoRequest
+    public class SharingVideoRequest
     {
         [JsonPropertyName("videoUrl")]
         public required string VideoUrl { get; set; }
@@ -30,5 +31,12 @@ namespace VideoSharing.Server.Models.Dtos
         public string? AiAnalysisResult { get; set; }
 
         public string SignedUrl { get; set; }
+    }
+
+    public class UploadVideoRequest 
+    {
+        public string? Description { get; set; }
+        public string StudentIdentifier { get; set; } // Used for LLM Prompt parsing, e.g., "Fighter in blue gi"
+        public MartialArt MartialArt { get; set; }
     }
 }

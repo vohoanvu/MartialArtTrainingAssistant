@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SharedEntities.Models
 {
+    //For storing metadata about YOUTUBE videos shared by users.
     public class SharedVideo
     {
         [Key]
@@ -29,16 +30,13 @@ namespace SharedEntities.Models
     {
         [Key]
         public int Id { get; set; }
-
         public string UserId { get; set; }
-
-        //Path to the video in Google Cloud Storage (e.g., gs://bucket-name/video-id.mp4).
         public string FilePath { get; set; }
         public DateTime UploadTimestamp { get; set; }
         public string? Description { get; set; }
-        public string? AISummary { get; set; }
-
-
+        public string AISummary { get; set; }
+        public string StudentIdentifier { get; set; } // Used for LLM Prompt parsing, e.g., "Fighter in blue gi"
+        public MartialArt MartialArt { get; set; } = MartialArt.BrazilianJiuJitsu_GI;
         [ForeignKey("UserId")]
         public virtual AppUserEntity AppUser { get; set; }
     }
