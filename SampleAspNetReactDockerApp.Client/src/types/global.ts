@@ -200,9 +200,20 @@ export interface VideoDeleteResponse {
     Message: string;
 }
 
-// {
-//     "bmi": 21.50,
-//     "category": "Normal Weight",
-//     "description": "You are within the healthy weight range for your height."
-// }
+
+export enum MartialArt {
+    None = "None",
+    BrazilianJiuJitsu_GI = "BrazilianJiuJitsu_GI",
+    BrazilianJiuJitsu_NO_GI = "BrazilianJiuJitsu_NO_GI",
+    Wrestling = "Wrestling",
+    Boxing = "Boxing",
+    MuayThai = "MuayThai",
+    Judo = "Judo",
+    Karate = "Karate",
+    Taekwondo = "Taekwondo",
+    Kickboxing = "Kickboxing",
+    Sumo = "Sumo",
+}
+
+
 

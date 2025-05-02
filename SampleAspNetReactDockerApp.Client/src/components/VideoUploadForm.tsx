@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { uploadVideoFile } from '@/services/api'; // Import the new function
+import { uploadVideoFile } from '@/services/api';
 import { Button } from './ui/button';
-import { VideoUploadResponse } from '@/types/global';
+import { VideoUploadResponse, MartialArt } from '@/types/global';
 import AiAnalysisResults from './AiAnalysisResults';
 
 interface VideoUploadFormProps {
@@ -13,18 +13,21 @@ interface VideoUploadFormProps {
 const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormProps) => {
     const [file, setFile] = useState<File | null>(null);
     const [description, setDescription] = useState('');
+    const [studentIdentifier, setStudentIdentifier] = useState('');
+    const [martialArt, setMartialArt] = useState<MartialArt>(MartialArt.BrazilianJiuJitsu_GI);
     const [signedUrl, setSignedUrl] = useState('');
-    const [isLoading, setIsLoading] = useState(false); // Added for loading state
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
 
     const [analysisLoading, setAnalysisLoading] = useState(false);
     const [analysisCompleted, setAnalysisCompleted] = useState(false);
-    //const [analysisVideoId, setAnalysisVideoId] = useState<number | null>(null);
     const [analysisResult, setAnalysisResult] = useState<any>(null);
 
     const uploadType = fighterRole === 0 ? 'sparring' : 'demonstration';
     const title = fighterRole === 0 ? 'Upload Sparring Video' : 'Upload Demonstration Video';
+
+    const martialArtOptions = Object.values(MartialArt);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,18 +35,23 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
             setError('Please select a video file');
             return;
         }
+        if (!studentIdentifier) {
+            setError('Please provide a student identifier');
+            return;
+        }
 
         setIsLoading(true);
         setError(null);
         setProgress(0);
         setAnalysisCompleted(false);
-        //setAnalysisVideoId(null);
         setAnalysisResult(null);
 
         try {
             const response: VideoUploadResponse = await uploadVideoFile({
                 file,
                 description,
+                studentIdentifier,
+                martialArt,
                 uploadType,
                 jwtToken,
                 hydrate: hydrateFn,
@@ -51,15 +59,15 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
             });
             setSignedUrl(response.signedUrl);
             console.log('SignedUrl response expected as GCS path:', response.signedUrl);
-            // Save the VideoId to trigger analysis later
             const videoId = response.videoId;
-            //setAnalysisVideoId(videoId);
             console.log('VideoId response expected:', videoId);
             setFile(null);
             setDescription('');
+            setStudentIdentifier('');
+            setMartialArt(MartialArt.None);
             console.log(`${uploadType} video upload response:`, response);
 
-            // After successful upload, trigger analysis AI asynchronously
+            // Trigger analysis AI asynchronously
             setAnalysisLoading(true);
             (async () => {
                 try {
@@ -67,11 +75,11 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${jwtToken}`
+                            Authorization: `Bearer ${jwtToken}`,
                         },
                         body: JSON.stringify({
                             VideoId: videoId,
-                        })
+                        }),
                     });
                     if (!res.ok) {
                         console.error('Analysis API call failed');
@@ -89,10 +97,14 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                     setIsLoading(false);
                 }
             })();
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-            setError(`Upload failed: ${errorMessage}`);
-            console.error(`Error uploading ${uploadType} video:`, err);
+        } catch (err : any) {
+            if (err.signedUrl) {
+                alert(`Duplicate video detected: ${err.message}. You can access the existing video here: ${err.signedUrl}`);
+            } else {
+                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                setError(`Upload failed: ${errorMessage}`);
+                console.error(`Error uploading ${uploadType} video:`, err.message);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -129,6 +141,38 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                         disabled={isLoading}
                     />
                 </div>
+                <div>
+                    <label htmlFor="studentIdentifier" className="block text-sm font-medium text-gray-700">
+                        Student Identifier
+                    </label>
+                    <input
+                        type="text"
+                        id="studentIdentifier"
+                        value={studentIdentifier}
+                        onChange={(e) => setStudentIdentifier(e.target.value)}
+                        placeholder="Please identify which fighter you are in the video. For example: Fighter in blue gi"
+                        className="mt-1 block w-full border rounded-md p-2"
+                        disabled={isLoading}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="martialArt" className="block text-sm font-medium text-gray-700">
+                        Martial Art
+                    </label>
+                    <select
+                        id="martialArt"
+                        value={martialArt}
+                        onChange={(e) => setMartialArt(e.target.value as MartialArt)}
+                        className="mt-1 block w-full border rounded-md p-2"
+                        disabled={isLoading}
+                    >
+                        {martialArtOptions.map((art) => (
+                            <option key={art} value={art}>
+                                {art}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                 <Button
                     type="submit"
                     disabled={!file || isLoading}
@@ -150,8 +194,6 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                     <video src={signedUrl} controls className="w-full mt-2" />
                 </div>
             )}
-
-            {/* Analysis progress notification */}
             {analysisLoading && !analysisCompleted && (
                 <div className="mt-4 flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
@@ -161,16 +203,6 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
             {analysisCompleted && analysisResult && (
                 <AiAnalysisResults analysisJson={analysisResult.analysisJson} />
             )}
-            {/* {analysisCompleted && analysisVideoId && (
-                <div className="mt-4">
-                    <Button
-                        onClick={() => console.log(`Navigating to the analysis results page with video ID: ${analysisVideoId} .....`)}
-                        className="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
-                    >
-                        View AI Analysis Results
-                    </Button>
-                </div>
-            )} */}
         </div>
     );
 };

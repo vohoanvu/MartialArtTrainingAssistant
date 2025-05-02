@@ -12,6 +12,7 @@ import {
     GetBMIResponse,
     VideoUploadResponse,
     VideoDeleteResponse,
+    MartialArt,
 } from "@/types/global.ts";
 import axios from 'axios';
 
@@ -256,6 +257,8 @@ export async function CalculateBMI(height: number, weight: number): Promise<GetB
 interface UploadVideoParams {
     file: File;
     description: string;
+    studentIdentifier: string;
+    martialArt: MartialArt;
     uploadType: 'sparring' | 'demonstration';
     jwtToken: string;
     currentTry?: number;
@@ -265,6 +268,8 @@ interface UploadVideoParams {
 export async function uploadVideoFile({
     file,
     description,
+    studentIdentifier,
+    martialArt,
     uploadType,
     jwtToken,
     currentTry = 0,
@@ -276,6 +281,8 @@ export async function uploadVideoFile({
     const formData = new FormData();
     formData.append('videoFile', file);
     formData.append('description', description);
+    formData.append('studentIdentifier', studentIdentifier);
+    formData.append('martialArt', martialArt);
 
     const endpoint = uploadType === 'sparring'
         ? '/vid/api/video/upload-sparring'
@@ -285,7 +292,6 @@ export async function uploadVideoFile({
         const response = await axios.post(endpoint, formData, {
             headers: {
                 'Authorization': `Bearer ${jwtToken}`,
-                // axios sets the Content-Type automatically when sending FormData
             },
             onUploadProgress: (progressEvent: ProgressEvent) => {
                 const percentCompleted = Math.round(
@@ -298,13 +304,31 @@ export async function uploadVideoFile({
 
         console.log(`${uploadType} video uploaded successfully!`);
         return response.data as VideoUploadResponse;
-    }
-    catch (error: any) {
-        // Handle auto-refresh on 401
-        if (error.response && error.response.status === 401 && currentTry === 0) {
-            await hydrate();
-            return await uploadVideoFile({ file, description, uploadType, jwtToken, currentTry: 1, hydrate, onProgress });
+    } catch (error: any) {
+        if (error.response?.status === 409) {
+            console.warn('Duplicate video detected:', error.response.data.Message);
+            return Promise.reject({
+                message: error.response.data.Message,
+                signedUrl: error.response.data.SignedUrl,
+                videoId: error.response.data.VideoId,
+            });
         }
+
+        if (error.response?.status === 401 && currentTry === 0) {
+            await hydrate();
+            return await uploadVideoFile({
+                file,
+                description,
+                studentIdentifier,
+                martialArt,
+                uploadType,
+                jwtToken,
+                currentTry: 1,
+                hydrate,
+                onProgress,
+            });
+        }
+
         const errorText = error.response?.data || error.response?.statusText || error.message;
         throw new Error(`Error uploading ${uploadType} video: ${errorText}`);
     }

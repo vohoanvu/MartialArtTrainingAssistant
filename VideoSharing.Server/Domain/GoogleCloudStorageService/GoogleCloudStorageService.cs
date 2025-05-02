@@ -1,4 +1,5 @@
-﻿using Google.Apis.Auth.OAuth2;
+﻿using System.Security.Cryptography;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 
 namespace VideoSharing.Server.Domain.GoogleCloudStorageService
@@ -8,6 +9,7 @@ namespace VideoSharing.Server.Domain.GoogleCloudStorageService
         Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType);
         Task<string> GenerateSignedUrlAsync(string filePath, TimeSpan expiration);
         Task DeleteFileAsync(string filePath);
+        Task<string> CalculateFileHashAsync(Stream fileStream);
     }
 
     public class GoogleCloudStorageService : IGoogleCloudStorageService
@@ -51,6 +53,13 @@ namespace VideoSharing.Server.Domain.GoogleCloudStorageService
         {
             var objectName = filePath.Replace($"gs://{_bucketName}/", "");
             await _storageClient.DeleteObjectAsync(_bucketName, objectName);
+        }
+
+        public async Task<string> CalculateFileHashAsync(Stream fileStream)
+        {
+            using var md5 = MD5.Create();
+            var hashBytes = await md5.ComputeHashAsync(fileStream);
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         }
     }
 }

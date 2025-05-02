@@ -39,6 +39,7 @@ namespace SharedEntities.Models
         public MartialArt MartialArt { get; set; } = MartialArt.BrazilianJiuJitsu_GI;
         [ForeignKey("UserId")]
         public virtual AppUserEntity AppUser { get; set; }
+        public string FileHash { get; set; }
     }
 
     //Stores instructor-uploaded videos demonstrating techniques.

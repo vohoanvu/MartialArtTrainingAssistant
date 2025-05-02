@@ -112,26 +112,32 @@ namespace VideoSharing.Server.Controllers
             {
                 return Unauthorized();
             }
-            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
-            Console.WriteLine($"UserId: {userId}, Role Claim: {roleClaim}");
 
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            var appUserEntity = dbContext.Users.Include(u => u.Fighter)
-                    .FirstOrDefault(u => u.Id == userId);
-            if (appUserEntity?.Fighter == null)
-            {
-                Console.WriteLine("No fighter profile linked to user");
-                return Forbid();
-            }
 
-            if (appUserEntity?.Fighter.Role != FighterRole.Student)
-            {
-                Console.WriteLine($"Role mismatch - Expected: Student (0), Actual: {appUserEntity?.Fighter.Role}");
-                return Forbid();
-            }
-
+            // Calculate hash of the video file
             using var stream = videoFile.OpenReadStream();
-            _logger.LogInformation("User {UserId} uploaded sparring video: {FileName}", userId, videoFile.FileName);
+            var videoHash = await _gcsService.CalculateFileHashAsync(stream);
+
+            // Check for duplicate video
+            var existingVideo = await dbContext.UploadedVideos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.FileHash == videoHash);
+
+            if (existingVideo != null)
+            {
+                return Conflict(new
+                {
+                    Message = "Duplicate video detected. This video has already been uploaded.",
+                    VideoId = existingVideo.Id,
+                    SignedUrl = await _gcsService.GenerateSignedUrlAsync(existingVideo.FilePath, TimeSpan.FromHours(1))
+                });
+            }
+
+            // Reset stream position for upload
+            stream.Position = 0;
+
+            // Upload video to Google Cloud Storage
             var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
 
             var uploadedVideo = new UploadedVideo
@@ -141,7 +147,8 @@ namespace VideoSharing.Server.Controllers
                 Description = request.Description,
                 StudentIdentifier = request.StudentIdentifier,
                 MartialArt = request.MartialArt,
-                UploadTimestamp = DateTime.UtcNow
+                UploadTimestamp = DateTime.UtcNow,
+                FileHash = videoHash
             };
 
             dbContext.UploadedVideos.Add(uploadedVideo);
@@ -152,7 +159,7 @@ namespace VideoSharing.Server.Controllers
                 "ReceiveVideoSharedNotification",
                 "New Sparring Video Uploaded!",
                 uploadedVideo.Description,
-                appUserEntity.UserName
+                User.Identity?.Name
             );
 
             return Ok(new { VideoId = uploadedVideo.Id, SignedUrl = signedUrl });
@@ -174,26 +181,32 @@ namespace VideoSharing.Server.Controllers
             {
                 return Unauthorized();
             }
-            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
-            Console.WriteLine($"UserId: {userId}, Role Claim: {roleClaim}");
 
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            var appUserEntity = dbContext.Users.Include(u => u.Fighter)
-                    .FirstOrDefault(u => u.Id == userId);
-            if (appUserEntity?.Fighter == null)
-            {
-                Console.WriteLine("No fighter profile linked to user");
-                return Forbid();
-            }
 
-            if (appUserEntity?.Fighter.Role != FighterRole.Instructor)
-            {
-                Console.WriteLine($"Role mismatch - Expected: Instructor (1), Actual: {appUserEntity?.Fighter.Role}");
-                return Forbid();
-            }
-
+            // Calculate hash of the video file
             using var stream = videoFile.OpenReadStream();
-            _logger.LogInformation("User {UserId} uploaded sparring video: {FileName}", userId, videoFile.FileName);
+            var videoHash = await _gcsService.CalculateFileHashAsync(stream);
+
+            // Check for duplicate video
+            var existingVideo = await dbContext.UploadedVideos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.FileHash == videoHash);
+
+            if (existingVideo != null)
+            {
+                return Conflict(new
+                {
+                    Message = "Duplicate video detected. This video has already been uploaded.",
+                    VideoId = existingVideo.Id,
+                    SignedUrl = await _gcsService.GenerateSignedUrlAsync(existingVideo.FilePath, TimeSpan.FromHours(1))
+                });
+            }
+
+            // Reset stream position for upload
+            stream.Position = 0;
+
+            // Upload video to Google Cloud Storage
             var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
 
             var uploadedVideo = new UploadedVideo
@@ -201,7 +214,8 @@ namespace VideoSharing.Server.Controllers
                 UserId = userId,
                 FilePath = filePath,
                 Description = description,
-                UploadTimestamp = DateTime.UtcNow
+                UploadTimestamp = DateTime.UtcNow,
+                FileHash = videoHash
             };
 
             dbContext.UploadedVideos.Add(uploadedVideo);
@@ -212,7 +226,7 @@ namespace VideoSharing.Server.Controllers
                 "ReceiveVideoSharedNotification",
                 "New Demonstration Video Uploaded!",
                 uploadedVideo.Description,
-                appUserEntity.UserName
+                User.Identity?.Name
             );
 
             return Ok(new { VideoId = uploadedVideo.Id, SignedUrl = signedUrl });
@@ -248,7 +262,7 @@ namespace VideoSharing.Server.Controllers
 
             var videos = await (
                 from v in dbContext.UploadedVideos.AsNoTracking()
-                join ai in dbContext.AiAnalysisResults.AsNoTracking() 
+                join ai in dbContext.AiAnalysisResults.AsNoTracking()
                     on v.Id equals ai.VideoId into aiGroup
                 select new UploadedVideoDto
                 {
