@@ -254,6 +254,7 @@ namespace VideoSharing.Server.Controllers
                 {
                     Id = v.Id,
                     UserId = v.UserId,
+                    MartialArt = v.MartialArt.ToString(),
                     FilePath = v.FilePath,
                     UploadTimestamp = v.UploadTimestamp,
                     Description = v.Description,

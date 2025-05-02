@@ -21,7 +21,45 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly string _projectId;
         private readonly string _location;
         private readonly string _model;
-        private readonly string _customPrompt;
+        private readonly string _customPrompt = @"
+        Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] sparring video. The student is at the [SkillLevel] level and is training for [TrainingGoal]. Provide a detailed analysis of the student's techniques, execution, strengths, areas for improvement, and suggest specific drills for practice. Format the output as a JSON object with the following structure:
+        {
+            ""overall_description"": ""A detailed description of the student's overall performance in the sparring session."",
+            ""techniques_identified"": [
+                {
+                ""technique_name"": ""Name of the technique (e.g., 'Armbar')"",
+                ""description"": ""Description of how the technique was executed."",
+                ""timestamp"": ""Timestamp in the video where the technique occurs (e.g., '00:01:23')"",
+                ""technique_type"": ""Type of technique (e.g., 'Submission', 'Sweep')"",
+                ""positional_scenario"": ""Positional scenario related to the technique (e.g., 'Guard', 'Mount')""
+                }
+            ],
+            ""strengths"": [
+                {
+                ""description"": ""Description of a strength observed in the student's performance."",
+                ""related_technique"": ""Optional: Name of the technique related to this strength.""
+                }
+            ],
+            ""areas_for_improvement"": [
+                {
+                ""description"": ""Description of an area where the student can improve."",
+                ""related_technique"": ""Optional: Name of the technique related to this area.""
+                }
+            ],
+            ""suggested_drills"": [
+                {
+                ""name"": ""Name of the drill (e.g., 'Armbar Repetition Drill')"",
+                ""description"": ""Detailed description of the drill."",
+                ""focus"": ""Focus area of the drill (e.g., 'Technique Execution', 'Timing')"",
+                ""duration"": ""Recommended duration for the drill (e.g., '5 minutes')"",
+                ""related_technique"": ""Name of the technique the drill is intended to improve.""
+                }
+            ]
+        }
+
+        Ensure that the techniques identified are categorized by their technique type and linked to the appropriate positional scenarios as defined in the curriculum structure. Tailor the feedback and suggested drills to the student's [SkillLevel] and [TrainingGoal], ensuring they are actionable and relevant to their current abilities and objectives.
+        ";
+
         private readonly IGoogleCloudStorageService _storageService;
         private readonly ILogger<GeminiVisionService> _logger;
         private readonly IServiceProvider _serviceProvider;
@@ -32,39 +70,6 @@ namespace VideoSharing.Server.Domain.GeminiService
             _projectId = configuration["GoogleCloud:ProjectId"] ?? throw new ArgumentNullException("GoogleCloud:ProjectId");
             _location = configuration["GeminiVision:Location"] ?? "us-central1";
             _model = configuration["GeminiVision:Model"] ?? "gemini-pro-1.5";
-            _customPrompt = @"
-            Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] sparring video. Provide a detailed description of the techniques used by the student, evaluate their execution, and suggest specific improvements. Include tailored drills for the student to practice, formatted as a JSON object with fields: overall_description, techniques_identified, strengths, areas_for_improvement, suggested_drills.
-            Structure the output as follows:
-            {
-                ""overall_description"": ""Description of the student's performance..."",
-                ""techniques_identified"": [
-                    {
-                        ""technique_name"": ""Rear Naked Choke"",
-                        ""description"": ""A chokehold applied from behind."",
-                        ""timestamp"": ""00:01:23""
-                    }
-                ],
-                ""strengths"": [
-                    {
-                        ""description"": ""Good hand positioning""
-                    }
-                ],
-                ""areas_for_improvement"": [
-                    {
-                        ""description"": ""Secure legs to prevent escape""
-                    }
-                ],
-                ""suggested_drills"": [
-                    {
-                        ""name"": ""Leg Hook Drill"",
-                        ""description"": ""Practice securing legs..."",
-                        ""focus"": ""Position Stabilization"",
-                        ""duration"": ""2 minutes""
-                    }
-                ]
-            }
-            Replace [MartialArt] with the specific martial art (e.g., 'BJJ', 'Muay Thai') and [StudentIdentifier] with the identifier of the student (e.g., 'Fighter in blue gi') provided as input.
-            ";
 
             //configuration["GeminiVision:VideoAnalysisPrompt"] ?? throw new ArgumentNullException("GeminiVision:VideoAnalysisPrompt");
             _storageService = storageService;
@@ -128,7 +133,8 @@ namespace VideoSharing.Server.Domain.GeminiService
             // Replace placeholders in the prompt
             string prompt = _customPrompt
                 .Replace("[MartialArt]", martialArt)
-                .Replace("[StudentIdentifier]", studentIdentifier);
+                .Replace("[StudentIdentifier]", studentIdentifier)
+                .Replace("[TrainingGoal]", "both self-defense and competition");
 
             // Construct the GenerateContentRequest
             var request = new GenerateContentRequest

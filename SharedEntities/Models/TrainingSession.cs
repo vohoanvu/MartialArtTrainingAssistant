@@ -23,12 +23,12 @@ namespace SharedEntities.Models
         //Tracking Student attendance
         public virtual List<TrainingSessionFighterJoint>? Students { get; set; }
         //Activities for the session
-        public virtual List<TrainingSessionTechniqueLink>? SessionContents { get; set; }
+        public virtual List<TrainingSessionTechniqueJoint>? SessionContents { get; set; }
 
         public MartialArt MartialArt { get; set; } = MartialArt.BrazilianJiuJitsu_GI;
     }
 
-    public class TrainingSessionTechniqueLink
+    public class TrainingSessionTechniqueJoint
     {
         [Key]
         public int Id { get; set; }

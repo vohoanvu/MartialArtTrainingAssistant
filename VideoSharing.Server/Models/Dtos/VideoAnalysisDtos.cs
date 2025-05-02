@@ -31,6 +31,7 @@ namespace VideoSharing.Server.Models.Dtos
         public string? AiAnalysisResult { get; set; }
 
         public string SignedUrl { get; set; }
+        public string MartialArt { get; set; }
     }
 
     public class UploadVideoRequest 

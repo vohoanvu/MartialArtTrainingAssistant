@@ -29,6 +29,8 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
     public virtual DbSet<TrainingSession> TrainingSessions { get; set; }
 
+    public virtual DbSet<TrainingSessionTechniqueJoint> TrainingSessionTechniqueJoints { get; set; }
+
     public virtual DbSet<UploadedVideo> UploadedVideos { get; set; }
 
     public virtual DbSet<HumanFeedback> HumanFeedbacks { get; set; }
@@ -43,6 +45,14 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
     public virtual DbSet<Demonstration> Demonstrations { get; set; }
 
     public virtual DbSet<Drills> Drills { get; set; }
+
+    public virtual DbSet<TechniqueType> TechniqueTypes { get; set; }
+
+    public virtual DbSet<PositionalScenario> PositionalScenarios { get; set; }
+
+    public virtual DbSet<Curriculum> Curriculums { get; set; }
+
+    public virtual DbSet<CurriculumScenario> CurriculumScenarios { get; set; }
 
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

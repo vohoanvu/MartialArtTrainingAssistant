@@ -34,7 +34,7 @@ namespace SharedEntities.Models
         public string FilePath { get; set; }
         public DateTime UploadTimestamp { get; set; }
         public string? Description { get; set; }
-        public string AISummary { get; set; }
+        public string? AISummary { get; set; }
         public string StudentIdentifier { get; set; } // Used for LLM Prompt parsing, e.g., "Fighter in blue gi"
         public MartialArt MartialArt { get; set; } = MartialArt.BrazilianJiuJitsu_GI;
         [ForeignKey("UserId")]
@@ -51,7 +51,7 @@ namespace SharedEntities.Models
         public string FilePath { get; set; }
         public DateTime UploadTimestamp { get; set; }
         public string? Description { get; set; }
-        public string TechniqueTag { get; set; }
+        public string? TechniqueTag { get; set; }
 
         [ForeignKey("InstructorId")]
         public virtual AppUserEntity Instructor { get; set; }
