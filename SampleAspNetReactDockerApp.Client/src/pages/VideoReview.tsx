@@ -15,6 +15,13 @@ export interface Feedback {
     feedbackType: string;
     aiInsights?: string;
     isPending?: boolean;
+    martialArt?: string; 
+    studentName?: string;
+    beltRank?: string;
+    studentIdentifier?: string;
+    positionalScenario?: string;
+    techniqueType?: string;
+    techniqueName?: string;
 }
 
 const VideoReview: React.FC = () => {
@@ -23,10 +30,11 @@ const VideoReview: React.FC = () => {
     const [videoUrl, setVideoUrl] = useState('');
     const { accessToken, refreshToken, hydrate } = useAuthStore();
     const [aiFeedbackList, setAiFeedbackList] = useState<Feedback[]>([]);
+
     const [fromTimestamp, setFromTimestamp] = useState('');
     const [toTimestamp, setToTimestamp] = useState('');
+
     const [feedbackText, setFeedbackText] = useState('');
-    const [category, setCategory] = useState('');
     const [selectedSegment, setSelectedSegment] = useState<{ from: number; to: number } | null>(null);
 
     useEffect(() => {
@@ -74,7 +82,6 @@ const VideoReview: React.FC = () => {
         setFromTimestamp('');
         setToTimestamp('');
         setFeedbackText('');
-        setCategory('');
         setSelectedSegment(null); // Clear selection after saving
     };
 
@@ -109,7 +116,6 @@ const VideoReview: React.FC = () => {
         setFromTimestamp('');
         setToTimestamp('');
         setFeedbackText('');
-        setCategory('');
     };
 
     return (
@@ -126,23 +132,20 @@ const VideoReview: React.FC = () => {
                     setSelectedSegment={setSelectedSegment}
                     clearSelection={clearSelection}
                 />
+                <FeedbackList feedbackList={feedbackList || aiFeedbackList} onSeek={handleSeek} />
             </div>
             <div className="w-full md:w-1/3">
                 <FeedbackForm
                     videoId={parseInt(videoId || "0", 10)}
-                    timestamp={parseFloat(fromTimestamp) || 0}
                     fromTimestamp={fromTimestamp}
                     toTimestamp={toTimestamp}
                     feedbackText={feedbackText}
-                    category={category}
                     onSave={handleAddFeedback}
                     onCancel={clearSelection}
                     setFromTimestamp={setFromTimestamp}
                     setToTimestamp={setToTimestamp}
                     setFeedbackText={setFeedbackText}
-                    setCategory={setCategory}
                 />
-                <FeedbackList feedbackList={feedbackList || aiFeedbackList} onSeek={handleSeek} />
                 <Button onClick={handleSubmitFeedback} className="mt-2">Submit Feedback</Button>
             </div>
         </div>
