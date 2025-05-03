@@ -62,17 +62,5 @@ namespace SharedEntities.Models
         public virtual UploadedVideo Video { get; set; }
 
         public required string AnalysisJson { get; set; } //need to keep this JSON Blob for storing AI-generated data
-
-        //Optional fields for parsing AI-generated insights into structured data
-        [JsonIgnore]
-        public virtual List<AiTechniqueIdentification>? TechniquesIdentified { get; set; }
-        [JsonIgnore]
-        public virtual List<AiStrength>? Strengths { get; set; }
-        [JsonIgnore]
-        public virtual List<AiImprovementArea>? ImprovementAreas { get; set; }
-        [JsonIgnore]
-        public virtual List<AiSuggestedDrill>? SuggestedDrills { get; set; }
-        [JsonIgnore]
-        public string? OverallDescription { get; set; }
     }
 }

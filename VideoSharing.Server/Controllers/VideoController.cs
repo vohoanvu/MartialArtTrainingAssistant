@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
 using Microsoft.EntityFrameworkCore;
 using VideoSharing.Server.Models.Dtos;
+using VideoSharing.Server.Domain.GeminiService;
 
 namespace VideoSharing.Server.Controllers
 {
@@ -307,6 +308,66 @@ namespace VideoSharing.Server.Controllers
                 AiAnalysisResult = AiAnalysisResult,
                 SignedUrl = signedUrl
             });
+        }
+
+        [HttpGet("import-ai/{videoId}")]
+        [Authorize]
+        public async Task<IActionResult> ImportAiAnalysis(int videoId)
+        {
+            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
+            
+            var video = await dbContext.UploadedVideos.FindAsync(videoId);
+            if (video == null)
+            {
+                return NotFound(new { Message = $"Video with ID {videoId} not found" });
+            }
+
+            var aiAnalysisResult = await dbContext.AiAnalysisResults
+                .Where(a => a.VideoId == videoId)
+                .Select(a => a.AnalysisJson)
+                .FirstOrDefaultAsync();
+
+            if (aiAnalysisResult == null)
+            {
+                return NotFound(new { Message = $"AI analysis result for video ID {videoId} not found" });
+            }
+
+            try
+            {
+                var service = serviceProvider.GetRequiredService<AiAnalysisProcessorService>();
+                var (techniques, drills) = await service.ProcessAnalysisJsonAsync(aiAnalysisResult);
+
+                var techniqueDtos = techniques.Select(t => new TechniqueDto
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    TechniqueType = t.TechniqueType.Name,
+                    PositionalScenario = t.TechniqueType.PositionalScenario.Name
+                }).ToList();
+
+                var drillDtos = drills.Select(d => new DrillDto
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Focus = d.Focus,
+                    Duration = d.Duration.ToString(),
+                    Description = d.Description,
+                    RelatedTechnique = d.Technique.Name
+                }).ToList();
+
+                var response = new ImportAiAnalysisResponse
+                {
+                    Techniques = techniqueDtos,
+                    Drills = drillDtos
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing AI analysis for video ID {VideoId}", videoId);
+                return StatusCode(500, new { Message = "An error occurred while processing the AI analysis." });
+            }
         }
 
         private bool IsValidVideoFormat(string contentType) =>

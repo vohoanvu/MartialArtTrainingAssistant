@@ -34,10 +34,34 @@ namespace VideoSharing.Server.Models.Dtos
         public string MartialArt { get; set; }
     }
 
-    public class UploadVideoRequest 
+    public class UploadVideoRequest
     {
         public string? Description { get; set; }
         public string StudentIdentifier { get; set; } // Used for LLM Prompt parsing, e.g., "Fighter in blue gi"
         public MartialArt MartialArt { get; set; }
+    }
+
+    public class TechniqueDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string TechniqueType { get; set; }
+        public string PositionalScenario { get; set; }
+    }
+
+    public class DrillDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string? Focus { get; set; }
+        public string Duration { get; set; }
+        public string Description { get; set; }
+        public string RelatedTechnique { get; set; }
+    }
+
+    public class ImportAiAnalysisResponse
+    {
+        public List<TechniqueDto> Techniques { get; set; }
+        public List<DrillDto> Drills { get; set; }
     }
 }

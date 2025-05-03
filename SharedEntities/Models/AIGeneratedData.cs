@@ -1,54 +1,76 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace SharedEntities.Models
 {
-    public class AiTechniqueIdentification
+    public class AiAnalysisResultDto
     {
-        [Key]
-        public int Id { get; set; }
-        public int AiAnalysisResultId { get; set; }
-        [ForeignKey("AiAnalysisResultId")]
-        public virtual AiAnalysisResult AiAnalysisResult { get; set; }
-        public int TechniqueId { get; set; }
-        [ForeignKey("TechniqueId")]
-        public virtual Techniques Technique { get; set; }
-        public TimeSpan? Timespan { get; set; }
-        public string? FighterIdentifier { get; set; }
+        [JsonPropertyName("strengths")]
+        public List<Strength> Strengths { get; set; }
+
+        [JsonPropertyName("suggested_drills")]
+        public List<SuggestedDrill> SuggestedDrills { get; set; }
+
+        [JsonPropertyName("overall_description")]
+        public string OverallDescription { get; set; }
+
+        [JsonPropertyName("areas_for_improvement")]
+        public List<AreaForImprovement> AreasForImprovement { get; set; }
+
+        [JsonPropertyName("techniques_identified")]
+        public List<TechniqueIdentified> TechniquesIdentified { get; set; }
     }
 
-    public class AiStrength
+    public class Strength
     {
-        [Key]
-        public int Id { get; set; }
-        public int AiAnalysisResultId { get; set; }
-        [ForeignKey("AiAnalysisResultId")]
-        public virtual AiAnalysisResult AiAnalysisResult { get; set; }
-        public string? FighterIdentifier { get; set; }
-        public string? StrengthDescription { get; set; } // e.g., "Good hand positioning"
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("related_technique")]
+        public string RelatedTechnique { get; set; }
     }
 
-    public class AiImprovementArea
+    public class SuggestedDrill
     {
-        [Key]
-        public int Id { get; set; }
-        public int AiAnalysisResultId { get; set; }
-        [ForeignKey("AiAnalysisResultId")]
-        public virtual AiAnalysisResult AiAnalysisResult { get; set; }
-        public string? FighterIdentifier { get; set; }
-        public string? ImprovementDescription { get; set; } // e.g., "Secure legs to prevent escape"
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("focus")]
+        public string Focus { get; set; }
+
+        [JsonPropertyName("duration")]
+        public string Duration { get; set; }
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("related_technique")]
+        public string RelatedTechnique { get; set; }
     }
 
-    public class AiSuggestedDrill
+    public class AreaForImprovement
     {
-        [Key]
-        public int Id { get; set; }
-        public int AiAnalysisResultId { get; set; }
-        [ForeignKey("AiAnalysisResultId")]
-        public virtual AiAnalysisResult AiAnalysisResult { get; set; }
-        public string? Name { get; set; } // e.g., "Leg Hook Drill"
-        public string? Description { get; set; }
-        public string? Focus { get; set; } // e.g., "Position Stabilization"
-        public string? Duration { get; set; } // e.g., "2 minutes"
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("related_technique")]
+        public string RelatedTechnique { get; set; }
+    }
+
+    public class TechniqueIdentified
+    {
+        [JsonPropertyName("timestamp")]
+        public string Timestamp { get; set; }
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("technique_name")]
+        public string TechniqueName { get; set; }
+
+        [JsonPropertyName("technique_type")]
+        public string TechniqueType { get; set; }
+
+        [JsonPropertyName("positional_scenario")]
+        public string PositionalScenario { get; set; }
     }
 }
