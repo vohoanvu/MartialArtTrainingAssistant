@@ -4,6 +4,7 @@ import {create} from "zustand";
 import {removeAuthToken, removeRefreshToken } from "@/lib/utils.ts";
 import {paths} from "@/services/endpoints.ts";
 import {createJSONStorage, persist} from "zustand/middleware";
+//import { t } from "i18next";
 
 export interface RegisterFighterBody {
     email: string;
@@ -59,7 +60,7 @@ interface AuthActions {
     clearUser: () => void;
     setLoginStatus: (status: 'authenticated' | 'unauthenticated' | 'pending') => void;
     login: (request: paths["/api/fighter/login"]["post"]["requestBody"]["content"]["application/json"]) => Promise<{successful : boolean, response : string | null}>;
-    signIn: (token: string) => Promise<void>;
+    signIn: () => Promise<void>;
     register: (email: string, password: string) => Promise<{ successful : boolean, response : string | null }>;
     logout: () => void;
     hydrate: () => Promise<void>;
@@ -109,12 +110,10 @@ const useAuthStore = create<AuthStore>()(
                 }
             },
             signIn: async () => {
-                const accessToken = get().accessToken;
                 const response = await fetch('/api/auth/v1/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${accessToken}`
                     }
                 });
 
@@ -158,16 +157,13 @@ const useAuthStore = create<AuthStore>()(
                 window.location.href = "/";
             },
             hydrate: async () => {
+                const { setLoginStatus, getUserInfo } = get();
                 try {
-                    const userToken = get().accessToken;
-                    if (userToken !== null) {
-                        await get().signIn(userToken);
-                    } else {
-                        get().logout();
-                    }
-                } catch (e) {
-                    console.error(e);
-                    window.location.href = "/login";
+                    setLoginStatus('pending');
+                    await getUserInfo(); // Check session cookie
+                } catch (error) {
+                    console.error('Hydration failed:', error);
+                    setLoginStatus('unauthenticated');
                 }
             },
             register: async (email, password) => {
@@ -196,8 +192,8 @@ const useAuthStore = create<AuthStore>()(
                 const accessToken = get().accessToken;
                 if (!accessToken) {
                     console.error("Access token is not available.");
-                    return;
                 }
+
                 const response = await fetch("/api/auth/v1/manage/info", {
                     method: 'GET',
                     headers: {
@@ -206,9 +202,12 @@ const useAuthStore = create<AuthStore>()(
                     }
                 });
                 if (response.ok) {
-                    const userInfo = await response.json();
-                    console.log("User info fetched: ", userInfo);
-                    get().setUser(userInfo);
+                    const userData = await response.json();
+                    console.log('GET /api/auth/v1/manage/info...', userData);
+                    const { userInfo, fighterInfo } = userData;
+                    const user = userInfo as User;
+                    user.fighterInfo = fighterInfo;
+                    get().setUser(user);
                 } else {
                     console.error("Failed to fetch user info:", await response.text());
                     window.location.href = "/login";

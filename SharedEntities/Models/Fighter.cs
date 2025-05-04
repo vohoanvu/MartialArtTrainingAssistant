@@ -31,22 +31,5 @@ namespace SharedEntities.Models
 
 
         public virtual List<TrainingSessionFighterJoint>? TrainingSessions { get; set; }
-
-        public int? InstructorId { get; set; }
-
-        [ForeignKey("InstructorId")]
-        public virtual Instructor? Instructor { get; set; }
-    }
-
-    public class Instructor
-    {
-        [Key]
-        public int Id { get; set; }
-
-        public required string Name { get; set; }
-
-        public int YearsOfExperience { get; set; }
-
-        public string? Specialization { get; set; }
     }
 }

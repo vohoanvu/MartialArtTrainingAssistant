@@ -36,6 +36,7 @@ namespace FighterManager.Server
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<FighterRegistrationService>();
             builder.Services.AddAutoMapper(typeof(Program));
+            builder.Services.AddScoped<IIdentityResponseEnhancer, IdentityResponseEnhancer>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -210,6 +211,9 @@ namespace FighterManager.Server
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            // Use the middleware before mapping Identity endpoints
+            app.UseMiddleware<ResponseEnhancementMiddleware>();
 
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();

@@ -15,9 +15,9 @@ namespace FighterManager.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class FighterController(IUnitOfWork unitOfWork,
-        IMapper objectMapper, 
+        IMapper objectMapper,
         FighterRegistrationService fighterRegistrationService,
-        UserManager<AppUserEntity> userManager, 
+        UserManager<AppUserEntity> userManager,
         FighterSignInService<AppUserEntity> fighterSignInService) : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -48,7 +48,7 @@ namespace FighterManager.Server.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<ViewFighterDto>> CreateAsync(CreateFighterDto input)
         {
-            if (!Enum.IsDefined(typeof(Gender), input.Gender) || 
+            if (!Enum.IsDefined(typeof(Gender), input.Gender) ||
                 !Enum.IsDefined(typeof(FighterRole), input.FighterRole) ||
                 !Enum.IsDefined(typeof(BeltColor), input.BeltColor) ||
                 !Enum.IsDefined(typeof(TrainingExperience), input.Experience))
@@ -81,7 +81,7 @@ namespace FighterManager.Server.Controllers
                     Detail = "User registration failed",
                     Instance = HttpContext.TraceIdentifier,
                     Errors = result.identityResult.Errors.ToDictionary(
-                        e => e.Code, 
+                        e => e.Code,
                         e => new List<string> { e.Description }
                     )
                 });
@@ -182,7 +182,6 @@ namespace FighterManager.Server.Controllers
             {
                 return BadRequest(new { message = "Email and password are required" });
             }
-
             try
             {
                 var signInResult = await _fighterSignInService.PasswordSignInAsync(model.Email, model.Password, true, false);
@@ -191,8 +190,6 @@ namespace FighterManager.Server.Controllers
                 {
                     return Unauthorized(new { message = "Invalid login attempt" });
                 }
-
-
                 var user = await _userManager.FindByNameAsync(model.Email);
                 if (user == null) 
                 {
@@ -200,10 +197,8 @@ namespace FighterManager.Server.Controllers
                             .SetStatusCode(HttpStatusCode.InternalServerError)
                             .SetMessage("The Identity SignIn operation failed.");
                 }
-
                 var token = await _fighterSignInService.GenerateJwtTokenAsync(user);
                 var refreshToken = _fighterSignInService.GenerateRefreshToken(user);
-
                 var loginResponse = new CustomLoginResponse
                 {
                     TokenType = "Bearer",
@@ -211,7 +206,6 @@ namespace FighterManager.Server.Controllers
                     ExpiresIn = 3600,
                     RefreshToken = refreshToken
                 };
-
                 return Ok(loginResponse);
             }
             catch (Exception ex)
