@@ -1,8 +1,8 @@
 ﻿import {ReactElement, useEffect, useState } from "react";
 import useAuthStore from "@/store/authStore.ts";
 import {useNavigate} from "react-router-dom";
-import { FighterInfo, TrainingSessionResponse } from "@/types/global";
-import { getTrainingSessions, getFighterInfo } from "@/services/api";
+import { TrainingSessionResponse } from "@/types/global";
+import { getTrainingSessions } from "@/services/api";
 import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
@@ -13,10 +13,10 @@ export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
     const navigate = useNavigate();
     const [data, setData] = useState<TrainingSessionResponse[] | null>(null);
-    const [fighterInfo, setFighterInfo] = useState<FighterInfo | null>(null);
     const jwtToken = useAuthStore((state) => state.accessToken);
     const refreshToken = useAuthStore((state) => state.refreshToken);
     const hydrate = useAuthStore((state) => state.hydrate);
+    const user = useAuthStore((state) => state.user);
 
     useEffect(() => {
         switch (isLogged) {
@@ -38,8 +38,6 @@ export default function Dashboard(): ReactElement {
         try {
             const trainingSessions = await getTrainingSessions({ jwtToken, refreshToken, hydrate });
             setData(trainingSessions);
-            const authenticatedFighter = await getFighterInfo({ jwtToken, refreshToken, hydrate });
-            setFighterInfo(authenticatedFighter);
         } catch (error) {
             console.error("Error fetching training sessions: ", error);
         }
@@ -110,7 +108,7 @@ export default function Dashboard(): ReactElement {
             <div className="flex space-x-2">
                 {
                     //Student role is 0, Instructor is 1
-                    fighterInfo && fighterInfo.fighter.role == 0 ? (
+                    user && user.fighterInfo?.role == 0 ? (
                         <Button type="button" onClick={handleCheckIn}>
                             Check-In
                         </Button>
@@ -161,14 +159,14 @@ export default function Dashboard(): ReactElement {
             </div>
 
             {/* Video Upload Section - Only for authenticated users with role 0 or 1 */}
-            {fighterInfo && jwtToken && (fighterInfo.fighter.role === 0 || fighterInfo.fighter.role === 1) && (
+            {user && jwtToken && (user.fighterInfo?.role === 0 || user.fighterInfo?.role === 1) && (
                 <div className="w-full max-w-4xl">
                     <h2 className="text-2xl font-bold my-4 text-center">
                         Video Management
                     </h2>
                     <div className="rounded-lg dark:shadow-accent p-4 transition duration-500 ease-in-out transform hover:scale-105">
                         <VideoUploadForm 
-                            fighterRole={fighterInfo.fighter.role} 
+                            fighterRole={user.fighterInfo?.role} 
                             jwtToken={jwtToken} 
                             hydrateFn={hydrate}
                         />

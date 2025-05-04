@@ -40,6 +40,9 @@ export interface Fighter {
     birthdate: string; // or Date if you plan to handle it as a Date object
     height: number;
     weight: number;
+    bmi: number;
+    beltColor: string;
+    experience: number;
 }
 
 export interface FighterInfo {

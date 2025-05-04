@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { 
     getTrainingSessionDetails, 
     updateTrainingSessionDetails, 
-    getFighterInfo,
     GenerateFighterPairs,
     CalculateBMI
 } from '@/services/api';// Assuming these API functions exist
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
-import { FighterInfo, FighterPairResult, GetBMIResponse, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest } from '@/types/global';
+import { FighterPairResult, GetBMIResponse, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest } from '@/types/global';
 import { useParams } from 'react-router-dom';
 
 const TrainingSessionDetails = () => {
@@ -19,8 +18,8 @@ const TrainingSessionDetails = () => {
     const [error, setError] = useState<string | null>(null);
     const jwtToken = useAuthStore((state) => state.accessToken);
     const refreshToken = useAuthStore((state) => state.refreshToken);
+    const user = useAuthStore((state) => state.user);
     const hydrate = useAuthStore((state) => state.hydrate);
-    const [fighterInfo, setFighterInfo] = useState<FighterInfo>();
     const [fighterPairResult, setFighterPairResult] = useState<FighterPairResult>();
     const [instructorBMI, setInstructorBMI] = useState<GetBMIResponse>();
 
@@ -30,8 +29,6 @@ const TrainingSessionDetails = () => {
                 setLoading(true);
                 const details = await getTrainingSessionDetails(sessionIdNumber, { jwtToken, refreshToken, hydrate });
                 setSessionDetails(details);
-                const authenticatedFighter = await getFighterInfo({ jwtToken, refreshToken, hydrate });
-                setFighterInfo(authenticatedFighter);
             } catch (err) {
                 setError('Failed to load session details');
                 console.error(err);
@@ -44,14 +41,14 @@ const TrainingSessionDetails = () => {
     }, [hydrate, jwtToken, refreshToken, sessionIdNumber]);
 
     const handleCheckIn = async () => {
-        if (!fighterInfo) {
+        if (!user?.fighterInfo) {
             setError('Failed to retrieve fighter information');
             return;
         }
 
         try {
             const updateSessionRequest : UpdateTrainingSessionRequest = {
-                studentIds: [ fighterInfo.fighter.id ]
+                studentIds: [ user.fighterInfo.id ]
             }
             const updatedSessionDetails =  await updateTrainingSessionDetails(sessionIdNumber, updateSessionRequest, { jwtToken, refreshToken, hydrate });
             alert('You have successfully checked in!');
@@ -63,7 +60,7 @@ const TrainingSessionDetails = () => {
     };
 
     const handlePairUp = async () => {
-        if (!fighterInfo) {
+        if (!user?.fighterInfo) {
             setError('Failed to retrieve fighter information');
             return;
         }
@@ -71,7 +68,7 @@ const TrainingSessionDetails = () => {
         try {
             const generatePairRequest : MatchMakerRequest = {
                 studentFighterIds: sessionDetails?.studentIds ?? [],
-                instructorFighterId: fighterInfo.fighter.id
+                instructorFighterId: user.fighterInfo.id
             }
             const fighterPairResult = await GenerateFighterPairs(
                 generatePairRequest, 
@@ -86,13 +83,13 @@ const TrainingSessionDetails = () => {
     };
 
     const handleCalculateBMI = async () => {
-        if (!fighterInfo) {
+        if (!user?.fighterInfo) {
             setError('Failed to retrieve fighter information');
             return;
         }
 
         try {
-            const result = await CalculateBMI(fighterInfo.fighter.height, fighterInfo.fighter.weight);
+            const result = await CalculateBMI(user.fighterInfo.height, user.fighterInfo.weight);
             setInstructorBMI(result);
         } catch (err) {
             setError('Failed generate pairs');
@@ -163,7 +160,7 @@ const TrainingSessionDetails = () => {
                         }
 
                         {
-                            fighterInfo && fighterInfo.fighter.role == 0 ? (
+                            user && user.fighterInfo?.role == 0 ? (
                                 <Button type="button" onClick={handleCheckIn} className="mt-4">
                                     Check-In
                                 </Button>

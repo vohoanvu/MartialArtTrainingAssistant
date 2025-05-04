@@ -32,6 +32,7 @@ namespace VideoSharing.Server.Models.Dtos
 
         public string SignedUrl { get; set; }
         public string MartialArt { get; set; }
+        public int FighterId { get; set; }
     }
 
     public class UploadVideoRequest

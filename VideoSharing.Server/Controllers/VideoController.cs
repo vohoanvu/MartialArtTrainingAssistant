@@ -285,7 +285,9 @@ namespace VideoSharing.Server.Controllers
         public async Task<IActionResult> GetUploadedVideoAsync(int videoId)
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            var video = await dbContext.UploadedVideos.FindAsync(videoId);
+            var video = await dbContext.UploadedVideos.Include(v => v.AppUser).ThenInclude(u => u.Fighter)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Id == videoId);
             if (video == null)
             {
                 return NotFound(new { Message = $"Video with ID {videoId} not found" });
@@ -306,7 +308,8 @@ namespace VideoSharing.Server.Controllers
                 UploadTimestamp = video.UploadTimestamp,
                 Description = video.Description,
                 AiAnalysisResult = AiAnalysisResult,
-                SignedUrl = signedUrl
+                SignedUrl = signedUrl,
+                FighterId = video.AppUser.FighterId,
             });
         }
 

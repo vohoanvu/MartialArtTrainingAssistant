@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
-import { MartialArt } from '@/types/global';
+import { Fighter, MartialArt } from '@/types/global';
+import { use } from 'i18next';
 
 interface FeedbackFormProps {
     videoId: number;
@@ -12,6 +13,7 @@ interface FeedbackFormProps {
     setToTimestamp: (timestamp: string) => void;
     feedbackText: string;
     setFeedbackText: (text: string) => void;
+    fighterDetails: Fighter;
 }
 
 const FeedbackForm: React.FC<FeedbackFormProps> = ({
@@ -23,6 +25,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
     setToTimestamp,
     feedbackText,
     setFeedbackText,
+    fighterDetails,
 }) => {
     const [martialArt, setMartialArt] = useState<MartialArt>(MartialArt.None);
     const [studentName, setStudentName] = useState('');
@@ -31,6 +34,14 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
     const [positionalScenario, setPositionalScenario] = useState('');
     const [techniqueType, setTechniqueType] = useState('');
     const [techniqueName, setTechniqueName] = useState('');
+
+    useEffect(() => {
+        if (fighterDetails) {
+            setStudentName(fighterDetails.fighterName);
+            setBeltRank(fighterDetails.beltColor);
+            setStudentIdentifier("TO BE CONTINUED");
+        }
+    }, [fighterDetails]);
 
     const formatTimestamp = (seconds: number): string => {
         const minutes = Math.floor(seconds / 60);

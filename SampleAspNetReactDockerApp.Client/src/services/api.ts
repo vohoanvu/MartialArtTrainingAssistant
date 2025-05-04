@@ -1,5 +1,6 @@
 ﻿// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
+import { UploadedVideoDto } from '@/pages/VideoStorageListing';
 import { paths } from './endpoints';
 import {
     CreateTrainingSessionRequest,
@@ -14,6 +15,7 @@ import {
     VideoDeleteResponse,
     MartialArt,
     FighterInfo,
+    Fighter,
 } from "@/types/global.ts";
 import axios from 'axios';
 
@@ -136,7 +138,7 @@ export async function uploadYoutubeVideo({
     }
 }
 
-export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<FighterInfo> {
+export async function getAuthenticatedFighterInfo({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<FighterInfo> {
     console.log("Fetching Fighter Info details...");
 
     const response = await fetch(`/api/fighter/info`, {
@@ -155,7 +157,7 @@ export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, h
     } else if (response.status === 401 && currentTry === 0) {
         await hydrate();
         console.log("Refresh token and try again...", refreshToken);
-        return await getFighterInfo({ currentTry: 1, jwtToken, refreshToken, hydrate });
+        return await getAuthenticatedFighterInfo({ currentTry: 1, jwtToken, refreshToken, hydrate });
     }
 
     throw new Error("Error fetching Info details details");
@@ -417,7 +419,7 @@ export async function getVideoDetails({
     refreshToken: string | null;
     hydrate: () => Promise<void>;
     currentTry?: number;
-}): Promise<{ signedUrl: string }> {
+}): Promise<UploadedVideoDto> {
     try {
         const response = await fetch(`/vid/api/video/${videoId}`, {
             headers: {
@@ -508,6 +510,47 @@ export async function addVideoFeedback({
         }
     } catch (error) {
         console.error("Error adding video feedback:", error);
+        throw error;
+    }
+}
+
+
+export async function getFighterDetails({
+    fighterId,
+    jwtToken,
+    refreshToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    fighterId: number;
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<Fighter> {
+    try {
+        console.log("Fetching fighter details for fighterId:", fighterId);
+        console.log("JWT Token:", jwtToken);
+
+        //authentication via Identity Cookie
+        const response = await fetch(`/api/fighter/${fighterId}`, {
+            method: 'GET',
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Fighter details fetched successfully:", data);
+            return data as Fighter;
+        } else if (response.status === 401 && currentTry === 0) {
+            console.log("Token expired or unauthorized. Refreshing token...");
+            await hydrate();
+            return await getFighterDetails({ fighterId, jwtToken, refreshToken, hydrate, currentTry: 1 });
+        } else {
+            const errorText = await response.text();
+            throw new Error(`Error fetching fighter details: ${response.statusText} - ${errorText}`);
+        }
+    } catch (error) {
+        console.error("Error fetching fighter details:", error);
         throw error;
     }
 }

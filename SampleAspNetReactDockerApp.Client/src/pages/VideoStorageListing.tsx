@@ -18,6 +18,7 @@ export interface UploadedVideoDto {
     signedUrl: string;
     studentIdentifier: string;
     martialArt: MartialArt;
+    fighterId: number;
 }
 
 const VideoStorageListing = () => {

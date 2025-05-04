@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getVideoDetails, getVideoFeedback, addVideoFeedback } from '@/services/api';
+import { getVideoDetails, getVideoFeedback, addVideoFeedback, getFighterDetails } from '@/services/api';
 import VideoPlayer from '../components/VideoPlayer';
 import FeedbackList from '../components/FeedbackList';
 import useAuthStore from '@/store/authStore';
 import FeedbackForm from '@/components/FeedbackForm';
 import { Button } from '@/components/ui/button';
+import { Fighter } from '@/types/global';
 
 export interface Feedback {
     id: string;
@@ -36,6 +37,7 @@ const VideoReview: React.FC = () => {
 
     const [feedbackText, setFeedbackText] = useState('');
     const [selectedSegment, setSelectedSegment] = useState<{ from: number; to: number } | null>(null);
+    const [fighterDetails, setFighterDetails] = useState<Fighter | null>(null);
 
     useEffect(() => {
         if (!videoId) return;
@@ -48,6 +50,7 @@ const VideoReview: React.FC = () => {
                     refreshToken,
                     hydrate,
                 });
+                console.log('Video Details:', videoDetails);
                 setVideoUrl(videoDetails.signedUrl);
 
                 const feedbackData = await getVideoFeedback({
@@ -58,6 +61,14 @@ const VideoReview: React.FC = () => {
                 });
                 setFeedbackList(feedbackData.humanFeedback.map(fb => ({ ...fb, isPending: false })) || []);
                 setAiFeedbackList(feedbackData.aiFeedback.map(fb => ({ ...fb, isPending: false })) || []);
+
+                const fighterDetails = await getFighterDetails({
+                    fighterId: videoDetails.fighterId,
+                    jwtToken: accessToken,
+                    refreshToken,
+                    hydrate,
+                });
+                setFighterDetails(fighterDetails);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -145,6 +156,7 @@ const VideoReview: React.FC = () => {
                     setFromTimestamp={setFromTimestamp}
                     setToTimestamp={setToTimestamp}
                     setFeedbackText={setFeedbackText}
+                    fighterDetails={fighterDetails}
                 />
                 <Button onClick={handleSubmitFeedback} className="mt-2">Submit Feedback</Button>
             </div>
