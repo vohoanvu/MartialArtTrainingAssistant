@@ -126,6 +126,7 @@ const useAuthStore = create<AuthStore>()(
                     const refreshToken = get().refreshToken;
                     if (refreshToken === null) {
                         get().setLoginStatus('unauthenticated');
+                        window.location.href = "/login";
                         return;
                     }
 
@@ -143,6 +144,7 @@ const useAuthStore = create<AuthStore>()(
                         get().setLoginStatus('authenticated');
                     } else {
                         get().setLoginStatus('unauthenticated');
+                        window.location.href = "/login";
                     }
                 }
             },
@@ -165,6 +167,7 @@ const useAuthStore = create<AuthStore>()(
                     }
                 } catch (e) {
                     console.error(e);
+                    window.location.href = "/login";
                 }
             },
             register: async (email, password) => {
@@ -199,7 +202,7 @@ const useAuthStore = create<AuthStore>()(
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
+                        //'Authorization': `Bearer ${accessToken}`
                     }
                 });
                 if (response.ok) {
@@ -208,6 +211,7 @@ const useAuthStore = create<AuthStore>()(
                     get().setUser(userInfo);
                 } else {
                     console.error("Failed to fetch user info:", await response.text());
+                    window.location.href = "/login";
                 }
             },
         }),

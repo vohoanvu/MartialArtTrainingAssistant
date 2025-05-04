@@ -13,6 +13,7 @@ import {
     VideoUploadResponse,
     VideoDeleteResponse,
     MartialArt,
+    FighterInfo,
 } from "@/types/global.ts";
 import axios from 'axios';
 
@@ -49,7 +50,6 @@ export async function getTrainingSessions({ currentTry = 0, jwtToken, refreshTok
             //'Authorization': `Bearer ${jwtToken}`
         }
     });
-    console.log("Inspecting response: ", response);
     if (response.ok) {
         console.log("Training sessions fetched successfully!");
         return await response.json() as TrainingSessionResponse[];
@@ -146,11 +146,12 @@ export async function getFighterInfo({ currentTry = 0, jwtToken, refreshToken, h
             //'Authorization': `Bearer ${jwtToken}`
         }
     });
-    console.log("Inspecting Fighter Info response: ", response);
     console.log("JWT beaker token: ", jwtToken);
     if (response.ok) {
         console.log("Fighter Info details fetched successfully!");
-        return await response.json() as FighterInfo;
+        const data = await response.json();
+        console.log(data);
+        return data as FighterInfo;
     } else if (response.status === 401 && currentTry === 0) {
         await hydrate();
         console.log("Refresh token and try again...", refreshToken);
