@@ -13,10 +13,8 @@ namespace SharedEntities.Models
         public TimeSpan? StartTimestamp { get; set; }
         public TimeSpan? EndTimestamp { get; set; }
 
-        public string? FeedbackText { get; set; }
+        public string? Description { get; set; }
         
-        public int TechniqueId { get; set; }
-        [ForeignKey("TechniqueId")]
         [JsonIgnore]
         public virtual Techniques Technique { get; set; }
 
@@ -30,13 +28,11 @@ namespace SharedEntities.Models
         [JsonIgnore]
         public virtual AppUserEntity Instructor { get; set; }
 
-        public int? AiFeedbackId { get; set; }
-        [ForeignKey("AiFeedbackId")]
         [JsonIgnore]
         public virtual AiFeedback? AiFeedback { get; set; }
     }
 
-    // AI-generated insights on video content, including timestamps and types of feedback.
+    // Linking a technique to a specific video, allowing for multiple techniques to be associated with a single video.
     public class AiFeedback
     {
         [Key]
@@ -67,6 +63,10 @@ namespace SharedEntities.Models
 
         public required string AnalysisJson { get; set; } //need to keep this JSON Blob for storing AI-generated data
 
-        public virtual List<Drills>? Drills { get; set; }
+        public virtual ICollection<Drills>? Drills { get; set; }
+        public virtual ICollection<Techniques>? Techniques { get; set; }
+        public string? OverallDescription { get; set; }
+        public string? Strengths { get; set; } //JSON blob
+        public string? AreasForImprovement { get; set; } //JSON blob
     }
 }

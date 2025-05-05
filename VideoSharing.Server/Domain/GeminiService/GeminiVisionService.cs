@@ -29,9 +29,10 @@ namespace VideoSharing.Server.Domain.GeminiService
                 {
                 ""technique_name"": ""Name of the technique (e.g., 'Armbar')"",
                 ""description"": ""Description of how the technique was executed."",
-                ""timestamp"": ""Timestamp in the video where the technique occurs (e.g., '00:01:23')"",
-                ""technique_type"": ""Type of technique (e.g., 'Submission', 'Sweep')"",
-                ""positional_scenario"": ""Positional scenario related to the technique (e.g., 'Guard', 'Mount')""
+                ""start_timestamp"": ""Timestamp in the video where the technique occurs (e.g., '00:01:23')"",
+                ""end_timestamp"": ""Timestamp in the video where the technique ends (e.g., '00:01:30')"",
+                ""technique_type"": ""Type of technique (e.g., 'Submission', 'Takedown', 'Guard Pass')"",
+                ""positional_scenario"": ""Positional scenario related to the technique (e.g., 'Guard', 'Mount', 'Standing')""
                 }
             ],
             ""strengths"": [

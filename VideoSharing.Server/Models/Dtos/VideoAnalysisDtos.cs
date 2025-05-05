@@ -46,8 +46,8 @@ namespace VideoSharing.Server.Models.Dtos
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string TechniqueType { get; set; }
-        public string PositionalScenario { get; set; }
+        public TechniqueTypeDto TechniqueType { get; set; }
+        public PositionalScenarioDto PositionalScenario { get; set; }
     }
 
     public class DrillDto
@@ -57,10 +57,23 @@ namespace VideoSharing.Server.Models.Dtos
         public string? Focus { get; set; }
         public string Duration { get; set; }
         public string Description { get; set; }
-        public string RelatedTechnique { get; set; }
+        public string RelatedTechniqueName { get; set; }
     }
 
-    public class ImportAiAnalysisResponse
+    public class TechniqueTypeDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string PositionalScenario { get; set; }
+    }
+
+    public class PositionalScenarioDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class TechniqueAnalysisDto
     {
         public List<TechniqueDto> Techniques { get; set; }
         public List<DrillDto> Drills { get; set; }

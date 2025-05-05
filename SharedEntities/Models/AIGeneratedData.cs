@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace SharedEntities.Models
 {
-    public class AiAnalysisResultDto
+    public class AiAnalysisResultResponse
     {
         [JsonPropertyName("strengths")]
         public List<Strength> Strengths { get; set; }
@@ -58,8 +58,10 @@ namespace SharedEntities.Models
 
     public class TechniqueIdentified
     {
-        [JsonPropertyName("timestamp")]
-        public string Timestamp { get; set; }
+        [JsonPropertyName("start_timestamp")]
+        public string StartTimestamp { get; set; }
+        [JsonPropertyName("end_timestamp")]
+        public string EndTimestamp { get; set; }
 
         [JsonPropertyName("description")]
         public string Description { get; set; }

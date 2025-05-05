@@ -40,6 +40,9 @@ namespace SharedEntities.Models
         [ForeignKey("UserId")]
         public virtual AppUserEntity AppUser { get; set; }
         public string FileHash { get; set; }
+
+        public virtual ICollection<Techniques> Techniques { get; set; } = [];
+        public virtual ICollection<Drills> Drills { get; set; } = [];
     }
 
     //Stores instructor-uploaded videos demonstrating techniques.

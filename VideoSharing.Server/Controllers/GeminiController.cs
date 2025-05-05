@@ -67,7 +67,7 @@ namespace VideoSharing.Server.Controllers
 
         [HttpGet("{videoId}/feedback")]
         [Authorize]
-        public async Task<ActionResult> GetFeedback(int videoId)
+        public async Task<ActionResult> GeAIFeedback(int videoId)
         {
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
@@ -84,7 +84,7 @@ namespace VideoSharing.Server.Controllers
                 .FirstOrDefaultAsync();
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var aiAnalysisResultDto = JsonSerializer.Deserialize<AiAnalysisResultDto>(aiAnalysisJson!, options)
+            var aiAnalysisResultDto = JsonSerializer.Deserialize<AiAnalysisResultResponse>(aiAnalysisJson!, options)
                 ?? throw new InvalidOperationException("Failed to deserialize JSON.");
 
             return Ok(aiAnalysisResultDto);
@@ -92,7 +92,7 @@ namespace VideoSharing.Server.Controllers
 
         [HttpPost("{id}/feedback")]
         [Authorize]
-        public async Task<ActionResult> AddFeedback(int id, [FromBody] HumanFeedback feedback)
+        public async Task<ActionResult> SaveFeedback(int id, [FromBody] string feedback)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -102,11 +102,7 @@ namespace VideoSharing.Server.Controllers
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
-            feedback.VideoId = id;
-            feedback.InstructorId = userId;
-            dbContext.HumanFeedbacks.Add(feedback);
-            await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetFeedback), new { id }, feedback); 
+            return Ok();
         }
 
         private static string? ValidateStructuredJson(string apiResponseJson)

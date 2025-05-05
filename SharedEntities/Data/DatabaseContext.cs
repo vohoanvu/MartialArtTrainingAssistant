@@ -33,8 +33,6 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
     public virtual DbSet<UploadedVideo> UploadedVideos { get; set; }
 
-    public virtual DbSet<HumanFeedback> HumanFeedbacks { get; set; }
-
     public virtual DbSet<AiFeedback> AiFeedbacks { get; set; }
 
     public virtual DbSet<AiAnalysisResult> AiAnalysisResults { get; set; }

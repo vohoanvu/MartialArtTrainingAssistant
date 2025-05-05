@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SharedEntities.Data;
 using SharedEntities.Models;
+using VideoSharing.Server.Models.Dtos;
 
 namespace VideoSharing.Server.Domain.GeminiService
 {
@@ -14,21 +15,18 @@ namespace VideoSharing.Server.Domain.GeminiService
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<(List<Techniques> techniques, List<Drills> drills)> ProcessAnalysisJsonAsync(string json)
+        public async Task ProcessAnalysisJsonAsync(string json, int videoId)
         {
             if (string.IsNullOrEmpty(json))
                 throw new ArgumentException("JSON string cannot be null or empty.", nameof(json));
 
             // Deserialize JSON
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var analysis = JsonSerializer.Deserialize<AiAnalysisResultDto>(json, options)
+            var analysis = JsonSerializer.Deserialize<AiAnalysisResultResponse>(json, options)
                 ?? throw new InvalidOperationException("Failed to deserialize JSON.");
 
             // Dictionary to map technique names to Technique entities
             var techniqueMap = new Dictionary<string, Techniques>();
-
-            var techniquesProcessed = new List<Techniques>();
-            var drillsProcessed = new List<Drills>();
 
             // Process techniques_identified
             foreach (var tech in analysis.TechniquesIdentified)
@@ -68,7 +66,21 @@ namespace VideoSharing.Server.Domain.GeminiService
                     _context.Techniques.Add(technique);
                 }
 
-                techniquesProcessed.Add(technique);
+                //Get or create AiFeedback
+                var aiFeedback = await _context.AiFeedbacks
+                    .FirstOrDefaultAsync(f => f.VideoId == videoId && f.Technique.Name == tech.TechniqueName);
+                if (aiFeedback == null)
+                {
+                    aiFeedback = new AiFeedback
+                    {
+                        VideoId = videoId,
+                        Technique = technique,
+                        StartTimestamp = TimeSpan.TryParse(tech.StartTimestamp, out var startResult) ? startResult : null,
+                        EndTimestamp = TimeSpan.TryParse(tech.EndTimestamp, out var endResult) ? endResult : null,
+                    };
+                    _context.AiFeedbacks.Add(aiFeedback);
+                }
+
                 techniqueMap[tech.TechniqueName] = technique;
             }
 
@@ -100,13 +112,66 @@ namespace VideoSharing.Server.Domain.GeminiService
                         drill.Focus = drillDto.Focus;
                         drill.Duration = ParseDuration(drillDto.Duration);
                     }
-                    drillsProcessed.Add(drill);
                 }
-                // Missing related_technique can be logged or ignored based on requirements
+            }
+
+            var existingAiAnalysisResult = await _context.AiAnalysisResults.FirstOrDefaultAsync(a => a.VideoId == videoId);
+            if (existingAiAnalysisResult == null)
+            {
+                existingAiAnalysisResult = new AiAnalysisResult
+                {
+                    VideoId = videoId,
+                    AnalysisJson = json,
+                    Strengths = JsonSerializer.Serialize(analysis.Strengths),
+                    AreasForImprovement = JsonSerializer.Serialize(analysis.AreasForImprovement),
+                };
+                _context.AiAnalysisResults.Add(existingAiAnalysisResult);
+            }
+            else
+            {
+                existingAiAnalysisResult.AnalysisJson = json;
             }
 
             await _context.SaveChangesAsync();
-            return (techniquesProcessed, drillsProcessed);
+        }
+
+        public async Task<TechniqueAnalysisDto> GetAnalysisResultDtoByVideoId(int videoId)
+        {
+            var analysisDto  = await _context.AiAnalysisResults.Where(a => a.VideoId == videoId && a.Drills != null)
+                .Include(a => a.Drills!)
+                .ThenInclude(d => d.Technique)
+                .ThenInclude(t => t.TechniqueType)
+                .ThenInclude(tt => tt.PositionalScenario)
+                .Select(a => new TechniqueAnalysisDto
+                {
+                    Techniques= a.Drills!.Select(d => new TechniqueDto
+                    {
+                        Name = d.Technique.Name,
+                        TechniqueType = new TechniqueTypeDto
+                        {
+                            Id = d.Technique.TechniqueType.Id,
+                            Name = d.Technique.TechniqueType.Name,
+                            PositionalScenario = d.Technique.TechniqueType.PositionalScenario.Name,
+                        },
+                        PositionalScenario = new PositionalScenarioDto
+                        {
+                            Id = d.Technique.TechniqueType.PositionalScenario.Id,
+                            Name = d.Technique.TechniqueType.PositionalScenario.Name,
+                        }
+                    }).ToList(),
+                    Drills = a.Drills!.Select(d => new DrillDto
+                    {
+                        Name = d.Name,
+                        Duration = d.Duration.ToString(),
+                        Description = d.Description,
+                        RelatedTechniqueName = d.Technique.Name
+                    }).ToList(),
+                }).FirstOrDefaultAsync();
+
+            if (analysisDto == null)
+                throw new InvalidOperationException("No analysis result found that have already processed Drills and Techniques.");
+
+            return analysisDto;
         }
 
         private TimeSpan ParseDuration(string durationStr)

@@ -338,38 +338,14 @@ namespace VideoSharing.Server.Controllers
             try
             {
                 var service = serviceProvider.GetRequiredService<AiAnalysisProcessorService>();
-                var (techniques, drills) = await service.ProcessAnalysisJsonAsync(aiAnalysisResult);
+                await service.ProcessAnalysisJsonAsync(aiAnalysisResult, videoId);
 
-                var techniqueDtos = techniques.Select(t => new TechniqueDto
-                {
-                    Id = t.Id,
-                    Name = t.Name,
-                    TechniqueType = t.TechniqueType.Name,
-                    PositionalScenario = t.TechniqueType.PositionalScenario.Name
-                }).ToList();
-
-                var drillDtos = drills.Select(d => new DrillDto
-                {
-                    Id = d.Id,
-                    Name = d.Name,
-                    Focus = d.Focus,
-                    Duration = d.Duration.ToString(),
-                    Description = d.Description,
-                    RelatedTechnique = d.Technique.Name
-                }).ToList();
-
-                var response = new ImportAiAnalysisResponse
-                {
-                    Techniques = techniqueDtos,
-                    Drills = drillDtos
-                };
-
-                return Ok(response);
+                return Ok(new { Message = "AI analysis processed successfully." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing AI analysis for video ID {VideoId}", videoId);
-                return StatusCode(500, new { Message = "An error occurred while processing the AI analysis." });
+                return StatusCode(500, new { Message = "An error occurred while processing the AI analysis", Details = ex.Message });
             }
         }
 
