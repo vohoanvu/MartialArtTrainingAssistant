@@ -256,7 +256,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         style={{ width: `${(currentTime / duration) * 100}%` }}
                     />
                     {identifiedTechniques.map((technique) => {
-                        const timestampNum = parseTimestampToSeconds(technique.timestamp);
+                        const timestampNum = parseTimestampToSeconds(technique.start_timestamp);
                         // Don't render marker if timestamp is invalid or duration is 0
                         if (isNaN(timestampNum) || duration <= 0) {
                             return null;
@@ -265,7 +265,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         const leftPercent = duration > 0 ? (timestampNum / duration) * 100 : 0;
                         return (
                             <div
-                                key={technique.timestamp}
+                                key={technique.technique_type}
                                 className={`marker absolute top-0 h-full cursor-pointer bg-blue-500`}
                                 style={{
                                     left: `${leftPercent}%`, // Use calculated percent
@@ -275,7 +275,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                                     e.stopPropagation();
                                     videoRef.current!.currentTime = timestampNum;
                                 }}
-                                title={`Feedback: ${technique.description.substring(0, 50)}...`}
+                                title={`Technique: ${technique.technique_name} (${technique.start_timestamp})`}
                             />
                         );
                     })}

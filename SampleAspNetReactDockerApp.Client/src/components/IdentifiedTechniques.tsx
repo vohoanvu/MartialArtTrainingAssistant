@@ -50,7 +50,7 @@ const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = 
                                 <div className="p-3 border-t border-gray-100">
                                     <ul className="list-none p-0 space-y-4">
                                         {techList.map((tech) => (
-                                            <li key={tech.timestamp + tech.technique_name} className="border-l-4 border-blue-500 pl-4 py-2 bg-white rounded-r-md shadow-sm">
+                                            <li key={tech.technique_type + tech.technique_name} className="border-l-4 border-blue-500 pl-4 py-2 bg-white rounded-r-md shadow-sm">
                                                 <div className="flex justify-between items-center mb-1">
                                                     <strong className="text-base">Technique Name: {tech.technique_name}</strong>
                                                     <button
@@ -60,13 +60,13 @@ const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = 
                                                 <div className="flex justify-between items-center mb-1">
                                                     <span
                                                         className="text-blue-600 hover:underline cursor-pointer text-sm"
-                                                        onClick={() => onSeek(Number(tech.timestamp))}
+                                                        onClick={() => onSeek(Number(tech.start_timestamp))}
                                                     >
-                                                        Timestamp: {tech.timestamp}
+                                                        Timestamp: {tech.start_timestamp} - {tech.end_timestamp}
                                                     </span>
                                                     <button
                                                         className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                                        onClick={() => handleEdit(tech.timestamp)}>Edit</button>
+                                                        onClick={() => handleEdit(tech.end_timestamp)}>Edit</button>
                                                 </div>
                                                 <div className="flex justify-between items-start">
                                                     <p className="text-sm text-gray-700 mr-2">{tech.description}</p>

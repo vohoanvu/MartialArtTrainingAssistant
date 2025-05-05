@@ -238,12 +238,14 @@ export interface AreaForImprovement {
 }
 
 export interface TechniqueIdentified {
-    timestamp: string;
+    start_timestamp: string;
+    end_timestamp: string;
     description: string;
     technique_name: string;
     technique_type: string;
     positional_scenario: string;
 }
+
 export interface AiAnalysisResultDto {
     strengths: Strength[];
     suggested_drills: SuggestedDrill[];
