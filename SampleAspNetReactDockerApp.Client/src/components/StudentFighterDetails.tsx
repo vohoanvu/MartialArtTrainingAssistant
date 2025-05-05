@@ -5,13 +5,32 @@ interface StudentDetailsProps {
     fighterDetails: Fighter | null;
 }
 
+enum TrainingExperience {
+    LessThanTwoYears = "Less than 2 years",
+    FromTwoToFiveYears = "2 to 5 years",
+    MoreThanFiveYears = "More than 5 years",
+};
+
+function getTrainingExperienceFromIndex(index: number): TrainingExperience | undefined {
+    // Get the keys of the enum in their declaration order
+    const keys = Object.keys(TrainingExperience) as Array<keyof typeof TrainingExperience>;
+
+    // Check if the index is valid
+    if (index >= 0 && index < keys.length) {
+        const key = keys[index]; // Get the key name (e.g., "FromTwoToFiveYears")
+        return TrainingExperience[key]; // Get the corresponding string value (e.g., "2 to 5 years")
+    }
+
+    return undefined; // Return undefined if the index is out of bounds
+}
+
 export const StudentDetails: React.FC<StudentDetailsProps> = ({
     fighterDetails,
 }) => {
     const [studentName, setStudentName] = useState('');
     const [beltRantk, setBeltRank] = useState('');
     const [studentIdentifier, setStudentIdentifier] = useState('');
-    const [experience, setExperience] = useState('0');
+    const [experience, setExperience] = useState(TrainingExperience.MoreThanFiveYears);
     const [height, setHeight] = useState('0');
     const [weight, setWeight] = useState('0');
 
@@ -20,6 +39,9 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
             setStudentName(fighterDetails.fighterName);
             setBeltRank(fighterDetails.beltColor);
             setStudentIdentifier("TO BE CONTINUED");
+            setHeight(fighterDetails.height.toString());
+            setWeight(fighterDetails.weight.toString());
+            setExperience(getTrainingExperienceFromIndex(fighterDetails.experience as number) || TrainingExperience.LessThanTwoYears);
         }
     }, [fighterDetails]);
 
