@@ -157,13 +157,28 @@ const useAuthStore = create<AuthStore>()(
                 window.location.href = "/";
             },
             hydrate: async () => {
-                const { setLoginStatus, getUserInfo } = get();
-                try {
-                    setLoginStatus('pending');
-                    await getUserInfo(); // Check session cookie
-                } catch (error) {
-                    console.error('Hydration failed:', error);
-                    setLoginStatus('unauthenticated');
+                const refreshToken = get().refreshToken;
+                if (refreshToken === null) {
+                    get().setLoginStatus('unauthenticated');
+                    window.location.href = "/login";
+                    return;
+                }
+
+                const response = await fetch('/api/auth/v1/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', 
+                        //'Authorization': `Bearer ${refreshToken}`
+                    }
+                });
+                console.log('GET /api/auth/v1/refresh...', response.ok);
+                if (response.ok) {
+                    const {accessToken, refreshToken} = await response.json();
+                    get().setTokens(accessToken, refreshToken);
+                    get().setLoginStatus('authenticated');
+                } else {
+                    get().setLoginStatus('unauthenticated');
+                    window.location.href = "/login";
                 }
             },
             register: async (email, password) => {

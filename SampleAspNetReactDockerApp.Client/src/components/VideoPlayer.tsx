@@ -1,12 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Feedback } from '@/pages/VideoReview';
+import { TechniqueIdentified } from './TechniqueFeedback';
 
 interface VideoPlayerProps {
     videoUrl: string;
     videoId: string;
-    feedbackList: Feedback[];
-    onAddFeedback: (feedback: Feedback) => void;
+    identifiedTechniques: TechniqueIdentified[];
     setFromTimestamp: (timestamp: string) => void;
     setToTimestamp: (timestamp: string) => void;
     selectedSegment: { from: number; to: number } | null;
@@ -16,7 +15,7 @@ interface VideoPlayerProps {
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
     videoUrl,
-    feedbackList,
+    identifiedTechniques,
     setFromTimestamp,
     setToTimestamp,
     selectedSegment,
@@ -253,21 +252,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         className="progress absolute h-full bg-green-500 rounded-md"
                         style={{ width: `${(currentTime / duration) * 100}%` }}
                     />
-                    {feedbackList.map((feedback) => (
+                    {identifiedTechniques.map((technique) => (
                         <div
-                            key={feedback.id}
-                            className={`marker absolute top-0 h-full cursor-pointer ${feedback.feedbackType === 'human' ? 'bg-blue-500' : 'bg-green-500'}`}
+                            key={technique.timestamp}
+                            className={`marker absolute top-0 h-full cursor-pointer bg-blue-500`}
                             style={{
-                                left: `${(feedback.fromTimestamp / duration) * 100}%`,
+                                left: `${(Number(technique.timestamp) / duration) * 100}%`,
                                 width: '5px',
                             }}
-                            onClick={() => (videoRef.current!.currentTime = feedback.fromTimestamp)}
-                            title={`${feedback.feedbackType === 'human' ? 'Human' : 'AI'} Feedback: ${feedback.feedback.substring(0, 50)}...`}
+                            onClick={() => (videoRef.current!.currentTime = Number(technique.timestamp))}
+                            title={`Feedback: ${technique.description.substring(0, 50)}...`}
                         />
                     ))}
                 </div>
             </div>
-            <div className="controls flex items-center justify-between p-4 mt-2">
+            <div className="controls flex items-center justify-between p-2 mt-2">
                 <Button onClick={handlePlayPause}>{playing ? 'Pause' : 'Play'}</Button>
                 <Button onClick={() => videoRef.current!.playbackRate = 0.5}>Slow Motion (0.5x)</Button>
                 <Button onClick={() => videoRef.current!.playbackRate = 1.0}>Normal Speed (1.0x)</Button>

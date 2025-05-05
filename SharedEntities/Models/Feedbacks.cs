@@ -47,6 +47,10 @@ namespace SharedEntities.Models
         public TimeSpan? StartTimestamp { get; set; }
         public TimeSpan? EndTimestamp { get; set; }
 
+        public int TechniqueId { get; set; }
+        [ForeignKey("TechniqueId")]
+        public Techniques Technique { get; set; } //Assuming this is a reference to the technique being analyzed
+
         [ForeignKey("VideoId")]
         public virtual UploadedVideo Video { get; set; }
     }

@@ -219,5 +219,36 @@ export enum MartialArt {
     Sumo = "Sumo",
 }
 
+export interface Strength {
+    description: string;
+    related_technique: string;
+}
 
+export interface SuggestedDrill {
+    name: string;
+    focus: string;
+    duration: string;
+    description: string;
+    related_technique: string;
+}
+
+export interface AreaForImprovement {
+    description: string;
+    related_technique: string;
+}
+
+export interface TechniqueIdentified {
+    timestamp: string;
+    description: string;
+    technique_name: string;
+    technique_type: string;
+    positional_scenario: string;
+}
+export interface AiAnalysisResultDto {
+    strengths: Strength[];
+    suggested_drills: SuggestedDrill[];
+    overall_description: string;
+    areas_for_improvement: AreaForImprovement[];
+    techniques_identified: TechniqueIdentified[];
+}
 

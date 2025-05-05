@@ -65,16 +65,29 @@ namespace VideoSharing.Server.Controllers
             }
         }
 
-        [HttpGet("{id}/feedback")]
+        [HttpGet("{videoId}/feedback")]
         [Authorize]
-        public async Task<ActionResult> GetFeedback(int id)
+        public async Task<ActionResult> GetFeedback(int videoId)
         {
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
-            var humanFeedback = await dbContext.HumanFeedbacks.Where(f => f.VideoId == id).ToListAsync();
-            var aiFeedback = await dbContext.AiFeedbacks.Where(f => f.VideoId == id).ToListAsync();
-            return Ok(new { HumanFeedback = humanFeedback, AiFeedback = aiFeedback });
+            var video = await dbContext.UploadedVideos.FirstOrDefaultAsync(v => v.Id == videoId);
+            if (video == null)
+            {
+                return NotFound(new { Message = $"Video with ID {videoId} not found" });
+            }
+
+            var aiAnalysisJson = await dbContext.AiAnalysisResults
+                .Where(a => a.VideoId == videoId)
+                .Select(a => a.AnalysisJson)
+                .FirstOrDefaultAsync();
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var aiAnalysisResultDto = JsonSerializer.Deserialize<AiAnalysisResultDto>(aiAnalysisJson!, options)
+                ?? throw new InvalidOperationException("Failed to deserialize JSON.");
+
+            return Ok(aiAnalysisResultDto);
         }
 
         [HttpPost("{id}/feedback")]

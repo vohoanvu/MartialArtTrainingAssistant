@@ -453,7 +453,7 @@ export async function getVideoFeedback({
     refreshToken: string | null;
     hydrate: () => Promise<void>;
     currentTry?: number;
-}): Promise<{ humanFeedback: Feedback[]; aiFeedback: Feedback[] }> {
+}): Promise<AiAnalysisResultDto> {
     try {
         const response = await fetch(`/vid/api/video/${videoId}/feedback`, {
             headers: {
