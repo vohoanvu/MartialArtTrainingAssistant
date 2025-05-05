@@ -66,5 +66,7 @@ namespace SharedEntities.Models
         public virtual UploadedVideo Video { get; set; }
 
         public required string AnalysisJson { get; set; } //need to keep this JSON Blob for storing AI-generated data
+
+        public virtual List<Drills>? Drills { get; set; }
     }
 }

@@ -40,9 +40,6 @@ namespace SharedEntities.Models
         [ForeignKey("UserId")]
         public virtual AppUserEntity AppUser { get; set; }
         public string FileHash { get; set; }
-
-        public virtual ICollection<HumanFeedback> HumanFeedbacks { get; set; } = [];
-        public virtual ICollection<AiFeedback> AiFeedbacks { get; set; } = [];
     }
 
     //Stores instructor-uploaded videos demonstrating techniques.

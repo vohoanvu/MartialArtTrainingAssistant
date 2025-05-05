@@ -46,7 +46,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
     }, [fighterDetails]);
 
     return (
-        <div id="studentDetails" className="grid grid-cols-2 gap-4">
+        <div id="studentDetails" className="grid grid-cols-2 gap-4 p-4 m-2 shadow-md border bg-gray-50">
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Student Name</label>
                 <input
@@ -88,9 +88,9 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <input
                     type="text"
                     value={height}
-                    onChange={(e) => setHeight(e.target.value)}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter height..."
+                    readOnly
                 />
             </div>
 
@@ -99,9 +99,9 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <input
                     type="text"
                     value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter weight..."
+                    readOnly
                 />
             </div>
 
@@ -110,9 +110,9 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <input
                     type="text"
                     value={experience}
-                    onChange={(e) => setExperience(e.target.value)}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter training experience..."
+                    readOnly
                 />
             </div>
         </div>

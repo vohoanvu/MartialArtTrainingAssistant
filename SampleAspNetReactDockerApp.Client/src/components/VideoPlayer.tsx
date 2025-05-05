@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { TechniqueIdentified } from './TechniqueFeedback';
+import { TechniqueIdentified } from '@/types/global';
 
 interface VideoPlayerProps {
     videoUrl: string;
@@ -12,6 +12,16 @@ interface VideoPlayerProps {
     setSelectedSegment: (segment: { from: number; to: number } | null) => void;
     clearSelection: () => void;
 }
+
+const parseTimestampToSeconds = (timestamp: string): number => {
+    if (!timestamp || typeof timestamp !== 'string') return NaN;
+    const parts = timestamp.split(':');
+    if (parts.length !== 2) return NaN;
+    const minutes = parseInt(parts[0], 10);
+    const seconds = parseInt(parts[1], 10);
+    if (isNaN(minutes) || isNaN(seconds)) return NaN;
+    return minutes * 60 + seconds;
+};
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
     videoUrl,
@@ -121,18 +131,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         videoRef.current!.currentTime = seekTime;
     };
 
-    const generateAIFeedback = async () => {
-        // TODO: capture the currently selected video segment and send it to the server
-        console.log("dragStart", dragStart);
-        console.log("dragEnd", dragEnd);
-    };
-
     const handleRightClick = (e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
         const seekTime = calculateTimestamp(e);
         videoRef.current!.currentTime = seekTime;
         setCurrentTime(seekTime);
-        generateAIFeedback();
     };
 
     const getSelectedRangeStyle = () => {
@@ -252,18 +255,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         className="progress absolute h-full bg-green-500 rounded-md"
                         style={{ width: `${(currentTime / duration) * 100}%` }}
                     />
-                    {identifiedTechniques.map((technique) => (
-                        <div
-                            key={technique.timestamp}
-                            className={`marker absolute top-0 h-full cursor-pointer bg-blue-500`}
-                            style={{
-                                left: `${(Number(technique.timestamp) / duration) * 100}%`,
-                                width: '5px',
-                            }}
-                            onClick={() => (videoRef.current!.currentTime = Number(technique.timestamp))}
-                            title={`Feedback: ${technique.description.substring(0, 50)}...`}
-                        />
-                    ))}
+                    {identifiedTechniques.map((technique) => {
+                        const timestampNum = parseTimestampToSeconds(technique.timestamp);
+                        // Don't render marker if timestamp is invalid or duration is 0
+                        if (isNaN(timestampNum) || duration <= 0) {
+                            return null;
+                        }
+
+                        const leftPercent = duration > 0 ? (timestampNum / duration) * 100 : 0;
+                        return (
+                            <div
+                                key={technique.timestamp}
+                                className={`marker absolute top-0 h-full cursor-pointer bg-blue-500`}
+                                style={{
+                                    left: `${leftPercent}%`, // Use calculated percent
+                                    width: '5px',
+                                }}
+                                onClick={(e) => { // Prevent click from bubbling to timeline click
+                                    e.stopPropagation();
+                                    videoRef.current!.currentTime = timestampNum;
+                                }}
+                                title={`Feedback: ${technique.description.substring(0, 50)}...`}
+                            />
+                        );
+                    })}
                 </div>
             </div>
             <div className="controls flex items-center justify-between p-2 mt-2">
@@ -273,7 +288,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 <Button onClick={() => videoRef.current!.playbackRate = 2.0}>Fast Forward (2.0x)</Button>
                 <Button onClick={() => videoRef.current!.currentTime -= 0.04}>Frame Back</Button>
                 <Button onClick={() => videoRef.current!.currentTime += 0.04}>Frame Forward</Button>
-                <Button onClick={generateAIFeedback}>Generate AI Feedback</Button>
             </div>
         </div>
     );

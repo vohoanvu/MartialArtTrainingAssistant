@@ -107,7 +107,7 @@ const VideoReview: React.FC = () => {
 
     return (
         <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-2">
+            <div className="flex-1">
                 {/* <TimeSegmentSelection
                     videoId={parseInt(videoId || "0", 10)}
                     fromTimestamp={fromTimestamp}
@@ -129,7 +129,7 @@ const VideoReview: React.FC = () => {
                 />
                 <StudentDetails fighterDetails={fighterDetails}/>
             </div>
-            <div className="w-full md:w-2/3">
+            <div className="flex-2">
                 <TechniqueFeedback
                     feedbackData={feedbackList}
                     onSeek={handleSeek}
