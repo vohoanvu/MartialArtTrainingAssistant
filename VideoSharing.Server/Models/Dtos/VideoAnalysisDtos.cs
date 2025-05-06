@@ -3,11 +3,6 @@ using SharedEntities.Models;
 
 namespace VideoSharing.Server.Models.Dtos
 {
-    public class VideoAnalysisRequest
-    {
-        public required int VideoId { get; set; }
-    }
-
     //For Youtube sharing url
     public class SharingVideoRequest
     {
@@ -44,15 +39,18 @@ namespace VideoSharing.Server.Models.Dtos
 
     public class TechniqueDto
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
+        public string? Description { get; set; }
         public TechniqueTypeDto TechniqueType { get; set; }
         public PositionalScenarioDto PositionalScenario { get; set; }
+        public string? StartTimestamp { get; set; }
+        public string? EndTimestamp { get; set; }
     }
 
     public class DrillDto
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
         public string? Focus { get; set; }
         public string Duration { get; set; }
@@ -62,20 +60,25 @@ namespace VideoSharing.Server.Models.Dtos
 
     public class TechniqueTypeDto
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
+        public string? Description { get; set; }
         public string PositionalScenario { get; set; }
     }
 
     public class PositionalScenarioDto
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
     }
 
-    public class TechniqueAnalysisDto
+    public class AnalysisResultDto
     {
-        public List<TechniqueDto> Techniques { get; set; }
-        public List<DrillDto> Drills { get; set; }
+        public int? Id { get; set; }
+        public List<TechniqueDto>? Techniques { get; set; }
+        public List<DrillDto>? Drills { get; set; }
+        public List<Strength>? Strengths { get; set; }
+        public List<AreaForImprovement>? AreasForImprovement { get; set; }
+        public string? OverallDescription { get; set; }
     }
 }

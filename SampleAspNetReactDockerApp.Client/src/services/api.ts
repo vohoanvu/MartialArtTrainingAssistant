@@ -16,6 +16,7 @@ import {
     MartialArt,
     FighterInfo,
     Fighter,
+    AiAnalysisResultDto,
 } from "@/types/global.ts";
 import axios from 'axios';
 
@@ -475,41 +476,61 @@ export async function getVideoFeedback({
     }
 }
 
-export async function addVideoFeedback({
+export async function saveVideoAnalysisResult({
     videoId,
-    feedback,
+    analysisResultBody,
     jwtToken,
     refreshToken,
     hydrate,
     currentTry = 0,
 }: {
     videoId: string;
-    feedback: Feedback;
+    analysisResultBody: AiAnalysisResultDto | null; // Allow null check
     jwtToken: string | null;
     refreshToken: string | null;
     hydrate: () => Promise<void>;
     currentTry?: number;
-}): Promise<Feedback> {
+}): Promise<AiAnalysisResultDto> {
+    console.log(`Saving analysis result for video ID ${videoId}...`);
+
+    if (!analysisResultBody) {
+        throw new Error("Analysis result data cannot be null.");
+    }
+    if (!videoId) {
+        throw new Error("Video ID cannot be null or empty.");
+    }
+
     try {
-        const response = await fetch(`/vid/api/video/${videoId}/feedback`, {
-            method: 'POST',
+        const response = await fetch(`/vid/api/video/${videoId}/analysis`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${jwtToken}`,
+                'Authorization': `Bearer ${jwtToken}`,
             },
-            body: JSON.stringify(feedback),
+            body: JSON.stringify(analysisResultBody),
         });
 
         if (response.ok) {
-            return await response.json();
+            const updatedData = await response.json();
+            console.log('Save ResultAnalysis response: ', updatedData);
+            return updatedData as AiAnalysisResultDto; // Return the updated data
         } else if (response.status === 401 && currentTry === 0) {
-            await hydrate();
-            return await addVideoFeedback({ videoId, feedback, jwtToken, refreshToken, hydrate, currentTry: 1 });
+            console.log("Access token expired during save. Attempting to refresh...");
+            await hydrate(); // Refresh the token
+            return await saveVideoAnalysisResult({
+                videoId,
+                analysisResultBody,
+                jwtToken,
+                refreshToken,
+                hydrate,
+                currentTry: 1,
+            });
         } else {
-            throw new Error(`Error adding video feedback: ${response.statusText}`);
+            const errorText = await response.text();
+            throw new Error(`Failed to save analysis result: ${response.status} ${response.statusText} - ${errorText}`);
         }
     } catch (error) {
-        console.error("Error adding video feedback:", error);
+        console.error("Error saving video analysis result:", error);
         throw error;
     }
 }

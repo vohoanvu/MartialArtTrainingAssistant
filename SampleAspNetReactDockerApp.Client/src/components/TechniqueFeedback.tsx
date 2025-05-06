@@ -2,16 +2,23 @@ import React, { useState } from 'react';
 import TechniquesIdentifiedDisplay from './IdentifiedTechniques';
 import SuggestedDrillsDisplay from './SuggestedDrills';
 import OverallAnalysisDisplay from './OverallDescription';
-import { AiAnalysisResultDto } from '@/types/global';
+import { AnalysisResultDto } from '@/types/global';
 
 interface TechniqueFeedbackProps {
-    feedbackData: AiAnalysisResultDto | null;
+    feedbackData: AnalysisResultDto | null;
     onSeek: (timestamp: number) => void;
+    handleSaveToServer: () => void;
+    onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
 }
 
 type ActiveTab = 'techniques' | 'drills' | 'analysis';
 
-const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({ feedbackData, onSeek }) => {
+const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({ 
+    feedbackData, 
+    onSeek, 
+    handleSaveToServer, 
+    onInputChange,
+}) => {
     const [activeTab, setActiveTab] = useState<ActiveTab>('techniques');
 
     if (!feedbackData) {
@@ -55,18 +62,26 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({ feedbackData, onS
                 <div className="mt-4">
                     {activeTab === 'techniques' && (
                         <TechniquesIdentifiedDisplay
-                            techniques={feedbackData.techniques_identified || []}
+                            techniques={feedbackData.techniques || []}
                             onSeek={onSeek}
+                            onInputChange={onInputChange}
+                            handleSaveToServer={handleSaveToServer}
                         />
                     )}
                     {activeTab === 'drills' && (
-                        <SuggestedDrillsDisplay drills={feedbackData.suggested_drills || []} />
+                        <SuggestedDrillsDisplay 
+                            drills={feedbackData.drills || []} 
+                            onInputChange={onInputChange}
+                            handleSaveToServer={handleSaveToServer}
+                        />
                     )}
                     {activeTab === 'analysis' && (
                         <OverallAnalysisDisplay
-                            overallDescription={feedbackData.overall_description || ''}
+                            overallDescription={feedbackData.overallDescription || ''}
                             strengths={feedbackData.strengths || []}
-                            areasForImprovement={feedbackData.areas_for_improvement || []}
+                            areasForImprovement={feedbackData.areasForImprovement || []}
+                            onInputChange={onInputChange}
+                            handleSaveToServer={handleSaveToServer}
                         />
                     )}
                 </div>

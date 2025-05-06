@@ -61,7 +61,18 @@ namespace SharedEntities.Models
 
         public int? DemonstrationId { get; set; }
         [ForeignKey("DemonstrationId")]
-        public virtual Demonstration? DemonstrationVideo { get; set; } //Link to the video of the technique
+        public virtual Demonstration? DemonstrationVideo { get; set; }
+
+
+        public int? AiAnalysisResultId { get; set; }
+        [ForeignKey("AiAnalysisResultId")]
+        public virtual AiAnalysisResult? AiAnalysisResult { get; set; } 
+
+        public int? UploadedVideoId { get; set; }
+        [ForeignKey("UploadedVideoId")]
+        public virtual UploadedVideo? UploadedVideo { get; set; }
+
+        public virtual ICollection<AiFeedback>? AiFeedbacks { get; set; }
     }
 
     public class PointScoringTechnique
@@ -112,6 +123,14 @@ namespace SharedEntities.Models
 
         public int? DemonstrationId { get; set; }
         [ForeignKey("DemonstrationId")]
-        public virtual Demonstration? DemonstrationVideo { get; set; } //Link to the video of the technique
+        public virtual Demonstration? DemonstrationVideo { get; set; }
+
+        public int? AiAnalysisResultId { get; set; }
+        [ForeignKey("AiAnalysisResultId")]
+        public virtual AiAnalysisResult? AiAnalysisResult { get; set; } 
+
+        public int? UploadedVideoId { get; set; }
+        [ForeignKey("UploadedVideoId")]
+        public virtual UploadedVideo? UploadedVideo { get; set; }
     }
 }

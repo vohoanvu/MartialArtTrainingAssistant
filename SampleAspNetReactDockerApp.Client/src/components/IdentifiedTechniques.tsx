@@ -1,9 +1,11 @@
-import { TechniqueIdentified } from '@/types/global';
+import { TechniqueDto } from '@/types/global';
 import React from 'react';
 
 interface TechniquesIdentifiedDisplayProps {
-    techniques: TechniqueIdentified[];
+    techniques: TechniqueDto[];
     onSeek: (timestamp: number) => void;
+    handleSaveToServer: () => void;
+    onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
 }
 
 // const formatTimestamp = (seconds: number): string => {
@@ -12,10 +14,10 @@ interface TechniquesIdentifiedDisplayProps {
 //     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 // };
 
-const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = ({ techniques, onSeek }) => {
+const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = ({ techniques, onSeek, handleSaveToServer, onInputChange }) => {
     const groupedTechniques = techniques.reduce((acc, tech) => {
-        const scenario = tech.positional_scenario || 'Uncategorized Scenario';
-        const type = tech.technique_type || 'Uncategorized Type';
+        const scenario = tech.positionalScenario.name || 'Null Scenario';
+        const type = tech.techniqueType.name || 'Null TechniqueType';
 
         if (!acc[scenario]) {
             acc[scenario] = {};
@@ -25,12 +27,17 @@ const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = 
         }
         acc[scenario][type].push(tech);
         return acc;
-    }, {} as Record<string, Record<string, TechniqueIdentified[]>>);
+    }, {} as Record<string, Record<string, TechniqueDto[]>>);
 
     const handleEdit = (item: any) => {
         console.log("Editing:", item);
-        // Add actual edit logic here
     };
+
+    const handleSave = (section: any, index: string | number, name: any, value: any) => {
+        //onInputChange('techniques', index, 'name', e.target.value)
+        onInputChange(section, index, name, value);
+        handleSaveToServer();
+    }
 
     return (
         <div className="w-full space-y-2">
@@ -50,29 +57,29 @@ const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = 
                                 <div className="p-3 border-t border-gray-100">
                                     <ul className="list-none p-0 space-y-4">
                                         {techList.map((tech) => (
-                                            <li key={tech.technique_type + tech.technique_name} className="border-l-4 border-blue-500 pl-4 py-2 bg-white rounded-r-md shadow-sm">
+                                            <li key={tech.id} className="border-l-4 border-blue-500 pl-4 py-2 bg-white rounded-r-md shadow-sm">
                                                 <div className="flex justify-between items-center mb-1">
-                                                    <strong className="text-base">Technique Name: {tech.technique_name}</strong>
+                                                    <strong className="text-base">Technique Name: {tech.name}</strong>
                                                     <button
                                                         className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                                        onClick={() => handleEdit(tech.technique_name)}>Edit</button>
+                                                        onClick={() => handleEdit(tech.id)}>Edit</button>
                                                 </div>
                                                 <div className="flex justify-between items-center mb-1">
                                                     <span
                                                         className="text-blue-600 hover:underline cursor-pointer text-sm"
-                                                        onClick={() => onSeek(Number(tech.start_timestamp))}
+                                                        onClick={() => onSeek(Number(tech.startTimestamp))}
                                                     >
-                                                        Timestamp: {tech.start_timestamp} - {tech.end_timestamp}
+                                                        Timestamp: {tech.startTimestamp} - {tech.endTimestamp}
                                                     </span>
                                                     <button
                                                         className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                                        onClick={() => handleEdit(tech.end_timestamp)}>Edit</button>
+                                                        onClick={() => handleEdit(tech.id)}>Edit</button>
                                                 </div>
                                                 <div className="flex justify-between items-start">
                                                     <p className="text-sm text-gray-700 mr-2">{tech.description}</p>
                                                     <button
                                                         className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex-shrink-0"
-                                                        onClick={() => handleEdit(tech.description)}>Edit</button>
+                                                        onClick={() => handleEdit(tech.id)}>Edit</button>
                                                 </div>
                                             </li>
                                         ))}

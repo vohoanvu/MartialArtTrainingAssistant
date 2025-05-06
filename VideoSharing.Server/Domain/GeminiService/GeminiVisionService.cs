@@ -10,7 +10,7 @@ namespace VideoSharing.Server.Domain.GeminiService
 {
     public interface IGeminiVisionService
     {
-        Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, string martialArt, string studentIdentifier);
+        Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, string martialArt, string studentIdentifier, string videoDescription, string skillLevel);
 
         Task<AiFeedback> AnalyzeVideoSegment(int videoId, string startTimestamp, string endTimestamp);
     }
@@ -22,7 +22,8 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly string _location;
         private readonly string _model;
         private readonly string _customPrompt = @"
-        Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] sparring video. The student is at the [SkillLevel] level and is training for [TrainingGoal]. Provide a detailed analysis of the student's techniques, execution, strengths, areas for improvement, and suggest specific drills for practice. Format the output as a JSON object with the following structure:
+        You are an expert [MartialArt] instructor. You have been given video of your student with the description as '[VideoDescription]'.
+        Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] video. The student is at the [SkillLevel] level and is training for [TrainingGoal]. Provide a detailed analysis of the student's techniques, execution, strengths, areas for improvement, and suggest specific drills for practice. Format the output as a JSON object with the following structure:
         {
             ""overall_description"": ""A detailed description of the student's overall performance in the sparring session."",
             ""techniques_identified"": [
@@ -110,7 +111,11 @@ namespace VideoSharing.Server.Domain.GeminiService
         }
 
         /// <inheritdoc/>
-        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, string martialArt, string studentIdentifier)
+        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, 
+        string martialArt, 
+        string studentIdentifier, 
+        string videoDescription,
+        string skillLevel)
         {
             string fileUri;
             string mimeType;
@@ -135,7 +140,9 @@ namespace VideoSharing.Server.Domain.GeminiService
             string prompt = _customPrompt
                 .Replace("[MartialArt]", martialArt)
                 .Replace("[StudentIdentifier]", studentIdentifier)
-                .Replace("[TrainingGoal]", "both self-defense and competition");
+                .Replace("[TrainingGoal]", "both self-defense and competition")
+                .Replace("[SkillLevel]", skillLevel)
+                .Replace("[VideoDescription]", videoDescription);
 
             // Construct the GenerateContentRequest
             var request = new GenerateContentRequest

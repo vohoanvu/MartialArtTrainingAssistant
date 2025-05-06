@@ -221,36 +221,50 @@ export enum MartialArt {
 
 export interface Strength {
     description: string;
-    related_technique: string;
-}
-
-export interface SuggestedDrill {
-    name: string;
-    focus: string;
-    duration: string;
-    description: string;
-    related_technique: string;
+    related_technique: string | null;
 }
 
 export interface AreaForImprovement {
     description: string;
-    related_technique: string;
+    related_technique: string | null;
 }
 
-export interface TechniqueIdentified {
-    start_timestamp: string;
-    end_timestamp: string;
+export interface SuggestedDrill {
+    id?: number; // Optional for creating new drills
+    name: string;
+    focus: string | null;
+    duration: string;
     description: string;
-    technique_name: string;
-    technique_type: string;
-    positional_scenario: string;
+    related_technique: string; // Matches JSON response
 }
 
-export interface AiAnalysisResultDto {
-    strengths: Strength[];
-    suggested_drills: SuggestedDrill[];
-    overall_description: string;
-    areas_for_improvement: AreaForImprovement[];
-    techniques_identified: TechniqueIdentified[];
+export interface TechniqueTypeDto {
+    id?: number; // Optional for creating new entries
+    name: string;
+    positionalScenario: string;
+}
+
+export interface PositionalScenarioDto {
+    id?: number; // Optional for creating new entries
+    name: string;
+}
+
+export interface TechniqueDto {
+    id?: number; // Optional for creating new techniques
+    name: string;
+    techniqueType: TechniqueTypeDto;
+    positionalScenario: PositionalScenarioDto;
+    startTimestamp?: string | null;
+    endTimestamp?: string | null;
+    description?: string | null;
+}
+
+export interface AnalysisResultDto {
+    id?: number | null; // Optional for creating new analysis results
+    strengths?: Strength[] | null; // Optional for partial updates
+    drills?: SuggestedDrill[] | null; // Optional for partial updates
+    overallDescription?: string | null; // Optional for partial updates
+    areasForImprovement?: AreaForImprovement[] | null; // Optional for partial updates
+    techniques?: TechniqueDto[] | null; // Updated to use TechniqueDto
 }
 

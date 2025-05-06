@@ -93,47 +93,66 @@ namespace SharedEntities.Data
                 }
             }
 
-            // if (!dbContext.PointScoringTechniques.Any())
-            // {
-            //     using var transaction = await dbContext.Database.BeginTransactionAsync();
-            //     try
-            //     {
-            //         // Define technique categories based on IBJJF rules
-            //         var techniques = new List<PointScoringTechnique>
-            //         {
-            //             // GI Competition Categories
-            //             new() { Name = "Takedown", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
-            //             new() { Name = "Sweep", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
-            //             new() { Name = "Guard Pass", Points = 3, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
-            //             new() { Name = "Knee on Belly", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
-            //             new() { Name = "Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
-            //             new() { Name = "Back Control", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
-            //             new() { Name = "Back Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
-            //             new() { Name = "Submission", Points = 0, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+            if (!dbContext.PointScoringTechniques.Any())
+            {
+                using var transaction = await dbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    // Define technique categories based on IBJJF rules
+                    var techniques = new List<PointScoringTechnique>
+                    {
+                        // GI Competition Categories
+                        new() { Name = "Takedown", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+                        new() { Name = "Sweep", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+                        new() { Name = "Guard Pass", Points = 3, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+                        new() { Name = "Knee on Belly", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+                        new() { Name = "Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+                        new() { Name = "Back Control", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+                        new() { Name = "Back Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
+                        new() { Name = "Submission", Points = 0, MartialArt = MartialArt.BrazilianJiuJitsu_GI },
 
-            //             // NO GI Competition Categories
-            //             new() { Name = "Takedown", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
-            //             new() { Name = "Sweep", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
-            //             new() { Name = "Guard Pass", Points = 3, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
-            //             new() { Name = "Knee on Belly", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
-            //             new() { Name = "Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
-            //             new() { Name = "Back Control", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
-            //             new() { Name = "Submission", Points = 0, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
-            //         };
+                        // NO GI Competition Categories
+                        new() { Name = "Takedown", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+                        new() { Name = "Sweep", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+                        new() { Name = "Guard Pass", Points = 3, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+                        new() { Name = "Knee on Belly", Points = 2, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+                        new() { Name = "Mount", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+                        new() { Name = "Back Control", Points = 4, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+                        new() { Name = "Submission", Points = 0, MartialArt = MartialArt.BrazilianJiuJitsu_NO_GI },
+                    };
 
-            //         // Add categories to the database and save changes
-            //         dbContext.PointScoringTechniques.AddRange(techniques);
-            //         await dbContext.SaveChangesAsync();
-            //         await transaction.CommitAsync();
-            //         Console.WriteLine("Seeded Technique Categories.");
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         await transaction.RollbackAsync();
-            //         Console.WriteLine($"Seeding Technique Categories failed: {ex.Message}");
-            //         throw;
-            //     }
-            // }
+                    // Add categories to the database and save changes
+                    dbContext.PointScoringTechniques.AddRange(techniques);
+                    await dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    Console.WriteLine("Seeded Point-Scoring rule.");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"Seeding Point-Scoring rule failed: {ex.Message}");
+                    throw;
+                }
+            }
+            
+            if (!dbContext.Techniques.Any())
+            {
+                var defaultTechniques = new Techniques() {
+                    Name = "Generic Technique",
+                    TechniqueType = new()
+                    {
+                        Name = "Generic Technique Type",
+                        PositionalScenario = new()
+                        {
+                            Name = "Generic Positional Scenario",
+                            FocusModule = FocusModule.General,
+                            TargetLevel = TargetLevel.Beginner,
+                        },
+                    },
+                };
+                dbContext.Techniques.Add(defaultTechniques);
+                await dbContext.SaveChangesAsync();
+            }
         }
     }
 }

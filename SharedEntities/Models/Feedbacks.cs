@@ -63,10 +63,10 @@ namespace SharedEntities.Models
 
         public required string AnalysisJson { get; set; } //need to keep this JSON Blob for storing AI-generated data
 
-        public virtual ICollection<Drills>? Drills { get; set; }
-        public virtual ICollection<Techniques>? Techniques { get; set; }
+        public virtual ICollection<Drills> Drills { get; set; } = [];
+        public virtual ICollection<Techniques> Techniques { get; set; } = [];
         public string? OverallDescription { get; set; }
-        public string? Strengths { get; set; } //JSON blob
-        public string? AreasForImprovement { get; set; } //JSON blob
+        public string Strengths { get; set; } //JSON blob
+        public string AreasForImprovement { get; set; } //JSON blob
     }
 }

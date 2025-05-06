@@ -71,15 +71,12 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
             setAnalysisLoading(true);
             (async () => {
                 try {
-                    const res = await fetch('/vid/api/video/analyze', {
+                    const res = await fetch(`/vid/api/video/analyze/${videoId}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             Authorization: `Bearer ${jwtToken}`,
                         },
-                        body: JSON.stringify({
-                            VideoId: videoId,
-                        }),
                     });
                     if (!res.ok) {
                         console.error('Analysis API call failed');

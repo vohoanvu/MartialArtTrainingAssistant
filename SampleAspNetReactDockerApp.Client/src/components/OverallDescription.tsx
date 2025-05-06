@@ -5,18 +5,28 @@ interface OverallAnalysisDisplayProps {
     overallDescription: string;
     strengths: Strength[];
     areasForImprovement: AreaForImprovement[];
+    handleSaveToServer: () => void;
+    onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
 }
 
 const OverallAnalysisDisplay: React.FC<OverallAnalysisDisplayProps> = ({
     overallDescription,
     strengths,
     areasForImprovement,
+    handleSaveToServer,
+    onInputChange
 }) => {
 
     const handleEdit = (item: any) => {
         console.log("Editing:", item);
         // Add actual edit logic here
     };
+
+    const handleSave = (section: any, index: string | number, name: any, value: any) => {
+        //onInputChange('overallAnalysis', null, 'areasForImprovement', e.target.value)
+        onInputChange(section, index, name, value);
+        handleSaveToServer();
+    }
 
     return (
         <div className="space-y-4">
