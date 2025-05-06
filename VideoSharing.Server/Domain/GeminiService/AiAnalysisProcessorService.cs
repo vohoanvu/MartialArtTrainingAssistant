@@ -24,8 +24,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             var techniqueMap = new Dictionary<string, Techniques>();
 
             // Get or create AiAnalysisResult
-            var existingAiAnalysisResult = await _context.AiAnalysisResults
-                .FirstOrDefaultAsync(a => a.VideoId == videoId);
+            var existingAiAnalysisResult = await _context.AiAnalysisResults.FirstOrDefaultAsync(a => a.VideoId == videoId);
             if (existingAiAnalysisResult == null)
             {
                 existingAiAnalysisResult = new AiAnalysisResult
@@ -62,26 +61,36 @@ namespace VideoSharing.Server.Domain.GeminiService
                     _context.PositionalScenarios.Add(positionalScenario);
                 }
 
-                // Retrieve or create TechniqueType
+                // Get or create TechniqueType
                 var techniqueType = await _context.TechniqueTypes
-                    .FirstOrDefaultAsync(tt => tt.Name == tech.TechniqueType)
-                    ?? new TechniqueType { Name = tech.TechniqueType };
+                    .FirstOrDefaultAsync(tt => tt.Name == tech.TechniqueType && tt.PositionalScenario.Name == tech.PositionalScenario);
+                if (techniqueType == null)
+                {
+                    techniqueType = new TechniqueType { Name = tech.TechniqueType, PositionalScenario = positionalScenario };
+                    _context.TechniqueTypes.Add(techniqueType);
+                }
 
-                // Retrieve or create Technique
+                // Get or create Technique
                 var technique = await _context.Techniques
-                    .FirstOrDefaultAsync(t => t.Name == tech.TechniqueName && t.TechniqueType.Name == tech.TechniqueType)
-                    ?? new Techniques
+                    .Include(t => t.TechniqueType) // Ensure TechniqueType is loaded
+                    .FirstOrDefaultAsync(t => t.Name == tech.TechniqueName && t.TechniqueType != null && t.TechniqueType.Name == tech.TechniqueType);
+                if (technique == null)
+                {
+                    technique = new Techniques
                     {
                         Name = tech.TechniqueName,
-                        Description = tech.Description,
-                        TechniqueType = techniqueType
+                        TechniqueType = techniqueType,
+                        Description = tech.Description
                     };
+                    _context.Techniques.Add(technique);
+                }
 
                 // Explicitly link the technique to the current AiAnalysisResult
                 technique.AiAnalysisResult = existingAiAnalysisResult;
 
                 // Add technique to AiAnalysisResult
-                if (!existingAiAnalysisResult.Techniques.Any(t => t.Name == tech.TechniqueName && t.TechniqueType.Name == tech.TechniqueType))
+                if (!existingAiAnalysisResult.Techniques.Any(t => t.Name == tech.TechniqueName 
+                    && t.TechniqueType != null && t.TechniqueType.Name == tech.TechniqueType))
                 {
                     existingAiAnalysisResult.Techniques.Add(technique);
                 }
@@ -119,7 +128,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                             Name = drillDto.Name,
                             Description = drillDto.Description,
                             Focus = drillDto.Focus,
-                            Duration = ParseDuration(drillDto.Duration),
+                            Duration = drillDto.Duration,
                             Technique = technique
                         };
                         _context.Drills.Add(drill);
@@ -130,7 +139,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                         // Update existing drill
                         drill.Description = drillDto.Description;
                         drill.Focus = drillDto.Focus;
-                        drill.Duration = ParseDuration(drillDto.Duration);
+                        drill.Duration = drillDto.Duration;
                         if (!existingAiAnalysisResult.Drills.Any(d => d.Id == drill.Id))
                         {
                             existingAiAnalysisResult.Drills.Add(drill);
@@ -146,7 +155,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                         Name = drillDto.Name,
                         Description = drillDto.Description,
                         Focus = drillDto.Focus,
-                        Duration = ParseDuration(drillDto.Duration),
+                        Duration = drillDto.Duration,
                         TechniqueId = genericTechnique.Id
                     };
                     _context.Drills.Add(drill);
@@ -204,7 +213,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                     Id = d.Id,
                     Name = d.Name,
                     Focus = d.Focus,
-                    Duration = d.Duration.ToString(),
+                    Duration = d.Duration,
                     Description = d.Description,
                     RelatedTechniqueName = d.Technique.Name
                 }).ToList(),
@@ -332,7 +341,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                     var drill = new Drills
                     {
                         Name = drillDto.Name ?? "Unnamed Drill",
-                        Duration = ParseDuration(drillDto.Duration),
+                        Duration = drillDto.Duration,
                         Focus = drillDto.Focus,
                         Description = drillDto.Description,
                         Technique = technique // EF will handle TechniqueId
@@ -347,35 +356,6 @@ namespace VideoSharing.Server.Domain.GeminiService
             await _context.SaveChangesAsync();
 
             return analysisDto;
-        }
-
-        private TimeSpan ParseDuration(string durationStr)
-        {
-            if (string.IsNullOrEmpty(durationStr))
-                return TimeSpan.Zero;
-
-            try
-            {
-                var parts = durationStr.ToLower().Split(' ');
-                if (parts.Length > 0 && parts.Any(p => p.Contains("minute")))
-                {
-                    var numberPart = parts[0];
-                    if (numberPart.Contains("-"))
-                    {
-                        var minValue = int.Parse(numberPart.Split('-')[0]);
-                        return TimeSpan.FromMinutes(minValue);
-                    }
-                    else if (int.TryParse(numberPart, out int minutes))
-                    {
-                        return TimeSpan.FromMinutes(minutes);
-                    }
-                }
-            }
-            catch (FormatException)
-            {
-                // Log parsing failure if needed
-            }
-            return TimeSpan.Zero;
         }
     }
 }

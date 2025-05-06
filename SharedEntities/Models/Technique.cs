@@ -71,8 +71,6 @@ namespace SharedEntities.Models
         public int? UploadedVideoId { get; set; }
         [ForeignKey("UploadedVideoId")]
         public virtual UploadedVideo? UploadedVideo { get; set; }
-
-        public virtual ICollection<AiFeedback>? AiFeedbacks { get; set; }
     }
 
     public class PointScoringTechnique
@@ -111,15 +109,11 @@ namespace SharedEntities.Models
 
         public string? Focus { get; set; }
 
-        public TimeSpan Duration { get; set; }
+        public string Duration { get; set; }
 
         public int TechniqueId { get; set; }
         [ForeignKey("TechniqueId")]
         public virtual Techniques Technique { get; set; }
-
-        public int? FeedbackId { get; set; }
-        [ForeignKey("FeedbackId")]
-        public virtual HumanFeedback? Feedback { get; set; }
 
         public int? DemonstrationId { get; set; }
         [ForeignKey("DemonstrationId")]

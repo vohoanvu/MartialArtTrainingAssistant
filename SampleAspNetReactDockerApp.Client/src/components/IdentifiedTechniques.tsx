@@ -38,7 +38,6 @@ const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = 
         onInputChange(section, index, name, value);
         handleSaveToServer();
     }
-
     return (
         <div className="w-full space-y-2">
             {Object.entries(groupedTechniques).map(([scenario, types]) => (

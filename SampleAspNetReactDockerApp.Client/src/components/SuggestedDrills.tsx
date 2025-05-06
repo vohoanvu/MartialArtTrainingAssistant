@@ -52,7 +52,7 @@ const SuggestedDrillsDisplay: React.FC<SuggestedDrillsDisplayProps> = ({ drills,
                                 onClick={() => handleEdit(drill.description)}>Edit</button>
                         </div>
                         <div className="flex justify-between items-center">
-                            <p><strong className="font-medium text-gray-800">Related Technique:</strong> {drill.related_technique}</p>
+                            <p><strong className="font-medium text-gray-800">Related Technique:</strong> {drill.relatedTechniqueName}</p>
                              {/* No edit button for related technique */}
                         </div>
                     </div>

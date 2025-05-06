@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { TechniqueIdentified } from '@/types/global';
+import { TechniqueDto } from '@/types/global';
 
 interface VideoPlayerProps {
     videoUrl: string;
     videoId: string;
-    identifiedTechniques: TechniqueIdentified[];
+    identifiedTechniques: TechniqueDto[];
     setFromTimestamp: (timestamp: string) => void;
     setToTimestamp: (timestamp: string) => void;
     selectedSegment: { from: number; to: number } | null;
@@ -13,7 +13,7 @@ interface VideoPlayerProps {
     clearSelection: () => void;
 }
 
-const parseTimestampToSeconds = (timestamp: string): number => {
+const parseTimestampToSeconds = (timestamp: string | null): number => {
     if (!timestamp || typeof timestamp !== 'string') return NaN;
     const parts = timestamp.split(':');
     if (parts.length !== 2) return NaN;
@@ -256,7 +256,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         style={{ width: `${(currentTime / duration) * 100}%` }}
                     />
                     {identifiedTechniques.map((technique) => {
-                        const timestampNum = parseTimestampToSeconds(technique.start_timestamp);
+                        const timestampNum = parseTimestampToSeconds(technique.startTimestamp ?? null);
                         // Don't render marker if timestamp is invalid or duration is 0
                         if (isNaN(timestampNum) || duration <= 0) {
                             return null;
@@ -265,7 +265,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         const leftPercent = duration > 0 ? (timestampNum / duration) * 100 : 0;
                         return (
                             <div
-                                key={technique.technique_type}
+                                key={technique.id}
                                 className={`marker absolute top-0 h-full cursor-pointer bg-blue-500`}
                                 style={{
                                     left: `${leftPercent}%`, // Use calculated percent
@@ -275,7 +275,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                                     e.stopPropagation();
                                     videoRef.current!.currentTime = timestampNum;
                                 }}
-                                title={`Technique: ${technique.technique_name} (${technique.start_timestamp})`}
+                                title={`Technique: ${technique.name} (${technique.startTimestamp})`}
                             />
                         );
                     })}
