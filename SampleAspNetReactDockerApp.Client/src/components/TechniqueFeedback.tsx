@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import TechniquesIdentifiedDisplay from './IdentifiedTechniques';
+import TechniqueGroupingCollapsible from './TechniqueGroupingCollapsible';
 import SuggestedDrillsDisplay from './SuggestedDrills';
 import OverallAnalysisDisplay from './OverallDescription';
 import { AnalysisResultDto } from '@/types/global';
@@ -61,7 +61,7 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
                 {/* Tab Content */}
                 <div className="mt-4">
                     {activeTab === 'techniques' && (
-                        <TechniquesIdentifiedDisplay
+                        <TechniqueGroupingCollapsible
                             techniques={feedbackData.techniques || []}
                             onSeek={onSeek}
                             onInputChange={onInputChange}

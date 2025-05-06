@@ -1,7 +1,7 @@
 import { TechniqueDto } from '@/types/global';
 import React from 'react';
 
-interface TechniquesIdentifiedDisplayProps {
+interface TechniqueGroupingCollapsibleProps {
     techniques: TechniqueDto[];
     onSeek: (timestamp: number) => void;
     handleSaveToServer: () => void;
@@ -14,7 +14,7 @@ interface TechniquesIdentifiedDisplayProps {
 //     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 // };
 
-const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = ({ techniques, onSeek, handleSaveToServer, onInputChange }) => {
+const TechniqueGroupingCollapsible: React.FC<TechniqueGroupingCollapsibleProps> = ({ techniques, onSeek, handleSaveToServer, onInputChange }) => {
     const groupedTechniques = techniques.reduce((acc, tech) => {
         const scenario = tech.positionalScenario.name || 'Null Scenario';
         const type = tech.techniqueType.name || 'Null TechniqueType';
@@ -70,9 +70,9 @@ const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = 
                                                     >
                                                         Timestamp: {tech.startTimestamp} - {tech.endTimestamp}
                                                     </span>
-                                                    <button
+                                                    {/* <button
                                                         className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                                        onClick={() => handleEdit(tech.id)}>Edit</button>
+                                                        onClick={() => handleEdit(tech.id)}>Edit</button> */}
                                                 </div>
                                                 <div className="flex justify-between items-start">
                                                     <p className="text-sm text-gray-700 mr-2">{tech.description}</p>
@@ -93,4 +93,4 @@ const TechniquesIdentifiedDisplay: React.FC<TechniquesIdentifiedDisplayProps> = 
     );
 };
 
-export default TechniquesIdentifiedDisplay;
+export default TechniqueGroupingCollapsible;
