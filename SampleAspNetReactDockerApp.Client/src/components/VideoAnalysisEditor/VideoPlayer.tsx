@@ -145,7 +145,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         return {
             left: `${leftPercent}%`,
             width: `${widthPercent}%`,
-            backgroundColor: 'rgba(0, 0, 255, 0.3)', // Blue selection effect
+            backgroundColor: 'rgba(59,130,246,0.35)',
             position: 'absolute',
             height: '100%',
             zIndex: 1,
@@ -163,7 +163,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             height: '0',
             borderLeft: '5px solid transparent',
             borderRight: '5px solid transparent',
-            borderTop: '10px solid red', // Red triangle pointing down
+            borderTop: '10px solid var(--tw-destructive, #ef4444)',
             zIndex: 2,
         } as React.CSSProperties;
     };
@@ -179,7 +179,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             height: '0',
             borderLeft: '5px solid transparent',
             borderRight: '5px solid transparent',
-            borderTop: '10px solid blue', // Blue triangle for "To"
+            borderTop: '10px solid var(--tw-primary, #3b82f6)',
             zIndex: 2,
         } as React.CSSProperties;
     };
@@ -193,7 +193,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             top: '0',
             width: '1px',
             height: '100%',
-            borderLeft: '1px dotted black', // Dotted line for "From"
+            borderLeft: '1px dotted var(--tw-border, #d1d5db)',
             zIndex: 2,
         } as React.CSSProperties;
     };
@@ -219,7 +219,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         return {
             left: `${leftPercent}%`,
             width: `${widthPercent}%`,
-            backgroundColor: 'rgba(0, 0, 255, 0.1)', // Temporary highlight
+            backgroundColor: 'var(--tw-bg-accent, rgba(59,130,246,0.1))',
             position: 'absolute',
             height: '100%',
             zIndex: 1,
@@ -234,7 +234,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <div className="timeline-container mt-2 relative">
                 <div
                     ref={timelineRef}
-                    className="timeline w-full h-6 bg-gray-300 relative rounded-md cursor-pointer"
+                    className="timeline w-full h-6 bg-muted dark:bg-neutral-800 relative rounded-md cursor-pointer border border-border"
                     onClick={handleTimelineClick}
                     onContextMenu={handleRightClick}
                     onMouseDown={handleMouseDown}
@@ -252,7 +252,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         </>
                     )}
                     <div
-                        className="progress absolute h-full bg-green-500 rounded-md"
+                        className="progress absolute h-full bg-primary rounded-md"
                         style={{ width: `${(currentTime / duration) * 100}%` }}
                     />
                     {identifiedTechniques.map((technique) => {
@@ -266,7 +266,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         return (
                             <div
                                 key={technique.id}
-                                className={`marker absolute top-0 h-full cursor-pointer bg-blue-500`}
+                                className="marker absolute top-0 h-full cursor-pointer bg-yellow-400 dark:bg-yellow-300"
                                 style={{
                                     left: `${leftPercent}%`, // Use calculated percent
                                     width: '5px',
