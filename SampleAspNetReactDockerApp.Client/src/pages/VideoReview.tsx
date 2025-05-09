@@ -64,9 +64,9 @@ const VideoReview: React.FC = () => {
         setFeedbackList(updatedAnalysis);
     };
 
-    const handleSaveAnalyisResult = async () => {
-        if (!feedbackList || !videoId) {
-            console.error('Missing videoId or feedbackList for saving.');
+    const handleSaveAnalyisResult = async (updatedFeedbackData: AnalysisResultDto) => {
+        if (!updatedFeedbackData || !videoId) {
+            console.error('Missing videoId or AnalysisResultDto for saving.');
             return;
         }
 
@@ -74,7 +74,7 @@ const VideoReview: React.FC = () => {
             // Pass feedbackList as the analysisResultBody argument
             const updatedAnalysisResult = await saveVideoAnalysisResult({
                 videoId,
-                analysisResultBody: feedbackList,
+                analysisResultBody: updatedFeedbackData,
                 jwtToken: accessToken,
                 refreshToken,
                 hydrate
@@ -115,7 +115,7 @@ const VideoReview: React.FC = () => {
                 <TechniqueFeedback
                     feedbackData={feedbackList}
                     onSeek={handleSeek}
-                    handleSaveToServer={handleSaveAnalyisResult}
+                    saveChanges={handleSaveAnalyisResult}
                     onInputChange={handleInputChange}
                 />
             </div>

@@ -46,7 +46,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
     }, [fighterDetails]);
 
     return (
-        <div id="studentDetails" className="grid grid-cols-2 gap-4 p-4 m-2 shadow-md border bg-gray-50">
+        <div id="studentDetails" className="grid grid-cols-2 gap-4 p-4 m-2 shadow-md border">
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Student Name</label>
                 <input

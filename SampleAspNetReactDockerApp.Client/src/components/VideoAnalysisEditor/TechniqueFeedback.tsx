@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import TechniqueGroupingCollapsible from './TechniqueGroupingCollapsible';
-import SuggestedDrillsDisplay from './SuggestedDrills';
-import OverallAnalysisDisplay from './OverallDescription';
 import { AnalysisResultDto } from '@/types/global';
+import { TechniquesEditorial } from './TechniquesEditorial';
+import { DrillsEditorial } from './DrillsEditorials';
+import { OverallAnalysisEditorial } from './OverallAnalysisEditorial';
 
 interface TechniqueFeedbackProps {
     feedbackData: AnalysisResultDto | null;
     onSeek: (timestamp: number) => void;
-    handleSaveToServer: () => void;
+    saveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
     onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
 }
 
@@ -16,8 +16,7 @@ type ActiveTab = 'techniques' | 'drills' | 'analysis';
 const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({ 
     feedbackData, 
     onSeek, 
-    handleSaveToServer, 
-    onInputChange,
+    saveChanges,
 }) => {
     const [activeTab, setActiveTab] = useState<ActiveTab>('techniques');
 
@@ -34,10 +33,10 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
     };
 
     return (
-        <div className="feedback-container p-4 rounded-md shadow-md border bg-gray-50">
+        <div className="feedback-container p-4 rounded-md shadow-md border">
              <div className="w-full">
                 {/* Tab List */}
-                <div className="grid grid-cols-3 border-b border-gray-200 mb-4">
+                <div className="grid grid-cols-3 border-b border mb-4">
                     <button
                         onClick={() => setActiveTab('techniques')}
                         className={getTabClass('techniques')}
@@ -61,27 +60,22 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
                 {/* Tab Content */}
                 <div className="mt-4">
                     {activeTab === 'techniques' && (
-                        <TechniqueGroupingCollapsible
-                            techniques={feedbackData.techniques || []}
+                        <TechniquesEditorial
+                            analysisResultDto={feedbackData}
                             onSeek={onSeek}
-                            onInputChange={onInputChange}
-                            handleSaveToServer={handleSaveToServer}
+                            handleSaveChanges={saveChanges}
                         />
                     )}
                     {activeTab === 'drills' && (
-                        <SuggestedDrillsDisplay 
-                            drills={feedbackData.drills || []} 
-                            onInputChange={onInputChange}
-                            handleSaveToServer={handleSaveToServer}
+                        <DrillsEditorial 
+                            analysisResultDto={feedbackData}
+                            handleSaveChanges={saveChanges}
                         />
                     )}
                     {activeTab === 'analysis' && (
-                        <OverallAnalysisDisplay
-                            overallDescription={feedbackData.overallDescription || ''}
-                            strengths={feedbackData.strengths || []}
-                            areasForImprovement={feedbackData.areasForImprovement || []}
-                            onInputChange={onInputChange}
-                            handleSaveToServer={handleSaveToServer}
+                        <OverallAnalysisEditorial
+                            analysisResultDto={feedbackData}
+                            handleSaveChanges={saveChanges}
                         />
                     )}
                 </div>
