@@ -68,5 +68,9 @@ namespace SharedEntities.Models
         public string? OverallDescription { get; set; }
         public string Strengths { get; set; } //JSON blob
         public string AreasForImprovement { get; set; } //JSON blob
+
+        public DateTime? GeneratedAt { get; set; }
+
+        public DateTime? LastUpdatedAt { get; set; }
     }
 }

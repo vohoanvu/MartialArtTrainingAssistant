@@ -7,7 +7,7 @@ import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
 import { Button } from "@/components/ui/button";
-import VideoUploadForm from "@/components/VideoUploadForm";
+import VideoUploadForm from "@/components/VideoAnalysisEditor/VideoUploadForm";
 
 export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);

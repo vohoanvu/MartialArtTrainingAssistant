@@ -148,7 +148,7 @@ namespace VideoSharing.Server.Controllers
                 Description = request.Description,
                 StudentIdentifier = request.StudentIdentifier,
                 MartialArt = request.MartialArt,
-                UploadTimestamp = DateTime.UtcNow,
+                UploadedAt = DateTime.UtcNow,
                 FileHash = videoHash
             };
 
@@ -215,7 +215,7 @@ namespace VideoSharing.Server.Controllers
                 UserId = userId,
                 FilePath = filePath,
                 Description = description,
-                UploadTimestamp = DateTime.UtcNow,
+                UploadedAt = DateTime.UtcNow,
                 FileHash = videoHash
             };
 
@@ -271,7 +271,7 @@ namespace VideoSharing.Server.Controllers
                     UserId = v.UserId,
                     MartialArt = v.MartialArt.ToString(),
                     FilePath = v.FilePath,
-                    UploadTimestamp = v.UploadTimestamp,
+                    UploadTimestamp = v.UploadedAt,
                     Description = v.Description,
                     AiAnalysisResult = aiGroup.Select(a => a.AnalysisJson).FirstOrDefault(),
                 }
@@ -305,7 +305,7 @@ namespace VideoSharing.Server.Controllers
                 Id = video.Id,
                 UserId = video.UserId,
                 FilePath = video.FilePath,
-                UploadTimestamp = video.UploadTimestamp,
+                UploadTimestamp = video.UploadedAt,
                 Description = video.Description,
                 AiAnalysisResult = AiAnalysisResult,
                 SignedUrl = signedUrl,

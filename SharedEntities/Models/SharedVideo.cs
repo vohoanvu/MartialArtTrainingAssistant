@@ -32,7 +32,8 @@ namespace SharedEntities.Models
         public int Id { get; set; }
         public string UserId { get; set; }
         public string FilePath { get; set; }
-        public DateTime UploadTimestamp { get; set; }
+        public DateTime UploadedAt { get; set; }
+        public int Duration { get; set; }
         public string? Description { get; set; }
         public string? AISummary { get; set; }
         public string StudentIdentifier { get; set; } // Used for LLM Prompt parsing, e.g., "Fighter in blue gi"

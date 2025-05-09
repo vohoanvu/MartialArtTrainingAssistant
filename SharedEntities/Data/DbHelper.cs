@@ -138,13 +138,13 @@ namespace SharedEntities.Data
             if (!dbContext.Techniques.Any())
             {
                 var defaultTechniques = new Techniques() {
-                    Name = "Generic Technique",
+                    Name = "Generic",
                     TechniqueType = new()
                     {
-                        Name = "Generic Technique Type",
+                        Name = "Conditioning",
                         PositionalScenario = new()
                         {
-                            Name = "Generic Positional Scenario",
+                            Name = "Generic",
                             FocusModule = FocusModule.General,
                             TargetLevel = TargetLevel.Beginner,
                         },

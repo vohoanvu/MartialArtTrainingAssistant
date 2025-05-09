@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { uploadVideoFile } from '@/services/api';
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import { VideoUploadResponse, MartialArt } from '@/types/global';
-import AiAnalysisResults from './AiAnalysisResults';
+import AiAnalysisResults from '../AiAnalysisResults';
 
 interface VideoUploadFormProps {
     fighterRole: number; // 0 for Student, 1 for Instructor

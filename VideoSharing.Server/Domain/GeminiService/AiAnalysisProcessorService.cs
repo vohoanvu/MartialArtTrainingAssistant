@@ -35,7 +35,8 @@ namespace VideoSharing.Server.Domain.GeminiService
                     AreasForImprovement = JsonSerializer.Serialize(analysis.AreasForImprovement),
                     OverallDescription = analysis.OverallDescription,
                     Techniques = new List<Techniques>(),
-                    Drills = new List<Drills>()
+                    Drills = new List<Drills>(),
+                    GeneratedAt = DateTime.Now,
                 };
                 _context.AiAnalysisResults.Add(existingAiAnalysisResult);
             }
@@ -47,6 +48,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 existingAiAnalysisResult.OverallDescription = analysis.OverallDescription;
                 existingAiAnalysisResult.Techniques.Clear();
                 existingAiAnalysisResult.Drills.Clear();
+                existingAiAnalysisResult.LastUpdatedAt = DateTime.Now;
             }
 
             // Process techniques_identified

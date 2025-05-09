@@ -85,7 +85,8 @@ namespace VideoSharing.Server.Controllers
                         AreasForImprovement = JsonSerializer.Serialize(analysis.AreasForImprovement ?? new List<AreaForImprovement>()),
                         OverallDescription = analysis.OverallDescription,
                         Techniques = new List<Techniques>(),
-                        Drills = new List<Drills>()
+                        Drills = new List<Drills>(),
+                        GeneratedAt = DateTime.Now,
                     };
                     dbContext.AiAnalysisResults.Add(newAiResult);
                     aiResult = newAiResult;
