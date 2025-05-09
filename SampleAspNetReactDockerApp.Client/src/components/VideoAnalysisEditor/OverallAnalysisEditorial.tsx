@@ -83,8 +83,8 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
 
     return (
         <div className="space-y-4">
-            <div className="p-4 rounded-md shadow">
-                <label className="block text-sm font-medium">
+            <div className="p-4 bg-background rounded-md shadow border border-border">
+                <label className="block text-sm font-medium text-foreground">
                     Overall Description
                 </label>
                 <Textarea
@@ -95,16 +95,16 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                 />
             </div>
 
-            <div className="p-4 rounded-md shadow">
+            <div className="p-4 bg-background rounded-md shadow border border-border">
                 <div
-                    className="flex justify-between items-center cursor-pointer p-2"
+                    className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40"
                     onClick={() => setShowStrengths(!showStrengths)}
                 >
-                    <h3 className="text-lg font-bold">Strengths</h3>
+                    <h3 className="text-lg font-bold text-foreground">Strengths</h3>
                     {showStrengths ? (
-                        <ChevronUp className="text-blue-500" />
+                        <ChevronUp className="text-primary" />
                     ) : (
-                        <ChevronDown className="text-blue-500" />
+                        <ChevronDown className="text-primary" />
                     )}
                 </div>
                 {showStrengths && (
@@ -112,9 +112,9 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                         {strengths.map((strength, index) => (
                             <div
                                 key={index}
-                                className="p-4 rounded-md border"
+                                className="p-4 bg-background rounded-md border border-border"
                             >
-                                <label className="block text-sm font-medium">
+                                <label className="block text-sm font-medium text-foreground">
                                     Strength {index + 1} Description
                                 </label>
                                 <Textarea
@@ -125,7 +125,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                     className="mt-1"
                                     placeholder="Enter strength description"
                                 />
-                                <label className="block text-sm font-medium mt-2">
+                                <label className="block text-sm font-medium mt-2 text-foreground">
                                     Related Technique
                                 </label>
                                 <Select
@@ -166,16 +166,16 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                 )}
             </div>
 
-            <div className="p-4 rounded-md shadow">
+            <div className="p-4 bg-background rounded-md shadow border border-border">
                 <div
-                    className="flex justify-between items-center cursor-pointer p-2"
+                    className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40"
                     onClick={() => setShowAreas(!showAreas)}
                 >
-                    <h3 className="text-lg font-bold">Areas for Improvement</h3>
+                    <h3 className="text-lg font-bold text-foreground">Areas for Improvement</h3>
                     {showAreas ? (
-                        <ChevronUp className="text-blue-500" />
+                        <ChevronUp className="text-primary" />
                     ) : (
-                        <ChevronDown className="text-blue-500" />
+                        <ChevronDown className="text-primary" />
                     )}
                 </div>
                 {showAreas && (
@@ -183,9 +183,9 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                         {areasForImprovement.map((area, index) => (
                             <div
                                 key={index}
-                                className="p-4 rounded-md border"
+                                className="p-4 bg-background rounded-md border border-border"
                             >
-                                <label className="block text-sm font-medium">
+                                <label className="block text-sm font-medium text-foreground">
                                     Area for Improvement {index + 1} Description
                                 </label>
                                 <Textarea
@@ -196,7 +196,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                     className="mt-1"
                                     placeholder="Enter area for improvement description"
                                 />
-                                <label className="block text-sm font-medium mt-2">
+                                <label className="block text-sm font-medium mt-2 text-foreground">
                                     Related Technique
                                 </label>
                                 <Select

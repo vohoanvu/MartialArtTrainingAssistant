@@ -142,8 +142,8 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
             </Button>
 
             {showCreateForm && (
-                <div className="p-4 rounded-md space-y-4">
-                    <p className="text-sm">
+                <div className="p-4 bg-background rounded-md space-y-4 border border-border">
+                    <p className="text-sm text-muted-foreground">
                         Please select a video segment from the video player timeline to set the
                         timestamps for this technique.
                     </p>
@@ -261,35 +261,35 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
             {techniques.map((technique, index) => (
                 <div
                     key={index}
-                    className="border-b pb-4"
+                    className="border-b border-border pb-4"
                 >
                     <div
-                        className="flex justify-between items-center cursor-pointer p-2"
+                        className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40"
                         onClick={() => toggleTechniqueDetails(index)}
                     >
                         <div>
                             <p>
-                                <strong>Technique Name:</strong> {technique.name}
+                                <strong>Technique Name:</strong> <span className="text-foreground">{technique.name}</span>
                             </p>
                             <p>
                                 <strong>Timestamp:</strong>{' '}
-                                <span className="px-1 rounded">
+                                <span className="px-1 rounded bg-muted text-muted-foreground">
                                     {technique.startTimestamp}
                                 </span>{' '}
                                 -{' '}
-                                <span className="px-1 rounded">
+                                <span className="px-1 rounded bg-muted text-muted-foreground">
                                     {technique.endTimestamp}
                                 </span>
                             </p>
                         </div>
                         {expandedTechniques[index] ? (
-                            <ChevronUp className="text-blue-500" />
+                            <ChevronUp className="text-primary" />
                         ) : (
-                            <ChevronDown className="text-blue-500" />
+                            <ChevronDown className="text-primary" />
                         )}
                     </div>
                     {expandedTechniques[index] && (
-                        <div className="p-2 space-y-2">
+                        <div className="p-2 space-y-2 bg-background rounded-md border border-border">
                             <div>
                                 <label className="block text-sm font-medium">
                                     Technique Type

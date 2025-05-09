@@ -12,9 +12,10 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             <textarea
                 className={cn(
                     'w-full px-3 py-2 border rounded-md shadow-sm',
-                    //'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                    'text-gray-700 placeholder-gray-400',
-                    'disabled:bg-gray-100 disabled:cursor-not-allowed',
+                    'bg-background text-foreground border-input',
+                    'focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary',
+                    'placeholder-muted-foreground',
+                    'disabled:bg-muted disabled:cursor-not-allowed',
                     'resize-y',
                     className
                 )}

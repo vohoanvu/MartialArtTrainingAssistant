@@ -1,5 +1,6 @@
 import { Fighter } from "@/types/global";
 import { useEffect, useState } from "react";
+import { Input } from "../ui/input";
 
 interface StudentDetailsProps {
     fighterDetails: Fighter | null;
@@ -49,19 +50,19 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
         <div id="studentDetails" className="grid grid-cols-2 gap-4 p-4 m-2 shadow-md border">
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Student Name</label>
-                <input
+                <Input
                     type="text"
                     value={studentName}
                     onChange={(e) => setStudentName(e.target.value)}
-                    className="w-full p-2 border rounded-md"
                     placeholder="Enter student name..."
+                    className="w-full p-2 border rounded-md"
                     readOnly
                 />
             </div>
 
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Belt Rank</label>
-                <input
+                <Input
                     type="text"
                     value={beltRantk}
                     onChange={(e) => setBeltRank(e.target.value)}
@@ -73,7 +74,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
 
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Student Identifier</label>
-                <input
+                <Input
                     type="text"
                     value={studentIdentifier}
                     onChange={(e) => setStudentIdentifier(e.target.value)}
@@ -85,7 +86,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
 
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Height</label>
-                <input
+                <Input
                     type="text"
                     value={height}
                     className="w-full p-2 border rounded-md"
@@ -96,7 +97,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
 
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Weight</label>
-                <input
+                <Input
                     type="text"
                     value={weight}
                     className="w-full p-2 border rounded-md"
@@ -107,7 +108,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
 
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Training Experience</label>
-                <input
+                <Input
                     type="text"
                     value={experience}
                     className="w-full p-2 border rounded-md"

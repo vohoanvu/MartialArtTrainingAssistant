@@ -24,34 +24,44 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
         return <div className="p-4">Loading feedback data...</div>;
     }
 
-    const getTabClass = (tabName: ActiveTab): string => {
-        return `py-2 px-4 text-center font-medium cursor-pointer border-b-2 transition-colors duration-150 ${
-            activeTab === tabName
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-        }`;
-    };
-
     return (
         <div className="feedback-container p-4 rounded-md shadow-md border">
-             <div className="w-full">
+            <div className="w-full">
                 {/* Tab List */}
-                <div className="grid grid-cols-3 border-b border mb-4">
+                <div className="flex space-x-2 border-b mb-4">
                     <button
                         onClick={() => setActiveTab('techniques')}
-                        className={getTabClass('techniques')}
+                        className={
+                            `shadcn-ui-tab px-4 py-2 rounded-t-md font-medium transition-colors duration-150 focus:outline-none ` +
+                            (activeTab === 'techniques'
+                                ? 'bg-background border-b-2 border-primary text-primary shadow'
+                                : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent')
+                        }
+                        type="button"
                     >
                         Identified Techniques
                     </button>
                     <button
                         onClick={() => setActiveTab('drills')}
-                        className={getTabClass('drills')}
+                        className={
+                            `shadcn-ui-tab px-4 py-2 rounded-t-md font-medium transition-colors duration-150 focus:outline-none ` +
+                            (activeTab === 'drills'
+                                ? 'bg-background border-b-2 border-primary text-primary shadow'
+                                : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent')
+                        }
+                        type="button"
                     >
                         Suggested Drills
                     </button>
                     <button
                         onClick={() => setActiveTab('analysis')}
-                        className={getTabClass('analysis')}
+                        className={
+                            `shadcn-ui-tab px-4 py-2 rounded-t-md font-medium transition-colors duration-150 focus:outline-none ` +
+                            (activeTab === 'analysis'
+                                ? 'bg-background border-b-2 border-primary text-primary shadow'
+                                : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent')
+                        }
+                        type="button"
                     >
                         Overall Analysis
                     </button>

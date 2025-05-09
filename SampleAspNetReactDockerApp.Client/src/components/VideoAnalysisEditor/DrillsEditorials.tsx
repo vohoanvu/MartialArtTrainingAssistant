@@ -93,9 +93,9 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
             </Button>
 
             {showCreateForm && (
-                <div className="p-4 bg-gray-100 rounded-md space-y-4">
+                <div className="p-4 bg-background rounded-md space-y-4 border border-border">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium">
                             Drill Name
                         </label>
                         <Input
@@ -106,7 +106,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium">
                             Focus
                         </label>
                         <Input
@@ -117,7 +117,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium">
                             Duration
                         </label>
                         <Input
@@ -128,7 +128,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium">
                             Description
                         </label>
                         <Textarea
@@ -139,7 +139,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium">
                             Related Technique
                         </label>
                         <Select
@@ -181,25 +181,25 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
             {drills.map((drill, index) => (
                 <div
                     key={index}
-                    className="border-b pb-4"
+                    className="border-b border-border pb-4"
                 >
                     <div
-                        className="flex justify-between items-center cursor-pointer p-2 hover:bg-gray-100"
+                        className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40"
                         onClick={() => toggleDrillDetails(index)}
                     >
                         <p>
-                            <strong>Drill Name:</strong> {drill.name}
+                            <strong>Drill Name:</strong> <span className="text-foreground">{drill.name}</span>
                         </p>
                         {expandedDrills[index] ? (
-                            <ChevronUp className="text-blue-500" />
+                            <ChevronUp className="text-primary" />
                         ) : (
-                            <ChevronDown className="text-blue-500" />
+                            <ChevronDown className="text-primary" />
                         )}
                     </div>
                     {expandedDrills[index] && (
-                        <div className="p-2 space-y-2">
+                        <div className="p-2 space-y-2 bg-background rounded-md border border-border">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                                <label className="block text-sm font-medium">
                                     Focus
                                 </label>
                                 <Input
@@ -211,7 +211,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                                <label className="block text-sm font-medium">
                                     Duration
                                 </label>
                                 <Input
@@ -223,7 +223,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                                <label className="block text-sm font-medium">
                                     Description
                                 </label>
                                 <Textarea
@@ -235,7 +235,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                                <label className="block text-sm font-medium">
                                     Related Technique
                                 </label>
                                 <Select

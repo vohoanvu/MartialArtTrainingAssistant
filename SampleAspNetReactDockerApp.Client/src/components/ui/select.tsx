@@ -17,18 +17,18 @@ const SelectTrigger = forwardRef<
     <SelectPrimitive.Trigger
         ref={ref}
         className={cn(
-            'w-full px-3 py-2 border border rounded-md shadow-sm',
+            'w-full px-3 py-2 border rounded-md shadow-sm',
             'flex items-center justify-between',
-            //'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-            //'text-gray-700 bg-white',
-            'disabled:bg-gray-100 disabled:cursor-not-allowed',
+            'bg-background text-foreground border-input',
+            'focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary',
+            'disabled:bg-muted disabled:cursor-not-allowed',
             className
         )}
         {...props}
     >
         {children}
         <SelectPrimitive.Icon>
-            <ChevronDown className="h-4 w-4 text-gray-500" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
 ));
@@ -42,7 +42,7 @@ const SelectContent = forwardRef<
         <SelectPrimitive.Content
             ref={ref}
             className={cn(
-                'bg-white border border-gray-300 rounded-md shadow-lg',
+                'bg-popover border border-border rounded-md shadow-lg',
                 'max-h-60 overflow-y-auto',
                 'z-50',
                 className
@@ -64,9 +64,9 @@ const SelectItem = forwardRef<
     <SelectPrimitive.Item
         ref={ref}
         className={cn(
-            'px-3 py-2 text-gray-700 hover:bg-gray-100',
+            'px-3 py-2 text-foreground hover:bg-accent hover:text-accent-foreground',
             'cursor-pointer',
-            'focus:outline-none focus:bg-gray-100',
+            'focus:outline-none focus:bg-accent focus:text-accent-foreground',
             className
         )}
         {...props}
