@@ -3,7 +3,7 @@ import {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import useAuthStore, { RegisterFighterBody } from "@/store/authStore.ts";
 import {Button} from "@/components/ui/button.tsx";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
+import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
 
 interface ValidationError {
     type: string;

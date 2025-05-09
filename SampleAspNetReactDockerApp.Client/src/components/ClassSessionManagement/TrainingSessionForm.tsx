@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import ConfirmationDialog from '@/components/ConfirmationDialog';  // Ensure this component is imported correctly
+import ConfirmationDialog from '@/components/ui/ConfirmationDialog';  // Ensure this component is imported correctly
 import { Button } from '@/components/ui/button';
 import { CreateTrainingSessionRequest, UpdateTrainingSessionRequest } from '@/types/global';
 import { createTrainingSession, updateTrainingSessionDetails , getTrainingSessionDetails } from '@/services/api';
