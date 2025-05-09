@@ -13,7 +13,7 @@ const VideoReview: React.FC = () => {
     const [videoUrl, setVideoUrl] = useState('');
     const { accessToken, refreshToken, hydrate } = useAuthStore();
 
-    const [selectedSegment, setSelectedSegment] = useState<{ from: number; to: number } | null>(null);
+    const [selectedSegment, setSelectedSegment] = useState<{ start: string; end: string } | null>(null);
     const [fighterDetails, setFighterDetails] = useState<Fighter | null>(null);
 
     useEffect(() => {
@@ -54,7 +54,12 @@ const VideoReview: React.FC = () => {
         fetchData();
     }, [videoId, accessToken, refreshToken, hydrate]);
 
-    const handleInputChange = (section: string, index: string | number, field: string | number, value: any) => {
+    const handleInputChange = (
+        section: string,
+        index: string | number,
+        field: string | number,
+        value: any
+    ) => {
         const updatedAnalysis = { ...feedbackList } as any;
         if (section === 'overallAnalysis') {
             updatedAnalysis[section][field] = value;
@@ -64,20 +69,19 @@ const VideoReview: React.FC = () => {
         setFeedbackList(updatedAnalysis);
     };
 
-    const handleSaveAnalyisResult = async (updatedFeedbackData: AnalysisResultDto) => {
+    const handleSaveAnalysisResult = async (updatedFeedbackData: AnalysisResultDto) => {
         if (!updatedFeedbackData || !videoId) {
             console.error('Missing videoId or AnalysisResultDto for saving.');
             return;
         }
 
         try {
-            // Pass feedbackList as the analysisResultBody argument
             const updatedAnalysisResult = await saveVideoAnalysisResult({
                 videoId,
                 analysisResultBody: updatedFeedbackData,
                 jwtToken: accessToken,
                 refreshToken,
-                hydrate
+                hydrate,
             });
 
             setFeedbackList(updatedAnalysisResult);
@@ -101,13 +105,12 @@ const VideoReview: React.FC = () => {
             <div className="flex-1">
                 <VideoPlayer
                     videoUrl={videoUrl}
-                    videoId={videoId || "0"}
+                    videoId={videoId || '0'}
                     identifiedTechniques={feedbackList?.techniques || []}
-                    setFromTimestamp={() => console.log('Set START timestamp')}
-                    setToTimestamp={() => console.log('Set END timestamp')}
                     selectedSegment={selectedSegment}
                     setSelectedSegment={setSelectedSegment}
                     clearSelection={clearSelection}
+                    onSegmentSelect={(start, end) => setSelectedSegment({ start, end })}
                 />
                 <StudentDetails fighterDetails={fighterDetails} />
             </div>
@@ -115,8 +118,9 @@ const VideoReview: React.FC = () => {
                 <TechniqueFeedback
                     feedbackData={feedbackList}
                     onSeek={handleSeek}
-                    saveChanges={handleSaveAnalyisResult}
+                    saveChanges={handleSaveAnalysisResult}
                     onInputChange={handleInputChange}
+                    selectedSegment={selectedSegment}
                 />
             </div>
         </div>

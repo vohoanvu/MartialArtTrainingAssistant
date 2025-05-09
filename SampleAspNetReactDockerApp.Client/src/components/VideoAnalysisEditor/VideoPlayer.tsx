@@ -6,11 +6,10 @@ interface VideoPlayerProps {
     videoUrl: string;
     videoId: string;
     identifiedTechniques: TechniqueDto[];
-    setFromTimestamp: (timestamp: string) => void;
-    setToTimestamp: (timestamp: string) => void;
-    selectedSegment: { from: number; to: number } | null;
-    setSelectedSegment: (segment: { from: number; to: number } | null) => void;
+    selectedSegment: { start: string; end: string } | null;
+    setSelectedSegment: (segment: { start: string; end: string } | null) => void;
     clearSelection: () => void;
+    onSegmentSelect?: (start: string, end: string) => void;
 }
 
 const parseTimestampToSeconds = (timestamp: string | null): number => {
@@ -23,13 +22,19 @@ const parseTimestampToSeconds = (timestamp: string | null): number => {
     return minutes * 60 + seconds;
 };
 
+const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
     videoUrl,
     identifiedTechniques,
-    setFromTimestamp,
-    setToTimestamp,
     selectedSegment,
     setSelectedSegment,
+    clearSelection,
+    onSegmentSelect,
 }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const timelineRef = useRef<HTMLDivElement>(null);
@@ -92,9 +97,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             } else {
                 const from = Math.min(dragStart!, endTimestamp);
                 const to = Math.max(dragStart!, endTimestamp);
-                setSelectedSegment({ from, to }); // Persist the segment
-                setFromTimestamp(from.toFixed(2));
-                setToTimestamp(to.toFixed(2));
+                const startFormatted = formatTime(from);
+                const endFormatted = formatTime(to);
+                setSelectedSegment({ start: startFormatted, end: endFormatted });
+                onSegmentSelect?.(startFormatted, endFormatted);
             }
 
             setIsDragging(false);
@@ -138,10 +144,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setCurrentTime(seekTime);
     };
 
+    const handleClearSelection = () => {
+        setSelectedSegment(null);
+        clearSelection();
+    };
+
     const getSelectedRangeStyle = () => {
         if (!selectedSegment) return {};
-        const leftPercent = (selectedSegment.from / duration) * 100;
-        const widthPercent = ((selectedSegment.to - selectedSegment.from) / duration) * 100;
+        const from = parseTimestampToSeconds(selectedSegment.start);
+        const to = parseTimestampToSeconds(selectedSegment.end);
+        if (isNaN(from) || isNaN(to)) return {};
+        const leftPercent = (from / duration) * 100;
+        const widthPercent = ((to - from) / duration) * 100;
         return {
             left: `${leftPercent}%`,
             width: `${widthPercent}%`,
@@ -154,11 +168,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getFromMarkerStyle = () => {
         if (!selectedSegment) return {};
-        const leftPercent = (selectedSegment.from / duration) * 100;
+        const from = parseTimestampToSeconds(selectedSegment.start);
+        if (isNaN(from)) return {};
+        const leftPercent = (from / duration) * 100;
         return {
-            left: `calc(${leftPercent}% - 5px)`, // Center the triangle
+            left: `calc(${leftPercent}% - 5px)`,
             position: 'absolute',
-            top: '-10px', // Position so the tip touches the timeline border
+            top: '-10px',
             width: '0',
             height: '0',
             borderLeft: '5px solid transparent',
@@ -170,7 +186,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getToMarkerStyle = () => {
         if (!selectedSegment) return {};
-        const leftPercent = (selectedSegment.to / duration) * 100;
+        const to = parseTimestampToSeconds(selectedSegment.end);
+        if (isNaN(to)) return {};
+        const leftPercent = (to / duration) * 100;
         return {
             left: `calc(${leftPercent}% - 5px)`,
             position: 'absolute',
@@ -186,7 +204,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getFromDottedLineStyle = () => {
         if (!selectedSegment) return {};
-        const leftPercent = (selectedSegment.from / duration) * 100;
+        const from = parseTimestampToSeconds(selectedSegment.start);
+        if (isNaN(from)) return {};
+        const leftPercent = (from / duration) * 100;
         return {
             left: `${leftPercent}%`,
             position: 'absolute',
@@ -200,14 +220,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getToDottedLineStyle = () => {
         if (!selectedSegment) return {};
-        const leftPercent = (selectedSegment.to / duration) * 100;
+        const to = parseTimestampToSeconds(selectedSegment.end);
+        if (isNaN(to)) return {};
+        const leftPercent = (to / duration) * 100;
         return {
             left: `${leftPercent}%`,
             position: 'absolute',
             top: '0',
             width: '1px',
             height: '100%',
-            borderLeft: '1px dotted black', // Dotted line for "To"
+            borderLeft: '1px dotted black',
             zIndex: 2,
         } as React.CSSProperties;
     };
@@ -244,11 +266,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     )}
                     {selectedSegment && (
                         <>
-                            <div style={getFromMarkerStyle()} /> {/* "From" marker */}
-                            <div style={getToMarkerStyle()} />   {/* "To" marker */}
-                            <div style={getFromDottedLineStyle()} /> {/* "From" dotted line */}
-                            <div style={getToDottedLineStyle()} />   {/* "To" dotted line */}
-                            <div style={getSelectedRangeStyle()} />  {/* Selected range */}
+                            <div style={getFromMarkerStyle()} />
+                            <div style={getToMarkerStyle()} />
+                            <div style={getFromDottedLineStyle()} />
+                            <div style={getToDottedLineStyle()} />
+                            <div style={getSelectedRangeStyle()} />
                         </>
                     )}
                     <div
@@ -280,6 +302,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         );
                     })}
                 </div>
+                {selectedSegment && (
+                    <div className="mt-2 flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                            Selected Segment: {selectedSegment.start} - {selectedSegment.end}
+                        </p>
+                        <Button
+                            onClick={handleClearSelection}
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive"
+                        >
+                            Clear Selection
+                        </Button>
+                    </div>
+                )}
             </div>
             <div className="controls flex items-center justify-between p-2 mt-2">
                 <Button onClick={handlePlayPause}>{playing ? 'Pause' : 'Play'}</Button>

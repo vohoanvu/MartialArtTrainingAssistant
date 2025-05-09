@@ -9,14 +9,16 @@ interface TechniqueFeedbackProps {
     onSeek: (timestamp: number) => void;
     saveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
     onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
+    selectedSegment?: { start: string; end: string } | null;
 }
 
 type ActiveTab = 'techniques' | 'drills' | 'analysis';
 
-const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({ 
-    feedbackData, 
-    onSeek, 
+const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
+    feedbackData,
+    onSeek,
     saveChanges,
+    selectedSegment,
 }) => {
     const [activeTab, setActiveTab] = useState<ActiveTab>('techniques');
 
@@ -74,10 +76,11 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
                             analysisResultDto={feedbackData}
                             onSeek={onSeek}
                             handleSaveChanges={saveChanges}
+                            selectedSegment={selectedSegment}
                         />
                     )}
                     {activeTab === 'drills' && (
-                        <DrillsEditorial 
+                        <DrillsEditorial
                             analysisResultDto={feedbackData}
                             handleSaveChanges={saveChanges}
                         />
@@ -95,4 +98,3 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
 };
 
 export default TechniqueFeedback;
-
