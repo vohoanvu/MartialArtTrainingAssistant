@@ -3,6 +3,9 @@ import { uploadVideoFile } from '@/services/api';
 import { Button } from '../ui/button';
 import { VideoUploadResponse, MartialArt } from '@/types/global';
 import AiAnalysisResults from '../AiAnalysisResults';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select';
 
 interface VideoUploadFormProps {
     fighterRole: number; // 0 for Student, 1 for Instructor
@@ -108,72 +111,75 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
     };
 
     return (
-        <div className="w-full max-w p-4 bg-gray-100 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <div className="w-full max-w p-4 bg-background rounded-lg shadow-md border border-border">
+            <h2 className="text-xl font-bold mb-4 text-foreground">{title}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="videoFile" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="videoFile" className="block text-sm font-medium text-foreground">
                         Video File (MP4 or AVI)
                     </label>
-                    <input
+                    <Input
                         type="file"
                         id="videoFile"
                         accept="video/mp4,video/avi"
                         onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        className="mt-1 block w-full border rounded-md p-2"
+                        className="mt-1"
                         disabled={isLoading}
                     />
                 </div>
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="description" className="block text-sm font-medium text-foreground">
                         Description
                     </label>
-                    <textarea
+                    <Textarea
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Enter a description"
-                        className="mt-1 block w-full border rounded-md p-2"
+                        className="mt-1"
                         rows={4}
                         disabled={isLoading}
                     />
                 </div>
                 <div>
-                    <label htmlFor="studentIdentifier" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="studentIdentifier" className="block text-sm font-medium text-foreground">
                         Student Identifier
                     </label>
-                    <input
+                    <Input
                         type="text"
                         id="studentIdentifier"
                         value={studentIdentifier}
                         onChange={(e) => setStudentIdentifier(e.target.value)}
                         placeholder="Please identify which fighter you are in the video. For example: Fighter in blue gi"
-                        className="mt-1 block w-full border rounded-md p-2"
+                        className="mt-1"
                         disabled={isLoading}
                     />
                 </div>
                 <div>
-                    <label htmlFor="martialArt" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="martialArt" className="block text-sm font-medium text-foreground">
                         Martial Art
                     </label>
-                    <select
-                        id="martialArt"
+                    <Select
                         value={martialArt}
-                        onChange={(e) => setMartialArt(e.target.value as MartialArt)}
-                        className="mt-1 block w-full border rounded-md p-2"
+                        onValueChange={(value) => setMartialArt(value as MartialArt)}
                         disabled={isLoading}
                     >
-                        {martialArtOptions.map((art) => (
-                            <option key={art} value={art}>
-                                {art}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select martial art" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {martialArtOptions.map((art) => (
+                                <SelectItem key={art} value={art}>
+                                    {art}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <Button
                     type="submit"
                     disabled={!file || isLoading}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+                    className="w-full"
                 >
                     {isLoading ? 'Uploading...' : `Upload ${uploadType === 'sparring' ? 'Sparring' : 'Demonstration'} Video`}
                 </Button>
@@ -181,10 +187,10 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
             {isLoading && (
                 <div className="mt-4">
                     <progress value={progress} max="100" className="w-full" />
-                    <p className="text-center mt-1">{progress}%</p>
+                    <p className="text-center mt-1 text-muted-foreground">{progress}%</p>
                 </div>
             )}
-            {error && <p className="text-red-500 mt-2">{error}</p>}
+            {error && <p className="text-destructive mt-2">{error}</p>}
             {signedUrl && (
                 <div className="mt-4">
                     <p className="text-green-500">Upload successful!</p>
@@ -193,8 +199,8 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
             )}
             {analysisLoading && !analysisCompleted && (
                 <div className="mt-4 flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                    <p className="text-blue-500">Your video is being analyzed. This may take a few minutes.</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                    <p className="text-primary">Your video is being analyzed. This may take a few minutes.</p>
                 </div>
             )}
             {analysisCompleted && analysisResult && (

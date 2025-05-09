@@ -7,7 +7,6 @@ import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
 import { Button } from "@/components/ui/button";
-import VideoUploadForm from "@/components/VideoAnalysisEditor/VideoUploadForm";
 
 export default function Dashboard(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
@@ -157,22 +156,6 @@ export default function Dashboard(): ReactElement {
                     <p>Loading data from API...</p>
                 )}
             </div>
-
-            {/* Video Upload Section - Only for authenticated users with role 0 or 1 */}
-            {user && jwtToken && (user.fighterInfo?.role === 0 || user.fighterInfo?.role === 1) && (
-                <div className="w-full max-w-4xl">
-                    <h2 className="text-2xl font-bold my-4 text-center">
-                        Video Management
-                    </h2>
-                    <div className="rounded-lg dark:shadow-accent p-4 transition duration-500 ease-in-out transform hover:scale-105">
-                        <VideoUploadForm 
-                            fighterRole={user.fighterInfo?.role} 
-                            jwtToken={jwtToken} 
-                            hydrateFn={hydrate}
-                        />
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

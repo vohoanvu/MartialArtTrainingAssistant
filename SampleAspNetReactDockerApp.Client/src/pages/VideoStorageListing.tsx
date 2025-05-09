@@ -113,11 +113,11 @@ const VideoStorageListing = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto my-10 p-6 border rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-4">Uploaded Videos</h2>
-            {isLoading && <p>Loading...</p>}
-            {error && <p className="text-red-500">{error}</p>}
-            {!isLoading && !error && videos.length === 0 && <p>No videos uploaded yet.</p>}
+        <div className="max-w-6xl mx-auto my-10 p-6 border border-border rounded-lg shadow-lg bg-background">
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Uploaded Videos</h2>
+            {isLoading && <p className="text-muted-foreground">Loading...</p>}
+            {error && <p className="text-destructive">{error}</p>}
+            {!isLoading && !error && videos.length === 0 && <p className="text-muted-foreground">No videos uploaded yet.</p>}
             {!isLoading && videos.length > 0 && (
                 <Table className="w-full">
                     <TableHeader>
@@ -169,14 +169,14 @@ const VideoStorageListing = () => {
             )}
 
             {selectedAnalysis && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-6xl w-full max-h-[80vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50">
+                    <div className="bg-background p-6 rounded-lg shadow-lg max-w-6xl w-full max-h-[80vh] overflow-y-auto border border-border">
                         <AiAnalysisResults analysisJson={selectedAnalysis.aiAnalysisResult} />
                         <div className="flex justify-between mt-4">
                             <Button variant="default" onClick={onImportAIAnalysis}>Import AI Analysis</Button>
                             <Button variant="secondary" onClick={closeDialog}>Close</Button>
                         </div>
-                        {error && <p className="text-red-500">{error}</p>}
+                        {error && <p className="text-destructive mt-2">{error}</p>}
                     </div>
                 </div>
             )}

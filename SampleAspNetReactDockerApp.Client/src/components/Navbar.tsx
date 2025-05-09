@@ -37,8 +37,10 @@ export default function Navbar(
                                         Welcome <strong>{authUser?.email}!</strong>
                                     </li>
                                     <li>
-                                        <Link to="/videos" className="hover:text-primary">
-                                            Video Showcase
+                                        <Link to="/videos">
+                                            <Button size="sm" variant="outline" className="w-full">
+                                                Video Showcase
+                                            </Button>
                                         </Link>
                                     </li>
                                     <li className="">
