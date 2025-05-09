@@ -16,7 +16,7 @@ import TrainingSessionForm from './components/ClassSessionManagement/TrainingSes
 import TrainingSessionDetails from './components/ClassSessionManagement/TrainingSessionDetails.tsx';
 import VideoShareList from './pages/VideoShareList.tsx';
 import VideoStorageListing from './pages/VideoStorageListing.tsx';
-import VideoReviewWrapper from './pages/VideoReview.tsx';
+import VideoReview from './pages/VideoReview.tsx';
 
 const router = createBrowserRouter([
     {
@@ -73,7 +73,7 @@ const router = createBrowserRouter([
             },
             {
                 path: '/video-review/:videoId',
-                element: <VideoReviewWrapper/>,
+                element: <VideoReview/>,
             }
         ]
     }

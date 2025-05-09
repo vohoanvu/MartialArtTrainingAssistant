@@ -101,27 +101,33 @@ const VideoReview: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-                <VideoPlayer
-                    videoUrl={videoUrl}
-                    videoId={videoId || '0'}
-                    identifiedTechniques={feedbackList?.techniques || []}
-                    selectedSegment={selectedSegment}
-                    setSelectedSegment={setSelectedSegment}
-                    clearSelection={clearSelection}
-                    onSegmentSelect={(start, end) => setSelectedSegment({ start, end })}
-                />
-                <StudentDetails fighterDetails={fighterDetails} />
+        <div className="flex flex-col md:flex-row gap-4 md:p-4 m-0 md:m-2">
+            <div className="w-full md:w-1/2 flex flex-col gap-4">
+                <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
+                    <VideoPlayer
+                        videoUrl={videoUrl}
+                        videoId={videoId || '0'}
+                        identifiedTechniques={feedbackList?.techniques || []}
+                        selectedSegment={selectedSegment}
+                        setSelectedSegment={setSelectedSegment}
+                        clearSelection={clearSelection}
+                        onSegmentSelect={(start, end) => setSelectedSegment({ start, end })}
+                    />
+                </div>
+                <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
+                    <StudentDetails fighterDetails={fighterDetails} />
+                </div>
             </div>
-            <div className="flex-2">
-                <TechniqueFeedback
-                    feedbackData={feedbackList}
-                    onSeek={handleSeek}
-                    saveChanges={handleSaveAnalysisResult}
-                    onInputChange={handleInputChange}
-                    selectedSegment={selectedSegment}
-                />
+            <div className="w-full md:w-1/2 mt-4 md:mt-0">
+                <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4 h-full">
+                    <TechniqueFeedback
+                        feedbackData={feedbackList}
+                        onSeek={handleSeek}
+                        saveChanges={handleSaveAnalysisResult}
+                        onInputChange={handleInputChange}
+                        selectedSegment={selectedSegment}
+                    />
+                </div>
             </div>
         </div>
     );
