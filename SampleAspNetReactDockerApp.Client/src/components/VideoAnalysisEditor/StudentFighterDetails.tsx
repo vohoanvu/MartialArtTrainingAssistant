@@ -29,7 +29,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
     fighterDetails,
 }) => {
     const [studentName, setStudentName] = useState('');
-    const [beltRantk, setBeltRank] = useState('');
+    const [beltRank, setBeltRank] = useState('');
     const [studentIdentifier, setStudentIdentifier] = useState('');
     const [experience, setExperience] = useState(TrainingExperience.MoreThanFiveYears);
     const [height, setHeight] = useState('0');
@@ -37,12 +37,22 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
 
     useEffect(() => {
         if (fighterDetails) {
-            setStudentName(fighterDetails.fighterName);
-            setBeltRank(fighterDetails.beltColor);
+            setStudentName(fighterDetails.fighterName ?? '');
+            setBeltRank(fighterDetails.beltRank ?? '');
             setStudentIdentifier("TO BE CONTINUED");
-            setHeight(fighterDetails.height.toString());
-            setWeight(fighterDetails.weight.toString());
-            setExperience(getTrainingExperienceFromIndex(fighterDetails.experience as number) || TrainingExperience.LessThanTwoYears);
+            setHeight(fighterDetails.height != null ? fighterDetails.height.toString() : '');
+            setWeight(fighterDetails.weight != null ? fighterDetails.weight.toString() : '');
+            setExperience(
+                getTrainingExperienceFromIndex(fighterDetails.experience as number) ||
+                TrainingExperience.LessThanTwoYears
+            );
+        } else {
+            setStudentName('');
+            setBeltRank('');
+            setStudentIdentifier('');
+            setHeight('');
+            setWeight('');
+            setExperience(TrainingExperience.LessThanTwoYears);
         }
     }, [fighterDetails]);
 
@@ -64,7 +74,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <label className="block text-sm font-medium mb-1">Belt Rank</label>
                 <Input
                     type="text"
-                    value={beltRantk}
+                    value={beltRank}
                     onChange={(e) => setBeltRank(e.target.value)}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter belt rank..."
@@ -91,6 +101,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                     value={height}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter height..."
+                    onChange={(e) => setHeight(e.target.value)}
                     readOnly
                 />
             </div>
@@ -102,6 +113,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                     value={weight}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter weight..."
+                    onChange={(e) => setWeight(e.target.value)}
                     readOnly
                 />
             </div>
@@ -113,6 +125,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                     value={experience}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter training experience..."
+                    onChange={(e) => setExperience(e.target.value as TrainingExperience)}
                     readOnly
                 />
             </div>

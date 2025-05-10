@@ -73,7 +73,6 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
 
     const saveChanges = async () => {
         const updatedFeedbackData: AnalysisResultDto = {
-            ...analysisResultDto,
             overallDescription,
             strengths,
             areasForImprovement,

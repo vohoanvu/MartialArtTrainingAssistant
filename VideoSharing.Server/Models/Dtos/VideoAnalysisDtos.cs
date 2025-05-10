@@ -81,4 +81,14 @@ namespace VideoSharing.Server.Models.Dtos
         public List<AreaForImprovement>? AreasForImprovement { get; set; }
         public string? OverallDescription { get; set; }
     }
+
+    public class PartialAnalysisResultDto
+    {
+        public int? Id { get; set; }
+        public List<TechniqueDto>? Techniques { get; set; }
+        public List<DrillDto>? Drills { get; set; }
+        public List<Strength>? Strengths { get; set; }
+        public List<AreaForImprovement>? AreasForImprovement { get; set; }
+        public string? OverallDescription { get; set; }
+    }
 }

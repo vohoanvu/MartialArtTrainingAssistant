@@ -76,7 +76,6 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
 
     const saveChanges = async () => {
         const updatedFeedbackData: AnalysisResultDto = {
-            ...analysisResultDto,
             drills,
         };
         await handleSaveChanges(updatedFeedbackData);

@@ -55,7 +55,7 @@ namespace FighterManager.Server.Helpers
             {
                 fighter.Id,
                 fighter.FighterName,
-                fighter.BelkRank,
+                BeltRank = fighter.BelkRank.ToString(),
                 fighter.Role,
                 fighter.Birthdate,
                 fighter.Height,

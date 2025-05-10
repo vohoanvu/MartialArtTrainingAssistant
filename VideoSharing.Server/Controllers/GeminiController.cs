@@ -134,24 +134,22 @@ namespace VideoSharing.Server.Controllers
             }
         }
 
-        [HttpPut("{videoId}/analysis")]
+        [HttpPatch("{videoId}/analysis")]
         [Authorize]
-        public async Task<ActionResult<AnalysisResultDto>> UpdateAnalysisAsync(int videoId, [FromBody] AnalysisResultDto analysisDto)
+        public async Task<ActionResult<AnalysisResultDto>> UpdateAnalysisAsync(int videoId, [FromBody] PartialAnalysisResultDto partialAnalysisDto)
         {
-            if (analysisDto == null)
+            if (partialAnalysisDto == null)
             {
-                _logger.LogWarning("Received null analysis DTO for videoId {VideoId}", videoId);
+                _logger.LogWarning("Received null partial analysis DTO for videoId {VideoId}", videoId);
                 return BadRequest(new { error = "Request body cannot be null" });
             }
 
             try
             {
-                // Authorization check (example: ensure user is video owner or instructor)
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
                 var aiAnalysisService = _serviceProvider.GetRequiredService<AiAnalysisProcessorService>();
-                var updatedAnalysis = await aiAnalysisService.SaveAnalysisResultDtoByVideoId(videoId, analysisDto);
-                _logger.LogInformation("Analysis updated successfully for videoId {VideoId} by user {UserId}", videoId, userId);
+                var updatedAnalysis = await aiAnalysisService.SavePartialAnalysisResultDtoByVideoId(videoId, partialAnalysisDto);
+                _logger.LogInformation("Partial analysis updated successfully for videoId {VideoId} by user {UserId}", videoId, userId);
                 return Ok(updatedAnalysis);
             }
             catch (InvalidOperationException ex)
@@ -165,6 +163,7 @@ namespace VideoSharing.Server.Controllers
                 return StatusCode(500, new { error = "An unexpected error occurred" });
             }
         }
+        
 
         private static string? ValidateStructuredJson(string apiResponseJson)
         {

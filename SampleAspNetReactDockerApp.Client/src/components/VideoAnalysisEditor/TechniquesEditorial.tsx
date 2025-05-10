@@ -124,11 +124,10 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
     };
 
     const saveChanges = async () => {
-        const updatedFeedbackData: AnalysisResultDto = {
-            ...analysisResultDto,
+        const updatingPartialFeedbackData: AnalysisResultDto = {
             techniques,
         };
-        await handleSaveChanges(updatedFeedbackData);
+        await handleSaveChanges(updatingPartialFeedbackData);
     };
 
     return (

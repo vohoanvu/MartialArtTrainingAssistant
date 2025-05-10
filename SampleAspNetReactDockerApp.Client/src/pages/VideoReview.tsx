@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getVideoDetails, getVideoFeedback, getFighterDetails, saveVideoAnalysisResult } from '@/services/api';
+import { getVideoDetails, getVideoFeedback, saveVideoAnalysisResult } from '@/services/api';
 import VideoPlayer from '../components/VideoAnalysisEditor/VideoPlayer';
 import useAuthStore from '@/store/authStore';
 import { AnalysisResultDto, Fighter } from '@/types/global';
@@ -11,7 +11,7 @@ const VideoReview: React.FC = () => {
     const { videoId } = useParams<{ videoId: string }>();
     const [feedbackList, setFeedbackList] = useState<AnalysisResultDto | null>(null);
     const [videoUrl, setVideoUrl] = useState('');
-    const { accessToken, refreshToken, hydrate } = useAuthStore();
+    const { accessToken, refreshToken, hydrate, user } = useAuthStore();
 
     const [selectedSegment, setSelectedSegment] = useState<{ start: string; end: string } | null>(null);
     const [fighterDetails, setFighterDetails] = useState<Fighter | null>(null);
@@ -39,13 +39,14 @@ const VideoReview: React.FC = () => {
                 setFeedbackList(feedbackData);
                 console.log('AiAnalysisResultDto data:', feedbackData);
 
-                const fighterDetails = await getFighterDetails({
-                    fighterId: videoDetails.fighterId,
-                    jwtToken: accessToken,
-                    refreshToken,
-                    hydrate,
-                });
-                setFighterDetails(fighterDetails);
+                // const fighterDetails = await getFighterDetails({
+                //     fighterId: videoDetails.fighterId,
+                //     jwtToken: accessToken,
+                //     refreshToken,
+                //     hydrate,
+                // });
+                const fighterDetails = user?.fighterInfo;
+                setFighterDetails(fighterDetails ?? null);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -69,16 +70,16 @@ const VideoReview: React.FC = () => {
         setFeedbackList(updatedAnalysis);
     };
 
-    const handleSaveAnalysisResult = async (updatedFeedbackData: AnalysisResultDto) => {
-        if (!updatedFeedbackData || !videoId) {
-            console.error('Missing videoId or AnalysisResultDto for saving.');
+    const handleSaveAnalysisResult = async (partialFeedbackData: AnalysisResultDto) => {
+        if (!partialFeedbackData || !videoId) {
+            console.error('Missing videoId or PartialAnalysisResultDto for saving.');
             return;
         }
 
         try {
             const updatedAnalysisResult = await saveVideoAnalysisResult({
                 videoId,
-                analysisResultBody: updatedFeedbackData,
+                analysisResultBody: partialFeedbackData,
                 jwtToken: accessToken,
                 refreshToken,
                 hydrate,

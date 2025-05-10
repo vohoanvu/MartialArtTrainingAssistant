@@ -35,7 +35,7 @@ export type WeatherForecast = {
 export interface Fighter {
     id: number;
     fighterName: string;
-    belkRank: number;
+    beltRank: string;
     role: number;
     birthdate: string; // or Date if you plan to handle it as a Date object
     height: number;
