@@ -36,7 +36,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                     OverallDescription = analysis.OverallDescription,
                     Techniques = new List<Techniques>(),
                     Drills = new List<Drills>(),
-                    GeneratedAt = DateTime.Now,
+                    GeneratedAt = DateTime.UtcNow,
                 };
                 _context.AiAnalysisResults.Add(existingAiAnalysisResult);
             }
@@ -48,7 +48,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 existingAiAnalysisResult.OverallDescription = analysis.OverallDescription;
                 existingAiAnalysisResult.Techniques.Clear();
                 existingAiAnalysisResult.Drills.Clear();
-                existingAiAnalysisResult.LastUpdatedAt = DateTime.Now;
+                existingAiAnalysisResult.LastUpdatedAt = DateTime.UtcNow;
             }
 
             // Process techniques_identified
@@ -439,7 +439,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 }
             }
 
-            existingAiAnalysisResult.LastUpdatedAt = DateTime.Now;
+            existingAiAnalysisResult.LastUpdatedAt = DateTime.UtcNow;
             _context.AiAnalysisResults.Update(existingAiAnalysisResult);
             await _context.SaveChangesAsync();
 

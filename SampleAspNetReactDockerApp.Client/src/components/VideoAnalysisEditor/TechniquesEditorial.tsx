@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AnalysisResultDto, TechniqueDto } from '@/types/global';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,23 +12,6 @@ interface TechniquesEditorialProps {
     handleSaveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
     selectedSegment?: { start: string; end: string } | null;
 }
-
-const techniqueTypes = [
-    'Grip Fighting',
-    'Guard Pull',
-    'Takedown Defense',
-    'Escape',
-    'Transition/Escape',
-    'Takedown Defense (Unsuccessful)',
-];
-
-const positionalScenarios = [
-    'Standing',
-    'Standing to Guard',
-    'Bottom Side Control',
-    'Bottom Mount',
-    'Ground Scramble to Standing',
-];
 
 export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
     analysisResultDto,
@@ -52,6 +35,21 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
     const [expandedTechniques, setExpandedTechniques] = useState<boolean[]>([]);
     const [editingNameIndex, setEditingNameIndex] = useState<number | null>(null);
     const [editingNameValue, setEditingNameValue] = useState<string>('');
+
+    // Get distinct Technique Types and Positional Scenarios from analysisResultDto
+    const techniqueTypes = useMemo(() => {
+        const allTypes = (analysisResultDto.techniques ?? [])
+            .map(t => t.techniqueType?.name)
+            .filter(Boolean);
+        return Array.from(new Set(allTypes));
+    }, [analysisResultDto.techniques]);
+
+    const positionalScenarios = useMemo(() => {
+        const allScenarios = (analysisResultDto.techniques ?? [])
+            .map(t => t.positionalScenario?.name)
+            .filter(Boolean);
+        return Array.from(new Set(allScenarios));
+    }, [analysisResultDto.techniques]);
 
     useEffect(() => {
         setTechniques(analysisResultDto.techniques ?? []);
@@ -142,7 +140,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
             techniques,
         };
         console.log('Sending to PATCH /api/video/{}/analysis with body.... ', updatingPartialFeedbackData);
-        //await handleSaveChanges(updatingPartialFeedbackData);
+        await handleSaveChanges(updatingPartialFeedbackData);
     };
 
     return (

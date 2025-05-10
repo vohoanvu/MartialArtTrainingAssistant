@@ -489,7 +489,7 @@ export async function saveVideoAnalysisResult({
     refreshToken: string | null;
     hydrate: () => Promise<void>;
 }): Promise<AnalysisResultDto> {
-    const response = await fetch(`/api/video/${videoId}/analysis`, {
+    const response = await fetch(`/vid/api/video/${videoId}/analysis`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',

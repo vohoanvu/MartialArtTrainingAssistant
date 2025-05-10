@@ -38,6 +38,7 @@ const VideoReview: React.FC = () => {
                 });
                 setFeedbackList(feedbackData);
                 console.log('AiAnalysisResultDto data:', feedbackData);
+                console.log("TimeSegment List: ", feedbackData.techniques?.map(t => t.startTimestamp));
 
                 // const fighterDetails = await getFighterDetails({
                 //     fighterId: videoDetails.fighterId,
