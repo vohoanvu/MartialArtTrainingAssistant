@@ -93,7 +93,7 @@ const VideoReview: React.FC = () => {
         }
     };
 
-    const handleSeek = (timestamp: number) => {
+    const handleSeek = (timestamp: string) => {
         console.log(`Seeking to ${timestamp}`);
     };
 

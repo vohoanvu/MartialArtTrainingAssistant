@@ -6,7 +6,7 @@ import { OverallAnalysisEditorial } from './OverallAnalysisEditorial';
 
 interface TechniqueFeedbackProps {
     feedbackData: AnalysisResultDto | null;
-    onSeek: (timestamp: number) => void;
+    onSeek: (timestamp: string) => void;
     saveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
     onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
     selectedSegment?: { start: string; end: string } | null;

@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 
 interface TechniquesEditorialProps {
     analysisResultDto: AnalysisResultDto;
-    onSeek: (timestamp: number) => void;
+    onSeek: (timestamp: string) => void;
     handleSaveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
     selectedSegment?: { start: string; end: string } | null;
 }
@@ -50,6 +50,8 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
         endTimestamp: '',
     });
     const [expandedTechniques, setExpandedTechniques] = useState<boolean[]>([]);
+    const [editingNameIndex, setEditingNameIndex] = useState<number | null>(null);
+    const [editingNameValue, setEditingNameValue] = useState<string>('');
 
     useEffect(() => {
         setTechniques(analysisResultDto.techniques ?? []);
@@ -79,9 +81,9 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
     ) => {
         const updatedTechniques = [...techniques];
         if (field === 'techniqueType') {
-            updatedTechniques[index].techniqueType = { 
-                name: value, 
-                positionalScenario: updatedTechniques[index].techniqueType.positionalScenario || '' 
+            updatedTechniques[index].techniqueType = {
+                name: value,
+                positionalScenario: updatedTechniques[index].techniqueType.positionalScenario || ''
             };
         } else if (field === 'positionalScenario') {
             updatedTechniques[index].positionalScenario = { name: value };
@@ -104,6 +106,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
 
     const addTechnique = () => {
         setTechniques([...techniques, { ...newTechnique }]);
+        setExpandedTechniques([...expandedTechniques, false]);
         setNewTechnique({
             name: '',
             description: '',
@@ -118,6 +121,17 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
         setShowCreateForm(false);
     };
 
+    const startEditingName = (index: number, currentName: string) => {
+        setEditingNameIndex(index);
+        setEditingNameValue(currentName);
+    };
+
+    const saveEditingName = (index: number) => {
+        handleTechniqueChange(index, 'name', editingNameValue);
+        setEditingNameIndex(null);
+        setEditingNameValue('');
+    };
+
     const deleteTechnique = (index: number) => {
         setTechniques(techniques.filter((_, i) => i !== index));
         setExpandedTechniques(expandedTechniques.filter((_, i) => i !== index));
@@ -127,7 +141,8 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
         const updatingPartialFeedbackData: AnalysisResultDto = {
             techniques,
         };
-        await handleSaveChanges(updatingPartialFeedbackData);
+        console.log('Sending to PATCH /api/video/{}/analysis with body.... ', updatingPartialFeedbackData);
+        //await handleSaveChanges(updatingPartialFeedbackData);
     };
 
     return (
@@ -267,8 +282,53 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                         onClick={() => toggleTechniqueDetails(index)}
                     >
                         <div>
-                            <p>
-                                <strong>Technique Name:</strong> <span className="text-foreground">{technique.name}</span>
+                            <p className="flex items-center gap-2">
+                                <strong>Technique Name:</strong>
+                                {editingNameIndex === index ? (
+                                    <>
+                                        <Input
+                                            value={editingNameValue}
+                                            onChange={e => setEditingNameValue(e.target.value)}
+                                            className="w-auto max-w-xs h-7 px-2 py-1 text-sm"
+                                            onClick={e => e.stopPropagation()}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') saveEditingName(index);
+                                                if (e.key === 'Escape') setEditingNameIndex(null);
+                                            }}
+                                            autoFocus
+                                        />
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-7 w-7"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                saveEditingName(index);
+                                            }}
+                                            title="Save"
+                                        >
+                                            <span className="sr-only">Save</span>
+                                            <Pencil className="w-4 h-4 text-primary" />
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="text-foreground">{technique.name}</span>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-7 w-7"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                startEditingName(index, technique.name);
+                                            }}
+                                            title="Edit"
+                                        >
+                                            <span className="sr-only">Edit</span>
+                                            <Pencil className="w-4 h-4 text-primary" />
+                                        </Button>
+                                    </>
+                                )}
                             </p>
                             <p>
                                 <strong>Timestamp:</strong>{' '}
@@ -287,6 +347,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                             <ChevronDown className="text-primary" />
                         )}
                     </div>
+
                     {expandedTechniques[index] && (
                         <div className="p-2 space-y-2 bg-background rounded-md border border-border">
                             <div>
@@ -343,10 +404,11 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                                         handleTechniqueChange(index, 'description', e.target.value)
                                     }
                                     className="mt-1"
+                                    onBlur={(e) => handleTechniqueChange(index, 'description', e.target.value)}
                                 />
                             </div>
                             <Button
-                                onClick={() => onSeek(Number(technique.startTimestamp))}
+                                onClick={() => onSeek(technique.startTimestamp ?? 'empty timestamp')}
                                 className="mr-2"
                                 variant="secondary"
                                 size='sm'
