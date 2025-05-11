@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { TechniqueDto } from '@/types/global';
 
+//Use bg-muted, bg-primary, bg-accent, border-border, and text-foreground for all backgrounds, borders, and text.
 interface VideoPlayerProps {
     videoUrl: string;
     videoId: string;
@@ -12,20 +13,23 @@ interface VideoPlayerProps {
     onSegmentSelect?: (start: string, end: string) => void;
 }
 
-const parseTimestampToSeconds = (timestamp: string | null): number => {
+const parseTimespanToSeconds = (timestamp: string | null): number => {
+    //Example input could be in "00:02:22" format
     if (!timestamp || typeof timestamp !== 'string') return NaN;
     const parts = timestamp.split(':');
-    if (parts.length !== 2) return NaN;
-    const minutes = parseInt(parts[0], 10);
-    const seconds = parseInt(parts[1], 10);
-    if (isNaN(minutes) || isNaN(seconds)) return NaN;
-    return minutes * 60 + seconds;
+    if (parts.length !== 3) return NaN; // Expect HH:mm:ss
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1], 10);
+    const seconds = parseInt(parts[2], 10);
+    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) return NaN;
+    return hours * 3600 + minutes * 60 + seconds;
 };
 
-const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
+const parseSecondsToTimespan = (seconds: number): string => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -71,6 +75,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
 
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (duration <= 0) return; // Prevent selection if video not loaded
         const startTimestamp = calculateTimestamp(e);
         setDragStart(startTimestamp);
         setDragEnd(startTimestamp);
@@ -97,8 +102,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             } else {
                 const from = Math.min(dragStart!, endTimestamp);
                 const to = Math.max(dragStart!, endTimestamp);
-                const startFormatted = formatTime(from);
-                const endFormatted = formatTime(to);
+                console.log('Before parseSecondsToTimespan()... ', from);
+                const startFormatted = parseSecondsToTimespan(from);
+                const endFormatted = parseSecondsToTimespan(to);
+                console.log('After parseSecondsToTimespan()... ', startFormatted);
                 setSelectedSegment({ start: startFormatted, end: endFormatted });
                 onSegmentSelect?.(startFormatted, endFormatted);
             }
@@ -151,8 +158,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getSelectedRangeStyle = () => {
         if (!selectedSegment) return {};
-        const from = parseTimestampToSeconds(selectedSegment.start);
-        const to = parseTimestampToSeconds(selectedSegment.end);
+        const from = parseTimespanToSeconds(selectedSegment.start);
+        const to = parseTimespanToSeconds(selectedSegment.end);
         if (isNaN(from) || isNaN(to)) return {};
         const leftPercent = (from / duration) * 100;
         const widthPercent = ((to - from) / duration) * 100;
@@ -168,7 +175,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getFromMarkerStyle = () => {
         if (!selectedSegment) return {};
-        const from = parseTimestampToSeconds(selectedSegment.start);
+        const from = parseTimespanToSeconds(selectedSegment.start);
+        console.log('Is FromTimestamp NaN ', isNaN(from));
         if (isNaN(from)) return {};
         const leftPercent = (from / duration) * 100;
         return {
@@ -186,7 +194,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getToMarkerStyle = () => {
         if (!selectedSegment) return {};
-        const to = parseTimestampToSeconds(selectedSegment.end);
+        const to = parseTimespanToSeconds(selectedSegment.end);
         if (isNaN(to)) return {};
         const leftPercent = (to / duration) * 100;
         return {
@@ -204,7 +212,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getFromDottedLineStyle = () => {
         if (!selectedSegment) return {};
-        const from = parseTimestampToSeconds(selectedSegment.start);
+        const from = parseTimespanToSeconds(selectedSegment.start);
         if (isNaN(from)) return {};
         const leftPercent = (from / duration) * 100;
         return {
@@ -220,7 +228,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const getToDottedLineStyle = () => {
         if (!selectedSegment) return {};
-        const to = parseTimestampToSeconds(selectedSegment.end);
+        const to = parseTimespanToSeconds(selectedSegment.end);
         if (isNaN(to)) return {};
         const leftPercent = (to / duration) * 100;
         return {
@@ -256,7 +264,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <div className="timeline-container mt-2 relative">
                 <div
                     ref={timelineRef}
-                    className="timeline w-full h-6 bg-muted dark:bg-neutral-800 relative rounded-md cursor-pointer border border-border"
+                    className="timeline w-full h-10 bg-muted dark:bg-neutral-800 relative rounded-md cursor-pointer border border-border"
                     onClick={handleTimelineClick}
                     onContextMenu={handleRightClick}
                     onMouseDown={handleMouseDown}
@@ -274,11 +282,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         </>
                     )}
                     <div
-                        className="progress absolute h-full bg-primary rounded-md"
+                        className="progress absolute h-full bg-green-500 rounded-md"
                         style={{ width: `${(currentTime / duration) * 100}%` }}
                     />
                     {identifiedTechniques.map((technique) => {
-                        const timestampNum = parseTimestampToSeconds(technique.startTimestamp ?? null);
+                        const timestampNum = parseTimespanToSeconds(technique.startTimestamp ?? null);
                         // Don't render marker if timestamp is invalid or duration is 0
                         if (isNaN(timestampNum) || duration <= 0) {
                             return null;

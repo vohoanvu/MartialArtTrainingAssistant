@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SharedEntities.Data;
@@ -98,18 +99,23 @@ namespace VideoSharing.Server.Domain.GeminiService
                 }
 
                 // Get or create AiFeedback
-                var aiFeedback = await _context.AiFeedbacks
-                    .FirstOrDefaultAsync(f => f.VideoId == videoId && f.Technique.Name == tech.TechniqueName);
+                var aiFeedback = await _context.AiFeedbacks.FirstOrDefaultAsync(f => f.VideoId == videoId && f.TechniqueId == technique.Id);
                 if (aiFeedback == null)
                 {
                     aiFeedback = new AiFeedback
                     {
                         VideoId = videoId,
                         Technique = technique,
-                        StartTimestamp = TimeSpan.TryParse(tech.StartTimestamp, out var startResult) ? startResult : null,
-                        EndTimestamp = TimeSpan.TryParse(tech.EndTimestamp, out var endResult) ? endResult : null,
+                        StartTimestamp = tech.StartTimestamp != null && TimeSpan.TryParseExact(tech.StartTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var startResult) ? startResult : null,
+                        EndTimestamp = tech.EndTimestamp != null && TimeSpan.TryParseExact(tech.EndTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var endResult) ? endResult : null,
                     };
                     _context.AiFeedbacks.Add(aiFeedback);
+                }
+                else 
+                {
+                    aiFeedback.StartTimestamp = tech.StartTimestamp != null && TimeSpan.TryParseExact(tech.StartTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var startResult) ? startResult : null;
+                    aiFeedback.EndTimestamp = tech.EndTimestamp != null && TimeSpan.TryParseExact(tech.EndTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var endResult) ? endResult : null;
+                    aiFeedback.Technique = technique;
                 }
 
                 techniqueMap[tech.TechniqueName] = technique;
@@ -207,8 +213,8 @@ namespace VideoSharing.Server.Domain.GeminiService
                         Id = t.TechniqueType.PositionalScenario.Id,
                         Name = t.TechniqueType.PositionalScenario.Name
                     },
-                    StartTimestamp = feedbackRecords.FirstOrDefault(f => f.TechniqueId == t.Id)?.StartTimestamp?.ToString("mm\\:ss") ?? null,
-                    EndTimestamp = feedbackRecords.FirstOrDefault(f => f.TechniqueId == t.Id)?.EndTimestamp?.ToString("mm\\:ss") ?? null,
+                    StartTimestamp = feedbackRecords.FirstOrDefault(f => f.TechniqueId == t.Id)?.StartTimestamp?.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture) ?? null,
+                    EndTimestamp = feedbackRecords.FirstOrDefault(f => f.TechniqueId == t.Id)?.EndTimestamp?.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture) ?? null,
                     }).ToList(),
                 Drills = analysisResult.Drills.Select(d => new DrillDto
                 {
@@ -304,10 +310,10 @@ namespace VideoSharing.Server.Domain.GeminiService
                             };
                             _context.AiFeedbacks.Add(aiFeedback);
                         }
-                        aiFeedback.StartTimestamp = newTechnique.StartTimestamp != null && TimeSpan.TryParse(newTechnique.StartTimestamp, out var startResult)
+                        aiFeedback.StartTimestamp = newTechnique.StartTimestamp != null && TimeSpan.TryParseExact(newTechnique.StartTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var startResult)
                             ? startResult
                             : aiFeedback.StartTimestamp;
-                        aiFeedback.EndTimestamp = newTechnique.EndTimestamp != null && TimeSpan.TryParse(newTechnique.EndTimestamp, out var endResult)
+                        aiFeedback.EndTimestamp = newTechnique.EndTimestamp != null && TimeSpan.TryParseExact(newTechnique.EndTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var endResult)
                             ? endResult
                             : aiFeedback.EndTimestamp;
                     }
@@ -346,10 +352,10 @@ namespace VideoSharing.Server.Domain.GeminiService
                         {
                             VideoId = videoId,
                             Technique = techniqueToAdd,
-                            StartTimestamp = newTechnique.StartTimestamp != null && TimeSpan.TryParse(newTechnique.StartTimestamp, out var startResult)
+                            StartTimestamp = newTechnique.StartTimestamp != null && TimeSpan.TryParseExact(newTechnique.StartTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var startResult)
                                 ? startResult
                                 : null,
-                            EndTimestamp = newTechnique.EndTimestamp != null && TimeSpan.TryParse(newTechnique.EndTimestamp, out var endResult)
+                            EndTimestamp = newTechnique.EndTimestamp != null && TimeSpan.TryParseExact(newTechnique.EndTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var endResult)
                                 ? endResult
                                 : null,
                         };
