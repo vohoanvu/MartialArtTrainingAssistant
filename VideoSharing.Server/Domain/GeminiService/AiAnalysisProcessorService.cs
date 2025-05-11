@@ -206,7 +206,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                     {
                         Id = t.TechniqueType.Id,
                         Name = t.TechniqueType.Name,
-                        PositionalScenario = t.TechniqueType.PositionalScenario.Name
+                        PositionalScenarioId = t.TechniqueType.PositionalScenario.Id,
                     },
                     PositionalScenario = new PositionalScenarioDto
                     {

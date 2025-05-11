@@ -26,7 +26,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
         description: '',
         techniqueType: {
             name: '',
-            positionalScenario: ''
+            positionalScenarioId: 0
         },
         positionalScenario: { name: '' },
         startTimestamp: '',
@@ -81,7 +81,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
         if (field === 'techniqueType') {
             updatedTechniques[index].techniqueType = {
                 name: value,
-                positionalScenario: updatedTechniques[index].techniqueType.positionalScenario || ''
+                positionalScenarioId: updatedTechniques[index].techniqueType.positionalScenarioId || updatedTechniques[index].positionalScenario.id || 0
             };
         } else if (field === 'positionalScenario') {
             updatedTechniques[index].positionalScenario = { name: value };
@@ -96,7 +96,13 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
         value: string
     ) => {
         if (field === 'techniqueType' || field === 'positionalScenario') {
-            setNewTechnique((prev) => ({ ...prev, [field]: { name: value } }));
+            setNewTechnique((prev) => ({ ...prev, [field]: { id: prev[field].id, name: value } }));
+            if (field === 'techniqueType') {
+                setNewTechnique((prev) => ({ 
+                    ...prev, 
+                    [field]: { id: prev[field].id, name: value, positionalScenarioId: prev[field].positionalScenarioId }
+                }));
+            }
         } else {
             setNewTechnique((prev) => ({ ...prev, [field]: value }));
         }
@@ -110,7 +116,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
             description: '',
             techniqueType: {
                 name: '',
-                positionalScenario: ''
+                positionalScenarioId: 0
             },
             positionalScenario: { name: '' },
             startTimestamp: '',

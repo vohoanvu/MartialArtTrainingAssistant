@@ -241,7 +241,7 @@ export interface SuggestedDrill {
 export interface TechniqueTypeDto {
     id?: number; // Optional for creating new entries
     name: string;
-    positionalScenario: string;
+    positionalScenarioId: number; //associated PSID
 }
 
 export interface PositionalScenarioDto {
