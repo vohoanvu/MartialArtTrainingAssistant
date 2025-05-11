@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 
 interface DrillsEditorialProps {
     analysisResultDto: AnalysisResultDto;
@@ -26,6 +26,8 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
         relatedTechniqueId: 0,
     });
     const [expandedDrills, setExpandedDrills] = useState<boolean[]>([]);
+    const [editingNameIndex, setEditingNameIndex] = useState<number | null>(null);
+    const [editingNameValue, setEditingNameValue] = useState<string>('');
 
     useEffect(() => {
         // Remove duplicate "Generic Technique" drills, keep only the first occurrence
@@ -88,6 +90,17 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
             drills,
         };
         await handleSaveChanges(updatedFeedbackData);
+    };
+
+    const startEditingName = (index: number, currentName: string) => {
+        setEditingNameIndex(index);
+        setEditingNameValue(currentName);
+    };
+
+    const saveEditingName = (index: number) => {
+        handleDrillChange(index, 'name', editingNameValue);
+        setEditingNameIndex(null);
+        setEditingNameValue('');
     };
 
     // Find the related technique for the new drill (if any)
@@ -203,18 +216,63 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
 
             {drills.map((drill, index) => {
                 const relatedTechnique =
-                analysisResultDto.techniques?.find(
-                    t =>
-                    (drill.relatedTechniqueId && t.id === drill.relatedTechniqueId) ||
-                    (drill.relatedTechniqueName && t.name === drill.relatedTechniqueName)
-                );
+                    analysisResultDto.techniques?.find(
+                        t =>
+                            (drill.relatedTechniqueId && t.id === drill.relatedTechniqueId) ||
+                            (drill.relatedTechniqueName && t.name === drill.relatedTechniqueName)
+                    );
                 const selectValue = relatedTechnique?.name || '__none__';
 
                 return (
                     <div key={index} className="border-b border-border pb-4">
                         <div className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40" onClick={() => toggleDrillDetails(index)}>
-                            <p>
-                                <strong>Drill Name:</strong> <span className="text-foreground">{drill.name}</span>
+                            <p className="flex items-center gap-2">
+                                <strong>Drill Name:</strong>
+                                {editingNameIndex === index ? (
+                                    <>
+                                        <Input
+                                            value={editingNameValue}
+                                            onChange={e => setEditingNameValue(e.target.value)}
+                                            className="w-auto max-w-xs h-7 px-2 py-1 text-sm"
+                                            onClick={e => e.stopPropagation()}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') saveEditingName(index);
+                                                if (e.key === 'Escape') setEditingNameIndex(null);
+                                            }}
+                                            autoFocus
+                                        />
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-7 w-7"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                saveEditingName(index);
+                                            }}
+                                            title="Save"
+                                        >
+                                            <span className="sr-only">Save</span>
+                                            <Pencil className="w-4 h-4 text-primary" />
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="text-foreground">{drill.name}</span>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-7 w-7"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                startEditingName(index, drill.name);
+                                            }}
+                                            title="Edit"
+                                        >
+                                            <span className="sr-only">Edit</span>
+                                            <Pencil className="w-4 h-4 text-primary" />
+                                        </Button>
+                                    </>
+                                )}
                             </p>
                             {expandedDrills[index] ? (
                                 <ChevronUp className="text-primary" />
