@@ -55,6 +55,7 @@ namespace VideoSharing.Server.Models.Dtos
         public string? Focus { get; set; }
         public string Duration { get; set; }
         public string Description { get; set; }
+        public int RelatedTechniqueId { get; set; }
         public string RelatedTechniqueName { get; set; }
     }
 

@@ -235,7 +235,8 @@ export interface SuggestedDrill {
     focus: string | null;
     duration: string;
     description: string;
-    relatedTechniqueName: string; // Matches JSON response
+    relatedTechniqueId: number;
+    relatedTechniqueName: string;
 }
 
 export interface TechniqueTypeDto {

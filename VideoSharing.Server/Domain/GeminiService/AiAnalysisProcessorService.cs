@@ -223,7 +223,8 @@ namespace VideoSharing.Server.Domain.GeminiService
                     Focus = d.Focus,
                     Duration = d.Duration,
                     Description = d.Description,
-                    RelatedTechniqueName = d.Technique.Name
+                    RelatedTechniqueName = d.Technique.Name,
+                    RelatedTechniqueId = d.Technique.Id
                 }).ToList(),
                 Strengths = JsonSerializer.Deserialize<List<Strength>>(analysisResult.Strengths),
                 AreasForImprovement = JsonSerializer.Deserialize<List<AreaForImprovement>>(analysisResult.AreasForImprovement),

@@ -23,11 +23,18 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
         duration: '',
         description: '',
         relatedTechniqueName: '',
+        relatedTechniqueId: 0,
     });
     const [expandedDrills, setExpandedDrills] = useState<boolean[]>([]);
 
     useEffect(() => {
-        setDrills(analysisResultDto.drills ?? []);
+        // Remove duplicate "Generic Technique" drills, keep only the first occurrence
+        const drills = (analysisResultDto.drills ?? []).filter(
+            (drill, idx, arr) =>
+                drill.relatedTechniqueName !== "Generic Technique" ||
+                arr.findIndex(d => d.relatedTechniqueName === "Generic Technique") === idx
+        );
+        setDrills(drills);
         setExpandedDrills(new Array(analysisResultDto.drills?.length ?? 0).fill(false));
     }, [analysisResultDto]);
 
@@ -40,7 +47,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
     const handleDrillChange = (
         index: number,
         field: keyof SuggestedDrill,
-        value: string
+        value: string | number
     ) => {
         const updatedDrills = [...drills];
         updatedDrills[index] = {
@@ -52,19 +59,21 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
 
     const handleNewDrillChange = (
         field: keyof SuggestedDrill,
-        value: string
+        value: string | number
     ) => {
         setNewDrill((prev) => ({ ...prev, [field]: value }));
     };
 
     const addDrill = () => {
         setDrills([...drills, { ...newDrill }]);
+        setExpandedDrills([...expandedDrills, false]);
         setNewDrill({
             name: '',
             focus: '',
             duration: '',
             description: '',
             relatedTechniqueName: '',
+            relatedTechniqueId: 0,
         });
         setShowCreateForm(false);
     };
@@ -80,6 +89,13 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
         };
         await handleSaveChanges(updatedFeedbackData);
     };
+
+    // Find the related technique for the new drill (if any)
+    const newDrillRelatedTechnique = analysisResultDto.techniques?.find(t =>
+        (newDrill.relatedTechniqueId && t.id === newDrill.relatedTechniqueId) ||
+        (newDrill.relatedTechniqueName && t.name === newDrill.relatedTechniqueName)
+    );
+    const newDrillSelectValue = newDrillRelatedTechnique?.name || '__none__';
 
     return (
         <div className="space-y-4">
@@ -142,10 +158,18 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                             Related Technique
                         </label>
                         <Select
-                            value={newDrill.relatedTechniqueName === '' ? '__none__' : newDrill.relatedTechniqueName}
-                            onValueChange={(value) =>
-                                handleNewDrillChange('relatedTechniqueName', value === '__none__' ? '' : value)
-                            }
+                            value={newDrillSelectValue}
+                            onValueChange={(value) => {
+                                if (value === '__none__') {
+                                    handleNewDrillChange('relatedTechniqueName', '');
+                                    handleNewDrillChange('relatedTechniqueId', 0);
+                                    alert("Please select a related Technique for this Drill");
+                                } else {
+                                    handleNewDrillChange('relatedTechniqueName', value);
+                                    const selected = analysisResultDto.techniques?.find(t => t.name === value);
+                                    handleNewDrillChange('relatedTechniqueId', selected?.id ?? 0);
+                                }
+                            }}
                         >
                             <SelectTrigger className="mt-1">
                                 <SelectValue placeholder="Select related technique (optional)" />
@@ -177,95 +201,107 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                 </div>
             )}
 
-            {drills.map((drill, index) => (
-                <div
-                    key={index}
-                    className="border-b border-border pb-4"
-                >
-                    <div
-                        className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40"
-                        onClick={() => toggleDrillDetails(index)}
-                    >
-                        <p>
-                            <strong>Drill Name:</strong> <span className="text-foreground">{drill.name}</span>
-                        </p>
-                        {expandedDrills[index] ? (
-                            <ChevronUp className="text-primary" />
-                        ) : (
-                            <ChevronDown className="text-primary" />
+            {drills.map((drill, index) => {
+                const relatedTechnique =
+                analysisResultDto.techniques?.find(
+                    t =>
+                    (drill.relatedTechniqueId && t.id === drill.relatedTechniqueId) ||
+                    (drill.relatedTechniqueName && t.name === drill.relatedTechniqueName)
+                );
+                const selectValue = relatedTechnique?.name || '__none__';
+
+                return (
+                    <div key={index} className="border-b border-border pb-4">
+                        <div className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40" onClick={() => toggleDrillDetails(index)}>
+                            <p>
+                                <strong>Drill Name:</strong> <span className="text-foreground">{drill.name}</span>
+                            </p>
+                            {expandedDrills[index] ? (
+                                <ChevronUp className="text-primary" />
+                            ) : (
+                                <ChevronDown className="text-primary" />
+                            )}
+                        </div>
+                        {expandedDrills[index] && (
+                            <div className="p-2 space-y-2 bg-background rounded-md border border-border">
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        Focus
+                                    </label>
+                                    <Input
+                                        value={drill.focus || ''}
+                                        onChange={(e) =>
+                                            handleDrillChange(index, 'focus', e.target.value)
+                                        }
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        Duration
+                                    </label>
+                                    <Input
+                                        value={drill.duration}
+                                        onChange={(e) =>
+                                            handleDrillChange(index, 'duration', e.target.value)
+                                        }
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        Description
+                                    </label>
+                                    <Textarea
+                                        value={drill.description}
+                                        onChange={(e) =>
+                                            handleDrillChange(index, 'description', e.target.value)
+                                        }
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        Related Technique
+                                    </label>
+                                    <Select
+                                        value={selectValue}
+                                        onValueChange={(value) => {
+                                            if (value === '__none__') {
+                                                handleDrillChange(index, 'relatedTechniqueName', '');
+                                                handleDrillChange(index, 'relatedTechniqueId', 0);
+                                            } else {
+                                                handleDrillChange(index, 'relatedTechniqueName', value);
+                                                const selected = analysisResultDto.techniques?.find(t => t.name === value);
+                                                handleDrillChange(index, 'relatedTechniqueId', selected?.id ?? 0);
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger className="mt-1">
+                                            <SelectValue placeholder="Select related technique (optional)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="__none__">None</SelectItem>
+                                            {analysisResultDto.techniques?.map((tech) => (
+                                                <SelectItem key={tech.id ?? tech.name} value={tech.name}>
+                                                    {tech.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <Button
+                                    onClick={() => deleteDrill(index)}
+                                    className="bg-red-500 text-white hover:bg-red-600"
+                                >
+                                    Delete Drill
+                                </Button>
+                            </div>
                         )}
                     </div>
-                    {expandedDrills[index] && (
-                        <div className="p-2 space-y-2 bg-background rounded-md border border-border">
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    Focus
-                                </label>
-                                <Input
-                                    value={drill.focus || ''}
-                                    onChange={(e) =>
-                                        handleDrillChange(index, 'focus', e.target.value)
-                                    }
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    Duration
-                                </label>
-                                <Input
-                                    value={drill.duration}
-                                    onChange={(e) =>
-                                        handleDrillChange(index, 'duration', e.target.value)
-                                    }
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    Description
-                                </label>
-                                <Textarea
-                                    value={drill.description}
-                                    onChange={(e) =>
-                                        handleDrillChange(index, 'description', e.target.value)
-                                    }
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    Related Technique
-                                </label>
-                                <Select
-                                    value={drill.relatedTechniqueName === '' ? '__none__' : drill.relatedTechniqueName}
-                                    onValueChange={(value) =>
-                                        handleDrillChange(index, 'relatedTechniqueName', value === '__none__' ? '' : value)
-                                    }
-                                >
-                                    <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Select related technique (optional)" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__none__">None</SelectItem>
-                                        {analysisResultDto.techniques?.map((tech) => (
-                                            <SelectItem key={tech.name} value={tech.name}>
-                                                {tech.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <Button
-                                onClick={() => deleteDrill(index)}
-                                className="bg-red-500 text-white hover:bg-red-600"
-                            >
-                                Delete Drill
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            ))}
+                );
+            }
+            )}
 
             <Button
                 onClick={saveChanges}
