@@ -52,6 +52,9 @@ namespace SharedEntities.Models
         [JsonPropertyName("description")]
         public string Description { get; set; }
 
+        [JsonPropertyName("weakness_category")]
+        public string? WeaknessCategory { get; set; }
+
         [JsonPropertyName("related_technique")]
         public string? RelatedTechnique { get; set; }
     }

@@ -11,8 +11,6 @@ namespace VideoSharing.Server.Domain.GeminiService
     public interface IGeminiVisionService
     {
         Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, string martialArt, string studentIdentifier, string videoDescription, string skillLevel);
-
-        Task<AiFeedback> AnalyzeVideoSegment(int videoId, string startTimestamp, string endTimestamp);
     }
 
     public class GeminiVisionService : IGeminiVisionService
@@ -23,7 +21,7 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly string _model;
         private readonly string _customPrompt = @"
         You are an expert [MartialArt] instructor. You have been given video of your student with the description as '[VideoDescription]'.
-        Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] video. The student is at the [SkillLevel] level and is training for [TrainingGoal]. Provide a detailed analysis of the student's techniques, execution, strengths, areas for improvement, and suggest specific drills for practice. Format the output as a JSON object with the following structure:
+        Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] video. The student is at the [SkillLevel] level and is training for [TrainingGoal]. Provide a detailed analysis of the student's techniques, execution, strengths, weaknesses, and suggest specific drills for practice. Format the output as a JSON object with the following structure:
         {
             ""overall_description"": ""A detailed description of the student's overall performance in the sparring session."",
             ""techniques_identified"": [
@@ -32,8 +30,8 @@ namespace VideoSharing.Server.Domain.GeminiService
                 ""description"": ""Description of how the technique was executed."",
                 ""start_timestamp"": ""Timestamp in the video where the technique occurs (e.g., '00:01:23')"",
                 ""end_timestamp"": ""Timestamp in the video where the technique ends (e.g., '00:01:30')"",
-                ""technique_type"": ""Type of technique (e.g., 'Submission', 'Takedown', 'Guard Pass')"",
-                ""positional_scenario"": ""Positional scenario related to the technique (e.g., 'Guard', 'Mount', 'Standing')""
+                ""technique_type"": ""Select from: ['Takedown', 'Submission', 'Sweep', 'Pass', 'Escape', 'Transition', 'Control', 'Defense']"",
+                ""positional_scenario"": ""Select from: ['Standing', 'Guard', 'Half Guard', 'Side Control', 'Mount', 'Back Control', 'Knee on Belly', 'Turtle']""
                 }
             ],
             ""strengths"": [
@@ -45,6 +43,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             ""areas_for_improvement"": [
                 {
                 ""description"": ""Description of an area where the student can improve."",
+                ""weakness_category"": ""Select from: ['Takedown Defense', 'Guard Retention', 'Submission Escapes', 'Posture Control', 'Grip Strength', 'Timing', 'Stamina']""
                 ""related_technique"": ""Optional: Name of the technique related to this area.""
                 }
             ],
@@ -59,7 +58,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             ]
         }
 
-        Ensure that the techniques identified are categorized by their technique type and linked to the appropriate positional scenarios as defined in the curriculum structure. Tailor the feedback and suggested drills to the student's [SkillLevel] and [TrainingGoal], ensuring they are actionable and relevant to their current abilities and objectives.
+        Ensure that the techniques identified are categorized by their technique type and linked to the appropriate positional scenarios as defined. Tailor the feedback and suggested drills to the student's [SkillLevel] and [TrainingGoal], ensuring they are actionable and relevant to their current abilities and objectives.
         ";
 
         private readonly IGoogleCloudStorageService _storageService;
@@ -224,32 +223,6 @@ namespace VideoSharing.Server.Domain.GeminiService
                 _logger.LogError(ex, "Unexpected error during Vertex AI API call for video: {FileUri}", fileUri);
                 throw;
             }
-        }
-
-        /// <inheritdoc/>
-        public async Task<AiFeedback> AnalyzeVideoSegment(int videoId, string startTimestamp, string endTimestamp)
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
-
-            var video = await dbContext.UploadedVideos.FindAsync(videoId);
-            string analysis = await AnalyzeSegmentsWithGemini(video!.FilePath, startTimestamp, endTimestamp); //TODO: Implement this method to call the Vertex AI Gemini API for segment analysis.
-            var aiFeedback = new AiFeedback
-            {
-                VideoId = videoId,
-                StartTimestamp = TimeSpan.Parse(startTimestamp),
-                EndTimestamp = TimeSpan.Parse(endTimestamp),
-                AnalysisJson = analysis,
-            };
-            dbContext.AiFeedbacks.Add(aiFeedback);
-            await dbContext.SaveChangesAsync();
-            return aiFeedback;
-        }
-
-        private static async Task<string> AnalyzeSegmentsWithGemini(string videoPath, string startTimestamp, string endTimestamp)
-        {
-            await Task.Run(() => Thread.Sleep(1000));
-            throw new NotImplementedException("This method should be implemented to call the Vertex AI Gemini API for segment analysis.");
         }
 
         private string DetermineMimeType(string pathOrUri)

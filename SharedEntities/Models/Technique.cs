@@ -59,18 +59,14 @@ namespace SharedEntities.Models
         [ForeignKey("TechniqueTypeId")]
         public TechniqueType TechniqueType { get; set; }
 
-        public int? DemonstrationId { get; set; }
-        [ForeignKey("DemonstrationId")]
-        public virtual Demonstration? DemonstrationVideo { get; set; }
-
 
         public int? AiAnalysisResultId { get; set; }
         [ForeignKey("AiAnalysisResultId")]
         public virtual AiAnalysisResult? AiAnalysisResult { get; set; } 
 
-        public int? UploadedVideoId { get; set; }
-        [ForeignKey("UploadedVideoId")]
-        public virtual UploadedVideo? UploadedVideo { get; set; }
+        public int? VideoId { get; set; }
+        [ForeignKey("VideoId")]
+        public virtual VideoMetadata? Video { get; set; }
     }
 
     public class PointScoringTechnique
@@ -115,16 +111,12 @@ namespace SharedEntities.Models
         [ForeignKey("TechniqueId")]
         public virtual Techniques Technique { get; set; }
 
-        public int? DemonstrationId { get; set; }
-        [ForeignKey("DemonstrationId")]
-        public virtual Demonstration? DemonstrationVideo { get; set; }
-
         public int? AiAnalysisResultId { get; set; }
         [ForeignKey("AiAnalysisResultId")]
         public virtual AiAnalysisResult? AiAnalysisResult { get; set; } 
 
-        public int? UploadedVideoId { get; set; }
-        [ForeignKey("UploadedVideoId")]
-        public virtual UploadedVideo? UploadedVideo { get; set; }
+        public int? VideoId { get; set; }
+        [ForeignKey("VideoId")]
+        public virtual VideoMetadata? Video { get; set; }
     }
 }

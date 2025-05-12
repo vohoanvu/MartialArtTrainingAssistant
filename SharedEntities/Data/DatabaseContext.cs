@@ -21,7 +21,7 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
     {
     }
 
-    public virtual DbSet<SharedVideo> SharedVideos { get; set; }
+    public virtual DbSet<VideoMetadata> Videos { get; set; }
 
     public virtual DbSet<Fighter> Fighters { get; set; }
 
@@ -31,16 +31,15 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
     public virtual DbSet<TrainingSessionTechniqueJoint> TrainingSessionTechniqueJoints { get; set; }
 
-    public virtual DbSet<UploadedVideo> UploadedVideos { get; set; }
 
-    public virtual DbSet<AiFeedback> AiFeedbacks { get; set; }
+    public virtual DbSet<VideoSegmentFeedback> VideoSegmentFeedbacks { get; set; }
 
     public virtual DbSet<AiAnalysisResult> AiAnalysisResults { get; set; }
+    public virtual DbSet<WeaknessCategory> WeaknessCategories { get; set; }
+    public virtual DbSet<AnalysisWeakness> AnalysisWeaknesses { get; set; }
 
     public virtual DbSet<Techniques> Techniques { get; set; }
     public virtual DbSet<PointScoringTechnique> PointScoringTechniques { get; set; }
-
-    public virtual DbSet<Demonstration> Demonstrations { get; set; }
 
     public virtual DbSet<Drills> Drills { get; set; }
 
@@ -86,7 +85,7 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
             .HasMethod("GIN");
 
         // Configure GIN index for AiFeedback.AnalysisJson (JSONB)
-        builder.Entity<AiFeedback>()
+        builder.Entity<VideoSegmentFeedback>()
             .HasIndex(a => a.AnalysisJson)
             .HasMethod("GIN");
 
@@ -95,7 +94,7 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
             .Property(a => a.AnalysisJson)
             .HasColumnType("jsonb");
 
-        builder.Entity<AiFeedback>()
+        builder.Entity<VideoSegmentFeedback>()
             .Property(a => a.AnalysisJson)
             .HasColumnType("jsonb");
     }

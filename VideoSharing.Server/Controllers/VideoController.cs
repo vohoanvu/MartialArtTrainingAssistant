@@ -54,14 +54,15 @@ namespace VideoSharing.Server.Controllers
                 return NotFound($"Video metadata was not found for this videoId {videoId}");
             }
 
-            var video = new SharedVideo
+            var video = new VideoMetadata()
             {
-                VideoId = videoId,
+                YoutubeVideoId = videoId,
                 Title = videoDetailsResponse.Title,
                 Description = videoDetailsResponse.Description,
                 Url = videoUrl,
-                DateShared = DateTime.Now.ToUniversalTime(),
-                UserId = userId
+                UploadedAt = DateTime.Now.ToUniversalTime(),
+                UserId = userId,
+                Type = VideoType.Shared,
             };
 
             var dbId = await _sharedVideoRepository.SaveAsync(video);
@@ -85,14 +86,14 @@ namespace VideoSharing.Server.Controllers
             return Ok(sharedVideos.Select(v => new VideoDetailsResponse()
             {
                 Id = v.Id,
-                VideoId = v.VideoId,
-                Title = v.Title,
-                Description = v.Description,
-                EmbedLink = $"https://www.youtube.com/embed/{v.VideoId}",
+                VideoId = v.YoutubeVideoId!,
+                Title = v.Title!,
+                Description = v.Description!,
+                EmbedLink = $"https://www.youtube.com/embed/{v.YoutubeVideoId}",
                 SharedBy = new AppUserDto
                 {
                     UserId = v.UserId,
-                    Username = v.SharedBy.UserName!
+                    Username = v.AppUser.UserName!
                 }
             }).ToList());
         }
@@ -121,7 +122,7 @@ namespace VideoSharing.Server.Controllers
             var videoHash = await _gcsService.CalculateFileHashAsync(stream);
 
             // Check for duplicate video
-            var existingVideo = await dbContext.UploadedVideos
+            var existingVideo = await dbContext.Videos
                 .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.FileHash == videoHash);
 
@@ -131,7 +132,7 @@ namespace VideoSharing.Server.Controllers
                 {
                     Message = "Duplicate video detected. This video has already been uploaded.",
                     VideoId = existingVideo.Id,
-                    SignedUrl = await _gcsService.GenerateSignedUrlAsync(existingVideo.FilePath, TimeSpan.FromHours(1))
+                    SignedUrl = await _gcsService.GenerateSignedUrlAsync(existingVideo.FilePath!, TimeSpan.FromHours(1))
                 });
             }
 
@@ -141,7 +142,7 @@ namespace VideoSharing.Server.Controllers
             // Upload video to Google Cloud Storage
             var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
 
-            var uploadedVideo = new UploadedVideo
+            var uploadedVideo = new VideoMetadata
             {
                 UserId = userId,
                 FilePath = filePath,
@@ -149,10 +150,11 @@ namespace VideoSharing.Server.Controllers
                 StudentIdentifier = request.StudentIdentifier,
                 MartialArt = request.MartialArt,
                 UploadedAt = DateTime.UtcNow,
-                FileHash = videoHash
+                FileHash = videoHash,
+                Type = VideoType.StudentUpload,
             };
 
-            dbContext.UploadedVideos.Add(uploadedVideo);
+            dbContext.Videos.Add(uploadedVideo);
             await dbContext.SaveChangesAsync();
 
             var signedUrl = await _gcsService.GenerateSignedUrlAsync(filePath, TimeSpan.FromHours(1));
@@ -190,7 +192,7 @@ namespace VideoSharing.Server.Controllers
             var videoHash = await _gcsService.CalculateFileHashAsync(stream);
 
             // Check for duplicate video
-            var existingVideo = await dbContext.UploadedVideos
+            var existingVideo = await dbContext.Videos
                 .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.FileHash == videoHash);
 
@@ -200,7 +202,7 @@ namespace VideoSharing.Server.Controllers
                 {
                     Message = "Duplicate video detected. This video has already been uploaded.",
                     VideoId = existingVideo.Id,
-                    SignedUrl = await _gcsService.GenerateSignedUrlAsync(existingVideo.FilePath, TimeSpan.FromHours(1))
+                    SignedUrl = await _gcsService.GenerateSignedUrlAsync(existingVideo.FilePath!, TimeSpan.FromHours(1))
                 });
             }
 
@@ -210,16 +212,17 @@ namespace VideoSharing.Server.Controllers
             // Upload video to Google Cloud Storage
             var filePath = await _gcsService.UploadFileAsync(stream, videoFile.FileName, videoFile.ContentType);
 
-            var uploadedVideo = new UploadedVideo
+            var uploadedVideo = new VideoMetadata
             {
                 UserId = userId,
                 FilePath = filePath,
                 Description = description,
                 UploadedAt = DateTime.UtcNow,
-                FileHash = videoHash
+                FileHash = videoHash,
+                Type = VideoType.Demonstration,
             };
 
-            dbContext.UploadedVideos.Add(uploadedVideo);
+            dbContext.Videos.Add(uploadedVideo);
             await dbContext.SaveChangesAsync();
 
             var signedUrl = await _gcsService.GenerateSignedUrlAsync(filePath, TimeSpan.FromHours(1));
@@ -238,17 +241,17 @@ namespace VideoSharing.Server.Controllers
         public async Task<IActionResult> DeleteUploadedVideoAsync(int videoId)
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            var video = await dbContext.UploadedVideos.FindAsync(videoId);
+            var video = await dbContext.Videos.FindAsync(videoId);
             if (video == null)
             {
                 return NotFound(new { Message = $"Video with ID {videoId} not found" });
             }
 
             // Delete from GCS
-            await _gcsService.DeleteFileAsync(video.FilePath);
+            await _gcsService.DeleteFileAsync(video.FilePath!);
 
             // Remove from database
-            dbContext.UploadedVideos.Remove(video);
+            dbContext.Videos.Remove(video);
             await dbContext.SaveChangesAsync();
 
             return Ok(new { Message = $"Video with ID {videoId} deleted successfully" });
@@ -262,7 +265,7 @@ namespace VideoSharing.Server.Controllers
             var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
             var videos = await (
-                from v in dbContext.UploadedVideos.AsNoTracking()
+                from v in dbContext.Videos.AsNoTracking()
                 join ai in dbContext.AiAnalysisResults.AsNoTracking()
                     on v.Id equals ai.VideoId into aiGroup
                 select new UploadedVideoDto
@@ -270,7 +273,7 @@ namespace VideoSharing.Server.Controllers
                     Id = v.Id,
                     UserId = v.UserId,
                     MartialArt = v.MartialArt.ToString(),
-                    FilePath = v.FilePath,
+                    FilePath = v.FilePath!,
                     UploadTimestamp = v.UploadedAt,
                     Description = v.Description,
                     AiAnalysisResult = aiGroup.Select(a => a.AnalysisJson).FirstOrDefault(),
@@ -285,7 +288,7 @@ namespace VideoSharing.Server.Controllers
         public async Task<IActionResult> GetUploadedVideoAsync(int videoId)
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            var video = await dbContext.UploadedVideos.Include(v => v.AppUser).ThenInclude(u => u.Fighter)
+            var video = await dbContext.Videos.Include(v => v.AppUser).ThenInclude(u => u.Fighter)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.Id == videoId);
             if (video == null)
@@ -298,13 +301,13 @@ namespace VideoSharing.Server.Controllers
                 .Select(a => a.AnalysisJson)
                 .FirstOrDefaultAsync();
 
-            var signedUrl = await _gcsService.GenerateSignedUrlAsync(video.FilePath, TimeSpan.FromHours(1));
+            var signedUrl = await _gcsService.GenerateSignedUrlAsync(video.FilePath!, TimeSpan.FromHours(1));
 
             return Ok(new UploadedVideoDto
             {
                 Id = video.Id,
                 UserId = video.UserId,
-                FilePath = video.FilePath,
+                FilePath = video.FilePath!,
                 UploadTimestamp = video.UploadedAt,
                 Description = video.Description,
                 AiAnalysisResult = AiAnalysisResult,
@@ -319,7 +322,7 @@ namespace VideoSharing.Server.Controllers
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
             
-            var video = await dbContext.UploadedVideos.FindAsync(videoId);
+            var video = await dbContext.Videos.FindAsync(videoId);
             if (video == null)
             {
                 return NotFound(new { Message = $"Video with ID {videoId} not found" });

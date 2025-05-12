@@ -90,8 +90,6 @@ namespace VideoSharing.Server.Domain.GeminiService
 
                 // Explicitly link the technique to the current AiAnalysisResult
                 technique.AiAnalysisResult = existingAiAnalysisResult;
-
-                // Add technique to AiAnalysisResult
                 if (!existingAiAnalysisResult.Techniques.Any(t => t.Name == tech.TechniqueName 
                     && t.TechniqueType != null && t.TechniqueType.Name == tech.TechniqueType))
                 {
@@ -99,17 +97,17 @@ namespace VideoSharing.Server.Domain.GeminiService
                 }
 
                 // Get or create AiFeedback
-                var aiFeedback = await _context.AiFeedbacks.FirstOrDefaultAsync(f => f.VideoId == videoId && f.TechniqueId == technique.Id);
+                var aiFeedback = await _context.VideoSegmentFeedbacks.FirstOrDefaultAsync(f => f.VideoId == videoId && f.TechniqueId == technique.Id);
                 if (aiFeedback == null)
                 {
-                    aiFeedback = new AiFeedback
+                    aiFeedback = new VideoSegmentFeedback
                     {
                         VideoId = videoId,
                         Technique = technique,
                         StartTimestamp = tech.StartTimestamp != null && TimeSpan.TryParseExact(tech.StartTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var startResult) ? startResult : null,
                         EndTimestamp = tech.EndTimestamp != null && TimeSpan.TryParseExact(tech.EndTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var endResult) ? endResult : null,
                     };
-                    _context.AiFeedbacks.Add(aiFeedback);
+                    _context.VideoSegmentFeedbacks.Add(aiFeedback);
                 }
                 else 
                 {
@@ -171,6 +169,32 @@ namespace VideoSharing.Server.Domain.GeminiService
                 }
             }
 
+            // Process areas_for_improvement for weaknesses
+            foreach (var area in analysis.AreasForImprovement)
+            {
+                if (!string.IsNullOrEmpty(area.WeaknessCategory))
+                {
+                    var category = await _context.WeaknessCategories.FirstOrDefaultAsync(w => w.Name == area.WeaknessCategory);
+                    if (category == null)
+                    {
+                        category = new WeaknessCategory
+                        {
+                            Name = area.WeaknessCategory,
+                            Description = area.Description // Optional: Use description for context
+                        };
+                        _context.WeaknessCategories.Add(category);
+                        await _context.SaveChangesAsync(); // Ensure category has an ID
+                    }
+
+                    var analysisWeakness = new AnalysisWeakness
+                    {
+                        AiAnalysisResultId = existingAiAnalysisResult.Id,
+                        WeaknessCategoryId = category.Id
+                    };
+                    _context.AnalysisWeaknesses.Add(analysisWeakness);
+                }
+            }
+
             await _context.SaveChangesAsync();
         }
 
@@ -190,7 +214,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 throw new InvalidOperationException("No analysis result found.");
 
             // Fetch AiFeedback records for the video
-            var feedbackRecords = await _context.AiFeedbacks
+            var feedbackRecords = await _context.VideoSegmentFeedbacks
                 .Where(f => f.VideoId == videoId)
                 .ToListAsync();
 
@@ -320,16 +344,16 @@ namespace VideoSharing.Server.Domain.GeminiService
                         }
 
                         // Update AiFeedback for timestamps
-                        var aiFeedback = await _context.AiFeedbacks
+                        var aiFeedback = await _context.VideoSegmentFeedbacks
                             .FirstOrDefaultAsync(f => f.VideoId == videoId && f.TechniqueId == existingTechnique.Id);
                         if (aiFeedback == null)
                         {
-                            aiFeedback = new AiFeedback
+                            aiFeedback = new VideoSegmentFeedback
                             {
                                 VideoId = videoId,
                                 Technique = existingTechnique,
                             };
-                            _context.AiFeedbacks.Add(aiFeedback);
+                            _context.VideoSegmentFeedbacks.Add(aiFeedback);
                         }
                         aiFeedback.StartTimestamp = newTechnique.StartTimestamp != null && TimeSpan.TryParseExact(newTechnique.StartTimestamp, "hh\\:mm\\:ss", CultureInfo.InvariantCulture, out var startResult)
                             ? startResult
@@ -369,7 +393,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                         existingAiAnalysisResult.Techniques.Add(techniqueToAdd);
 
                         // Add AiFeedback for new technique
-                        var aiFeedback = new AiFeedback
+                        var aiFeedback = new VideoSegmentFeedback
                         {
                             VideoId = videoId,
                             Technique = techniqueToAdd,
@@ -380,7 +404,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                                 ? endResult
                                 : null,
                         };
-                        _context.AiFeedbacks.Add(aiFeedback);
+                        _context.VideoSegmentFeedbacks.Add(aiFeedback);
                     }
                 }
 
@@ -391,11 +415,11 @@ namespace VideoSharing.Server.Domain.GeminiService
                 foreach (var technique in techniquesToRemove)
                 {
                     existingAiAnalysisResult.Techniques.Remove(technique);
-                    var aiFeedback = await _context.AiFeedbacks
+                    var aiFeedback = await _context.VideoSegmentFeedbacks
                         .FirstOrDefaultAsync(f => f.VideoId == videoId && f.TechniqueId == technique.Id);
                     if (aiFeedback != null)
                     {
-                        _context.AiFeedbacks.Remove(aiFeedback);
+                        _context.VideoSegmentFeedbacks.Remove(aiFeedback);
                     }
                 }
             }
@@ -466,7 +490,9 @@ namespace VideoSharing.Server.Domain.GeminiService
                 }
             }
 
+            var video = await _context.Videos.FindAsync(videoId);
             existingAiAnalysisResult.LastUpdatedAt = DateTime.UtcNow;
+            existingAiAnalysisResult.UpdatedBy = video?.UserId;
             _context.AiAnalysisResults.Update(existingAiAnalysisResult);
             await _context.SaveChangesAsync();
 

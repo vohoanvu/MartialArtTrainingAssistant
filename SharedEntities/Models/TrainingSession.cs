@@ -26,6 +26,8 @@ namespace SharedEntities.Models
         public virtual List<TrainingSessionTechniqueJoint>? SessionContents { get; set; }
 
         public MartialArt MartialArt { get; set; } = MartialArt.BrazilianJiuJitsu_GI;
+
+        public virtual ICollection<Drills> RecommendedDrills { get; set; } = [];
     }
 
     public class TrainingSessionTechniqueJoint

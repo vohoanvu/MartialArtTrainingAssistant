@@ -32,19 +32,19 @@ namespace VideoSharing.Server.Controllers
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
-            if (!await dbContext.UploadedVideos.AnyAsync(v => v.Id == videoId))
+            if (!await dbContext.Videos.AnyAsync(v => v.Id == videoId))
                 return BadRequest("Invalid VideoId.");
 
-            var uploadedVideo = await dbContext.UploadedVideos.FindAsync(videoId);
+            var uploadedVideo = await dbContext.Videos.FindAsync(videoId);
             var appUserFighter = await dbContext.Users.Include(u => u.Fighter).FirstAsync(u => u.Id == uploadedVideo!.UserId);
 
             try
             {
                 // Call the Gemini Vision API asynchronously
                 var visionAnalysisResult = await _geminiService.AnalyzeVideoAsync(
-                    uploadedVideo!.FilePath,
+                    uploadedVideo!.FilePath!,
                     uploadedVideo.MartialArt.ToString(),
-                    uploadedVideo.StudentIdentifier,
+                    uploadedVideo.StudentIdentifier ?? "Fighter in the video",
                     uploadedVideo.Description ?? "sparring tape",
                     appUserFighter.Fighter!.BelkRank.ToString()
                 );
@@ -87,6 +87,7 @@ namespace VideoSharing.Server.Controllers
                         Techniques = new List<Techniques>(),
                         Drills = new List<Drills>(),
                         GeneratedAt = DateTime.Now,
+                        UpdatedBy = uploadedVideo.UserId
                     };
                     dbContext.AiAnalysisResults.Add(newAiResult);
                     aiResult = newAiResult;
@@ -109,7 +110,7 @@ namespace VideoSharing.Server.Controllers
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
-            var video = await dbContext.UploadedVideos.FirstOrDefaultAsync(v => v.Id == videoId);
+            var video = await dbContext.Videos.FirstOrDefaultAsync(v => v.Id == videoId);
             if (video == null)
             {
                 return NotFound(new { Message = $"Video with ID {videoId} not found" });

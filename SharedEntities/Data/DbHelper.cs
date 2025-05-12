@@ -134,20 +134,84 @@ namespace SharedEntities.Data
                     throw;
                 }
             }
-            
+
+            // Seed PositionalScenario
+            if (!dbContext.PositionalScenarios.Any())
+            {
+                using var transaction = await dbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    var positionalScenarios = new List<PositionalScenario>
+                    {
+                        new() { Name = "Standing", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Beginner },
+                        new() { Name = "Guard", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Beginner },
+                        new() { Name = "Half Guard", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Intermediate },
+                        new() { Name = "Side Control", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Beginner },
+                        new() { Name = "Mount", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Beginner },
+                        new() { Name = "Back Control", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Intermediate },
+                        new() { Name = "Knee on Belly", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Intermediate },
+                        new() { Name = "Turtle", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Intermediate }
+                    };
+
+                    dbContext.PositionalScenarios.AddRange(positionalScenarios);
+                    await dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    Console.WriteLine("Seeded PositionalScenario data.");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"Seeding PositionalScenario data failed: {ex.Message}");
+                    throw;
+                }
+            }
+
+            // Seed TechniqueType
+            if (!dbContext.TechniqueTypes.Any())
+            {
+                using var transaction = await dbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    // Fetch PositionalScenarios to link with TechniqueTypes
+                    var positionalScenarios = await dbContext.PositionalScenarios.ToListAsync();
+                    var standing = positionalScenarios.FirstOrDefault(ps => ps.Name == "Standing");
+                    var guard = positionalScenarios.FirstOrDefault(ps => ps.Name == "Guard");
+                    var generic = positionalScenarios.FirstOrDefault(ps => ps.Name == "Generic") ?? new PositionalScenario { Name = "Generic", FocusModule = FocusModule.General, TargetLevel = TargetLevel.Beginner };
+
+                    var techniqueTypes = new List<TechniqueType>
+                    {
+                        new() { Name = "Takedown", PositionalScenario = standing ?? generic },
+                        new() { Name = "Submission", PositionalScenario = guard ?? generic },
+                        new() { Name = "Sweep", PositionalScenario = guard ?? generic },
+                        new() { Name = "Pass", PositionalScenario = guard ?? generic },
+                        new() { Name = "Escape", PositionalScenario = generic },
+                        new() { Name = "Transition", PositionalScenario = generic },
+                        new() { Name = "Control", PositionalScenario = generic },
+                        new() { Name = "Defense", PositionalScenario = generic }
+                    };
+
+                    dbContext.TechniqueTypes.AddRange(techniqueTypes);
+                    await dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    Console.WriteLine("Seeded TechniqueType data.");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"Seeding TechniqueType data failed: {ex.Message}");
+                    throw;
+                }
+            }
+
             if (!dbContext.Techniques.Any())
             {
-                var defaultTechniques = new Techniques() {
+                var defaultTechniques = new Techniques()
+                {
                     Name = "Generic",
                     TechniqueType = new()
                     {
                         Name = "Conditioning",
-                        PositionalScenario = new()
-                        {
-                            Name = "Generic",
-                            FocusModule = FocusModule.General,
-                            TargetLevel = TargetLevel.Beginner,
-                        },
+                        PositionalScenarioId = dbContext.PositionalScenarios.First(ps => ps.Name == "Standing").Id
                     },
                 };
                 dbContext.Techniques.Add(defaultTechniques);
