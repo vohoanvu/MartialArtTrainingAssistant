@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVideoDetails, getVideoFeedback, saveVideoAnalysisResult } from '@/services/api';
-import VideoPlayer from '../components/VideoAnalysisEditor/VideoPlayer';
+import VideoPlayer, { VideoPlayerHandle } from '../components/VideoAnalysisEditor/VideoPlayer';
 import useAuthStore from '@/store/authStore';
 import { AnalysisResultDto, Fighter } from '@/types/global';
 import { StudentDetails } from '@/components/VideoAnalysisEditor/StudentFighterDetails';
@@ -15,6 +15,7 @@ const VideoReview: React.FC = () => {
 
     const [selectedSegment, setSelectedSegment] = useState<{ start: string; end: string } | null>(null);
     const [fighterDetails, setFighterDetails] = useState<Fighter | null>(null);
+    const videoPlayerRef = useRef<VideoPlayerHandle>(null);
 
     useEffect(() => {
         if (!videoId) return;
@@ -39,12 +40,6 @@ const VideoReview: React.FC = () => {
                 setFeedbackList(feedbackData);
                 console.log('AiAnalysisResultDto data:', feedbackData);
 
-                // const fighterDetails = await getFighterDetails({
-                //     fighterId: videoDetails.fighterId,
-                //     jwtToken: accessToken,
-                //     refreshToken,
-                //     hydrate,
-                // });
                 const fighterDetails = user?.fighterInfo;
                 setFighterDetails(fighterDetails ?? null);
             } catch (error) {
@@ -94,7 +89,9 @@ const VideoReview: React.FC = () => {
     };
 
     const handleSeek = (timestamp: string) => {
-        console.log(`Seeking to ${timestamp}`); //formatted as "00:00:08"
+        if (videoPlayerRef.current) {
+            videoPlayerRef.current.seekTo(timestamp);
+        }
     };
 
     const clearSelection = () => {
@@ -106,6 +103,7 @@ const VideoReview: React.FC = () => {
             <div className="w-full md:w-1/2 flex flex-col gap-4">
                 <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
                     <VideoPlayer
+                        ref={videoPlayerRef}
                         videoUrl={videoUrl}
                         videoId={videoId || '0'}
                         identifiedTechniques={feedbackList?.techniques || []}

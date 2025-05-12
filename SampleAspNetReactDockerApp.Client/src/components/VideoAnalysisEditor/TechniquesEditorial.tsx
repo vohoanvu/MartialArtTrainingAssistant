@@ -98,8 +98,8 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
         if (field === 'techniqueType' || field === 'positionalScenario') {
             setNewTechnique((prev) => ({ ...prev, [field]: { id: prev[field].id, name: value } }));
             if (field === 'techniqueType') {
-                setNewTechnique((prev) => ({ 
-                    ...prev, 
+                setNewTechnique((prev) => ({
+                    ...prev,
                     [field]: { id: prev[field].id, name: value, positionalScenarioId: prev[field].positionalScenarioId }
                 }));
             }
@@ -337,11 +337,33 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                             <p>
                                 <strong>Timestamp:</strong>{' '}
                                 <span className="px-1 rounded bg-muted text-muted-foreground">
-                                    {technique.startTimestamp}
-                                </span>{' '}
-                                -{' '}
+                                    <Button
+                                        variant="link"
+                                        size="sm"
+                                        className="p-0 h-auto align-baseline"
+                                        aria-label={`Seek to technique at ${technique.startTimestamp}`}
+                                        onClick={e => {
+                                            e.stopPropagation(); // Prevents toggleTechniqueDetails from firing
+                                            onSeek(technique.startTimestamp ?? 'empty timestamp');
+                                        }}
+                                    >
+                                        {technique.startTimestamp}
+                                    </Button>
+                                </span>
+                                {' '}-{' '}
                                 <span className="px-1 rounded bg-muted text-muted-foreground">
-                                    {technique.endTimestamp}
+                                    <Button
+                                        variant="link"
+                                        size="sm"
+                                        className="p-0 h-auto align-baseline"
+                                        aria-label={`Seek to technique at ${technique.endTimestamp}`}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            onSeek(technique.endTimestamp ?? 'empty timestamp');
+                                        }}
+                                    >
+                                        {technique.endTimestamp}
+                                    </Button>
                                 </span>
                             </p>
                         </div>
@@ -411,14 +433,6 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                                     onBlur={(e) => handleTechniqueChange(index, 'description', e.target.value)}
                                 />
                             </div>
-                            <Button
-                                onClick={() => onSeek(technique.startTimestamp ?? 'empty timestamp')}
-                                className="mr-2"
-                                variant="secondary"
-                                size='sm'
-                            >
-                                Seek to Technique
-                            </Button>
                             <Button
                                 onClick={() => deleteTechnique(index)}
                                 className=""

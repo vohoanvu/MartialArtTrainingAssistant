@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Button } from '@/components/ui/button';
 import { TechniqueDto } from '@/types/global';
 
-//Use bg-muted, bg-primary, bg-accent, border-border, and text-foreground for all backgrounds, borders, and text.
 interface VideoPlayerProps {
     videoUrl: string;
     videoId: string;
@@ -13,8 +12,11 @@ interface VideoPlayerProps {
     onSegmentSelect?: (start: string, end: string) => void;
 }
 
+export interface VideoPlayerHandle {
+    seekTo: (timestamp: string) => void;
+}
+
 const parseTimespanToSeconds = (timestamp: string | null): number => {
-    //Example input could be in "00:02:22" format
     if (!timestamp || typeof timestamp !== 'string') return NaN;
     const parts = timestamp.split(':');
     if (parts.length !== 3) return NaN; // Expect HH:mm:ss
@@ -32,14 +34,14 @@ const parseSecondsToTimespan = (seconds: number): string => {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({
+const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     videoUrl,
     identifiedTechniques,
     selectedSegment,
     setSelectedSegment,
     clearSelection,
     onSegmentSelect,
-}) => {
+}, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const timelineRef = useRef<HTMLDivElement>(null);
     const [currentTime, setCurrentTime] = useState(0);
@@ -50,6 +52,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const [isDragging, setIsDragging] = useState(false);
     const [mouseDownPosition, setMouseDownPosition] = useState<number | null>(null);
     const DRAG_THRESHOLD = 5; // Pixels to consider as a drag
+
+    // Expose seekTo function to parent via ref
+    useImperativeHandle(ref, () => ({
+        seekTo: (timestamp: string) => {
+            const seconds = parseTimespanToSeconds(timestamp);
+            if (!isNaN(seconds) && videoRef.current) {
+                videoRef.current.pause();
+                videoRef.current.currentTime = seconds;
+            }
+        },
+    }));
 
     useEffect(() => {
         const video = videoRef.current!;
@@ -102,10 +115,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             } else {
                 const from = Math.min(dragStart!, endTimestamp);
                 const to = Math.max(dragStart!, endTimestamp);
-                console.log('Before parseSecondsToTimespan()... ', from);
                 const startFormatted = parseSecondsToTimespan(from);
                 const endFormatted = parseSecondsToTimespan(to);
-                console.log('After parseSecondsToTimespan()... ', startFormatted);
                 setSelectedSegment({ start: startFormatted, end: endFormatted });
                 onSegmentSelect?.(startFormatted, endFormatted);
             }
@@ -176,7 +187,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const getFromMarkerStyle = () => {
         if (!selectedSegment) return {};
         const from = parseTimespanToSeconds(selectedSegment.start);
-        console.log('Is FromTimestamp NaN ', isNaN(from));
         if (isNaN(from)) return {};
         const leftPercent = (from / duration) * 100;
         return {
@@ -287,7 +297,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     />
                     {identifiedTechniques.map((technique) => {
                         const timestampNum = parseTimespanToSeconds(technique.startTimestamp ?? null);
-                        // Don't render marker if timestamp is invalid or duration is 0
                         if (isNaN(timestampNum) || duration <= 0) {
                             return null;
                         }
@@ -336,6 +345,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </div>
         </div>
     );
-};
+});
 
 export default VideoPlayer;
