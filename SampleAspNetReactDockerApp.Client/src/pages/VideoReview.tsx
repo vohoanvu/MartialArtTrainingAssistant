@@ -94,7 +94,7 @@ const VideoReview: React.FC = () => {
     };
 
     const handleSeek = (timestamp: string) => {
-        console.log(`Seeking to ${timestamp}`);
+        console.log(`Seeking to ${timestamp}`); //formatted as "00:00:08"
     };
 
     const clearSelection = () => {

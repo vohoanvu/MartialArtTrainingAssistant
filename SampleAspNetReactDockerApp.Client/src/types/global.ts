@@ -221,12 +221,12 @@ export enum MartialArt {
 
 export interface Strength {
     description: string;
-    related_technique: string | null;
+    relatedTechniqueId: number | null;
 }
 
 export interface AreaForImprovement {
     description: string;
-    related_technique: string | null;
+    relatedTechniqueId: number | null;
 }
 
 export interface SuggestedDrill {

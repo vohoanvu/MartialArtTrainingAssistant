@@ -32,20 +32,20 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
         setAreasForImprovement(analysisResultDto.areasForImprovement ?? []);
     }, [analysisResultDto]);
 
-    const handleStrengthChange = (
+    const handleStrengthChange = <T extends keyof Strength>(
         index: number,
-        field: keyof Strength,
-        value: string
+        field: T,
+        value: Strength[T]
     ) => {
         const updatedStrengths = [...strengths];
         updatedStrengths[index][field] = value;
         setStrengths(updatedStrengths);
     };
 
-    const handleAreaChange = (
+    const handleAreaChange = <T extends keyof AreaForImprovement>(
         index: number,
-        field: keyof AreaForImprovement,
-        value: string
+        field: T,
+        value: AreaForImprovement[T]
     ) => {
         const updatedAreas = [...areasForImprovement];
         updatedAreas[index][field] = value;
@@ -53,13 +53,13 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
     };
 
     const addStrength = () => {
-        setStrengths([...strengths, { description: '', related_technique: '' }]);
+        setStrengths([...strengths, { description: '', relatedTechniqueId: 0 }]);
     };
 
     const addArea = () => {
         setAreasForImprovement([
             ...areasForImprovement,
-            { description: '', related_technique: '' },
+            { description: '', relatedTechniqueId: 0 },
         ]);
     };
 
@@ -89,6 +89,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                 <Textarea
                     value={overallDescription}
                     onChange={(e) => setOverallDescription(e.target.value)}
+                    onBlur={(e) => setOverallDescription(e.target.value)}
                     className="mt-1 h-24"
                     placeholder="Enter overall analysis description"
                 />
@@ -108,52 +109,57 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                 </div>
                 {showStrengths && (
                     <div className="mt-2 space-y-2">
-                        {strengths.map((strength, index) => (
-                            <div
-                                key={index}
-                                className="p-4 bg-background rounded-md border border-border"
-                            >
-                                <label className="block text-sm font-medium text-foreground">
-                                    Strength {index + 1} Description
-                                </label>
-                                <Textarea
-                                    value={strength.description}
-                                    onChange={(e) =>
-                                        handleStrengthChange(index, 'description', e.target.value)
-                                    }
-                                    className="mt-1"
-                                    placeholder="Enter strength description"
-                                />
-                                <label className="block text-sm font-medium mt-2 text-foreground">
-                                    Related Technique
-                                </label>
-                                <Select
-                                    value={!strength.related_technique ? '__none__' : strength.related_technique}
-                                    onValueChange={(value) =>
-                                        handleStrengthChange(index, 'related_technique', value === '__none__' ? '' : value)
-                                    }
-                                >
-                                    <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="None" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__none__">None</SelectItem>
-                                        {analysisResultDto.techniques?.map((tech) => (
-                                            <SelectItem key={tech.name} value={tech.name}>
-                                                {tech.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Button
-                                    onClick={() => deleteStrength(index)}
-                                    className="mt-2"
-                                    variant="destructive"
-                                >
-                                    Delete Strength
-                                </Button>
-                            </div>
-                        ))}
+                        {
+                            strengths.map((strength, index) => {
+                                const relatedTechnique =analysisResultDto.techniques?.find(t => strength.relatedTechniqueId && t.id === strength.relatedTechniqueId);
+                                const selectValue = relatedTechnique?.name || '__none__';
+
+                                return (
+                                    <div key={index} className="p-4 bg-background rounded-md border border-border">
+                                        <label className="block text-sm font-medium text-foreground">
+                                            Strength {index + 1} Description
+                                        </label>
+                                        <Textarea
+                                            value={strength.description}
+                                            onChange={(e) =>
+                                                handleStrengthChange(index, 'description', e.target.value)
+                                            }
+                                            className="mt-1"
+                                            placeholder="Enter strength description"
+                                        />
+                                        <label className="block text-sm font-medium mt-2 text-foreground">
+                                            Related Technique
+                                        </label>
+                                        <Select
+                                            value={!strength.relatedTechniqueId ? '__none__' : selectValue}
+                                            onValueChange={(value) => {
+                                                const selected = analysisResultDto.techniques?.find(t => t.name === value);
+                                                handleStrengthChange(index, 'relatedTechniqueId', value === '__none__' ? 0 : (selected?.id ?? 0));
+                                            }}
+                                        >
+                                            <SelectTrigger className="mt-1">
+                                                <SelectValue placeholder="None" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">None</SelectItem>
+                                                {analysisResultDto.techniques?.map((tech) => (
+                                                    <SelectItem key={tech.name} value={tech.name}>
+                                                        {tech.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button
+                                            onClick={() => deleteStrength(index)}
+                                            className="mt-2"
+                                            variant="destructive"
+                                        >
+                                            Delete Strength
+                                        </Button>
+                                    </div>
+                                );
+                            })
+                        }
                         <Button
                             onClick={addStrength}
                             className="mt-2"
@@ -179,52 +185,57 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                 </div>
                 {showAreas && (
                     <div className="mt-2 space-y-2">
-                        {areasForImprovement.map((area, index) => (
-                            <div
-                                key={index}
-                                className="p-4 bg-background rounded-md border border-border"
-                            >
-                                <label className="block text-sm font-medium text-foreground">
-                                    Area for Improvement {index + 1} Description
-                                </label>
-                                <Textarea
-                                    value={area.description}
-                                    onChange={(e) =>
-                                        handleAreaChange(index, 'description', e.target.value)
-                                    }
-                                    className="mt-1"
-                                    placeholder="Enter area for improvement description"
-                                />
-                                <label className="block text-sm font-medium mt-2 text-foreground">
-                                    Related Technique
-                                </label>
-                                <Select
-                                    value={!area.related_technique ? '__none__' : area.related_technique}
-                                    onValueChange={(value) =>
-                                        handleAreaChange(index, 'related_technique', value === '__none__' ? '' : value)
-                                    }
-                                >
-                                    <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="None" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__none__">None</SelectItem>
-                                        {analysisResultDto.techniques?.map((tech) => (
-                                            <SelectItem key={tech.name} value={tech.name}>
-                                                {tech.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Button
-                                    onClick={() => deleteArea(index)}
-                                    className="mt-2"
-                                    variant="destructive"
-                                >
-                                    Delete Area
-                                </Button>
-                            </div>
-                        ))}
+                        {
+                            areasForImprovement.map((area, index) => {
+                                const relatedTechnique =analysisResultDto.techniques?.find(t => area.relatedTechniqueId && t.id === area.relatedTechniqueId);
+                                const selectImprovementTechniqueValue = relatedTechnique?.name || '__none__';
+
+                                return (
+                                    <div key={index} className="p-4 bg-background rounded-md border border-border">
+                                        <label className="block text-sm font-medium text-foreground">
+                                            Area for Improvement {index + 1} Description
+                                        </label>
+                                        <Textarea
+                                            value={area.description}
+                                            onChange={(e) =>
+                                                handleAreaChange(index, 'description', e.target.value)
+                                            }
+                                            className="mt-1"
+                                            placeholder="Enter area for improvement description"
+                                        />
+                                        <label className="block text-sm font-medium mt-2 text-foreground">
+                                            Related Technique
+                                        </label>
+                                        <Select
+                                            value={!area.relatedTechniqueId ? '__none__' : selectImprovementTechniqueValue}
+                                            onValueChange={(value) => {
+                                                const selected = analysisResultDto.techniques?.find(t => t.name === value);
+                                                handleAreaChange(index, 'relatedTechniqueId', value === '__none__' ? 0 : (selected?.id ?? 0));
+                                            }}
+                                        >
+                                            <SelectTrigger className="mt-1">
+                                                <SelectValue placeholder="None" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">None</SelectItem>
+                                                {analysisResultDto.techniques?.map((tech) => (
+                                                    <SelectItem key={tech.name} value={tech.name}>
+                                                        {tech.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button
+                                            onClick={() => deleteArea(index)}
+                                            className="mt-2"
+                                            variant="destructive"
+                                        >
+                                            Delete Area
+                                        </Button>
+                                    </div>
+                                );
+                            })
+                        }
                         <Button
                             onClick={addArea}
                             className="mt-2"

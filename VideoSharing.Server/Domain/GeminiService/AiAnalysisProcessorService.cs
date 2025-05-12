@@ -226,10 +226,30 @@ namespace VideoSharing.Server.Domain.GeminiService
                     RelatedTechniqueName = d.Technique.Name,
                     RelatedTechniqueId = d.Technique.Id
                 }).ToList(),
-                Strengths = JsonSerializer.Deserialize<List<Strength>>(analysisResult.Strengths),
-                AreasForImprovement = JsonSerializer.Deserialize<List<AreaForImprovement>>(analysisResult.AreasForImprovement),
+                Strengths = JsonSerializer.Deserialize<List<StrengthDto>>(analysisResult.Strengths),
+                AreasForImprovement = JsonSerializer.Deserialize<List<AreasForImprovementDto>>(analysisResult.AreasForImprovement),
                 OverallDescription = analysisResult.OverallDescription
             };
+
+            if (analysisDto.Strengths != null) 
+            {
+                foreach (var strenthDto in analysisDto.Strengths)
+                {
+                    if (strenthDto.RelatedTechnique != null) {
+                        strenthDto.RelatedTechniqueId = analysisDto.Techniques.FirstOrDefault(t => t.Name == strenthDto.RelatedTechnique)?.Id;
+                    }
+                }
+            }
+
+            if (analysisDto.AreasForImprovement != null) 
+            {
+                foreach (var areasForImprovementDto in analysisDto.AreasForImprovement)
+                {
+                    if (areasForImprovementDto.RelatedTechnique != null) {
+                        areasForImprovementDto.RelatedTechniqueId = analysisDto.Techniques.FirstOrDefault(t => t.Name == areasForImprovementDto.RelatedTechnique)?.Id;
+                    }
+                }
+            }
 
             return analysisDto;
         }

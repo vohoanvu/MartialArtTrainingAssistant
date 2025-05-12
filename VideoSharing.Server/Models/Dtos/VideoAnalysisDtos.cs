@@ -78,8 +78,8 @@ namespace VideoSharing.Server.Models.Dtos
         public int? Id { get; set; }
         public List<TechniqueDto>? Techniques { get; set; }
         public List<DrillDto>? Drills { get; set; }
-        public List<Strength>? Strengths { get; set; }
-        public List<AreaForImprovement>? AreasForImprovement { get; set; }
+        public List<StrengthDto>? Strengths { get; set; }
+        public List<AreasForImprovementDto>? AreasForImprovement { get; set; }
         public string? OverallDescription { get; set; }
     }
 
@@ -88,8 +88,18 @@ namespace VideoSharing.Server.Models.Dtos
         public int? Id { get; set; }
         public List<TechniqueDto>? Techniques { get; set; }
         public List<DrillDto>? Drills { get; set; }
-        public List<Strength>? Strengths { get; set; }
-        public List<AreaForImprovement>? AreasForImprovement { get; set; }
+        public List<StrengthDto>? Strengths { get; set; }
+        public List<AreasForImprovementDto>? AreasForImprovement { get; set; }
         public string? OverallDescription { get; set; }
+    }
+
+    public class StrengthDto: Strength
+    {
+        public int? RelatedTechniqueId { get; set; }
+    }
+
+    public class AreasForImprovementDto: AreaForImprovement
+    {
+        public int? RelatedTechniqueId { get; set; }
     }
 }

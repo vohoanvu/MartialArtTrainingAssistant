@@ -26,7 +26,7 @@ namespace SharedEntities.Models
         public string Description { get; set; }
 
         [JsonPropertyName("related_technique")]
-        public string RelatedTechnique { get; set; }
+        public string? RelatedTechnique { get; set; }
     }
 
     public class SuggestedDrill
@@ -53,7 +53,7 @@ namespace SharedEntities.Models
         public string Description { get; set; }
 
         [JsonPropertyName("related_technique")]
-        public string RelatedTechnique { get; set; }
+        public string? RelatedTechnique { get; set; }
     }
 
     public class TechniqueIdentified
