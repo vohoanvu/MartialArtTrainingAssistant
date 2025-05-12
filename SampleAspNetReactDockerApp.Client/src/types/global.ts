@@ -226,6 +226,7 @@ export interface Strength {
 
 export interface AreaForImprovement {
     description: string;
+    weaknessCategory: string;
     relatedTechniqueId: number | null;
 }
 

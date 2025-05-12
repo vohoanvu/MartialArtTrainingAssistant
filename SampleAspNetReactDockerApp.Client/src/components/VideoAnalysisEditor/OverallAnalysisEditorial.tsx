@@ -20,9 +20,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
     const [strengths, setStrengths] = useState<Strength[]>(
         analysisResultDto.strengths ?? []
     );
-    const [areasForImprovement, setAreasForImprovement] = useState<
-        AreaForImprovement[]
-    >(analysisResultDto.areasForImprovement ?? []);
+    const [areasForImprovement, setAreasForImprovement] = useState<AreaForImprovement[]>(analysisResultDto.areasForImprovement ?? []);
     const [showStrengths, setShowStrengths] = useState(true);
     const [showAreas, setShowAreas] = useState(true);
 
@@ -59,7 +57,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
     const addArea = () => {
         setAreasForImprovement([
             ...areasForImprovement,
-            { description: '', relatedTechniqueId: 0 },
+            { description: '', weaknessCategory: '', relatedTechniqueId: 0 },
         ]);
     };
 

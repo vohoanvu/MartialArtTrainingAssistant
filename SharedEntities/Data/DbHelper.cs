@@ -19,12 +19,13 @@ namespace SharedEntities.Data
         }
         private static async Task SeedDatabaseAsync(MyDatabaseContext dbContext, UserManager<AppUserEntity> userManager)
         {
+            // Seed Users and Fighters
             if (!await dbContext.Users.AnyAsync())
             {
                 using var transaction = await dbContext.Database.BeginTransactionAsync();
                 try
                 {
-                    // Seed Student
+                    // Seed Student (existing)
                     var studentFighter = new Fighter
                     {
                         FighterName = "Test Student 0",
@@ -39,7 +40,7 @@ namespace SharedEntities.Data
                         Role = FighterRole.Student
                     };
                     dbContext.Fighters.Add(studentFighter);
-                    await dbContext.SaveChangesAsync(); // Save Fighter first to get Id
+                    await dbContext.SaveChangesAsync();
 
                     var studentUser = new AppUserEntity
                     {
@@ -48,27 +49,27 @@ namespace SharedEntities.Data
                         EmailConfirmed = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        FighterId = studentFighter.Id // Set FighterId before creating user
+                        FighterId = studentFighter.Id
                     };
                     var studentResult = await userManager.CreateAsync(studentUser, "qW123456*");
                     if (!studentResult.Succeeded) throw new Exception("Failed to seed student user: " + string.Join(", ", studentResult.Errors.Select(e => e.Description)));
 
-                    // Seed Instructor
+                    // Seed Instructor (existing)
                     var instructorFighter = new Fighter
                     {
                         FighterName = "Test Instructor 0",
-                        Height = 5.4,
-                        Weight = 132,
-                        BMI = 132 / (5.4 * 5.4),
+                        Height = 5.8,
+                        Weight = 156,
+                        BMI = 156 / (5.8 * 5.8), // Corrected BMI calculation
                         Gender = Gender.Male,
-                        Birthdate = new DateTime(1996, 3, 19, 0, 0, 0, DateTimeKind.Utc),
-                        MaxWorkoutDuration = 5,
-                        Experience = TrainingExperience.LessThanTwoYears,
-                        BelkRank = BeltColor.White,
+                        Birthdate = new DateTime(1988, 3, 19, 0, 0, 0, DateTimeKind.Utc),
+                        MaxWorkoutDuration = 30,
+                        Experience = TrainingExperience.MoreThanFiveYears,
+                        BelkRank = BeltColor.Black,
                         Role = FighterRole.Instructor
                     };
                     dbContext.Fighters.Add(instructorFighter);
-                    await dbContext.SaveChangesAsync(); // Save Fighter first to get Id
+                    await dbContext.SaveChangesAsync();
 
                     var instructorUser = new AppUserEntity
                     {
@@ -77,10 +78,146 @@ namespace SharedEntities.Data
                         EmailConfirmed = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        FighterId = instructorFighter.Id // Set FighterId before creating user
+                        FighterId = instructorFighter.Id
                     };
                     var instructorResult = await userManager.CreateAsync(instructorUser, "qW123456*");
                     if (!instructorResult.Succeeded) throw new Exception("Failed to seed instructor user: " + string.Join(", ", instructorResult.Errors.Select(e => e.Description)));
+
+                    // Seed Additional Students
+                    var additionalStudents = new List<(Fighter Fighter, AppUserEntity User)>
+                    {
+                        // Student 1: Small, Beginner Female
+                        (
+                            new Fighter
+                            {
+                                FighterName = "Test Student 1",
+                                Height = 4.8,
+                                Weight = 110,
+                                BMI = 110 / (4.8 * 4.8),
+                                Gender = Gender.Female,
+                                Birthdate = new DateTime(2000, 7, 15, 0, 0, 0, DateTimeKind.Utc),
+                                MaxWorkoutDuration = 4,
+                                Experience = TrainingExperience.LessThanTwoYears,
+                                BelkRank = BeltColor.White,
+                                Role = FighterRole.Student
+                            },
+                            new AppUserEntity
+                            {
+                                UserName = "test-student-1@gmail.com",
+                                Email = "test-student-1@gmail.com",
+                                EmailConfirmed = true,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            }
+                        ),
+                        // Student 2: Medium, Intermediate Male
+                        (
+                            new Fighter
+                            {
+                                FighterName = "Test Student 2",
+                                Height = 5.6,
+                                Weight = 165,
+                                BMI = 165 / (5.6 * 5.6),
+                                Gender = Gender.Male,
+                                Birthdate = new DateTime(1995, 11, 22, 0, 0, 0, DateTimeKind.Utc),
+                                MaxWorkoutDuration = 10,
+                                Experience = TrainingExperience.FromTwoToFiveYears,
+                                BelkRank = BeltColor.Blue,
+                                Role = FighterRole.Student
+                            },
+                            new AppUserEntity
+                            {
+                                UserName = "test-student-2@gmail.com",
+                                Email = "test-student-2@gmail.com",
+                                EmailConfirmed = true,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            }
+                        ),
+                        // Student 3: Large, Advanced Female
+                        (
+                            new Fighter
+                            {
+                                FighterName = "Test Student 3",
+                                Height = 6.0,
+                                Weight = 200,
+                                BMI = 200 / (6.0 * 6.0),
+                                Gender = Gender.Female,
+                                Birthdate = new DateTime(1990, 4, 10, 0, 0, 0, DateTimeKind.Utc),
+                                MaxWorkoutDuration = 20,
+                                Experience = TrainingExperience.MoreThanFiveYears,
+                                BelkRank = BeltColor.Brown,
+                                Role = FighterRole.Student
+                            },
+                            new AppUserEntity
+                            {
+                                UserName = "test-student-3@gmail.com",
+                                Email = "test-student-3@gmail.com",
+                                EmailConfirmed = true,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            }
+                        ),
+                        // Student 4: Medium, Beginner Male
+                        (
+                            new Fighter
+                            {
+                                FighterName = "Test Student 4",
+                                Height = 5.9,
+                                Weight = 175,
+                                BMI = 175 / (5.9 * 5.9),
+                                Gender = Gender.Male,
+                                Birthdate = new DateTime(1998, 9, 5, 0, 0, 0, DateTimeKind.Utc),
+                                MaxWorkoutDuration = 6,
+                                Experience = TrainingExperience.LessThanTwoYears,
+                                BelkRank = BeltColor.White,
+                                Role = FighterRole.Student
+                            },
+                            new AppUserEntity
+                            {
+                                UserName = "test-student-4@gmail.com",
+                                Email = "test-student-4@gmail.com",
+                                EmailConfirmed = true,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            }
+                        ),
+                        // Student 5: Small, Intermediate Female
+                        (
+                            new Fighter
+                            {
+                                FighterName = "Test Student 5",
+                                Height = 5.2,
+                                Weight = 125,
+                                BMI = 125 / (5.2 * 5.2),
+                                Gender = Gender.Female,
+                                Birthdate = new DateTime(1997, 2, 28, 0, 0, 0, DateTimeKind.Utc),
+                                MaxWorkoutDuration = 8,
+                                Experience = TrainingExperience.FromTwoToFiveYears,
+                                BelkRank = BeltColor.Purple,
+                                Role = FighterRole.Student
+                            },
+                            new AppUserEntity
+                            {
+                                UserName = "test-student-5@gmail.com",
+                                Email = "test-student-5@gmail.com",
+                                EmailConfirmed = true,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            }
+                        )
+                    };
+
+                    // Add additional students
+                    foreach (var (fighter, user) in additionalStudents)
+                    {
+                        dbContext.Fighters.Add(fighter);
+                        await dbContext.SaveChangesAsync(); // Save Fighter to get Id
+
+                        user.FighterId = fighter.Id;
+                        var result = await userManager.CreateAsync(user, "qW123456*");
+                        if (!result.Succeeded) throw new Exception($"Failed to seed student user {user.Email}: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                    }
 
                     await transaction.CommitAsync();
                     Console.WriteLine("Seeded initial Student and Instructor records with associated Fighters.");

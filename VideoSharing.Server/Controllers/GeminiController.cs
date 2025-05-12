@@ -86,7 +86,7 @@ namespace VideoSharing.Server.Controllers
                         OverallDescription = analysis.OverallDescription,
                         Techniques = new List<Techniques>(),
                         Drills = new List<Drills>(),
-                        GeneratedAt = DateTime.Now,
+                        GeneratedAt = DateTime.UtcNow,
                         UpdatedBy = uploadedVideo.UserId
                     };
                     dbContext.AiAnalysisResults.Add(newAiResult);
