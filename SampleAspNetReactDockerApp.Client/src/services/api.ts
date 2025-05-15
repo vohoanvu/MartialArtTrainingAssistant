@@ -565,7 +565,7 @@ export async function getFighterDetails({
     }
 }
 
-export async function getClassCurriculum({
+export async function generateClassCurriculum({
     sessionId,
     jwtToken,
     refreshToken,
@@ -579,11 +579,51 @@ export async function getClassCurriculum({
     currentTry?: number;
 }): Promise<CurriculumDto> {
     try {
+        const response = await fetch(`/vid/api/video/session/${sessionId}/generate`, {
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`,
+            },
+        });
+
+        if (response.ok) {
+            return await response.json() as CurriculumDto;
+        } else if (response.status === 401 && currentTry === 0) {
+            await hydrate();
+            return await generateClassCurriculum({ sessionId, jwtToken, refreshToken, hydrate, currentTry: 1 });
+        } else {
+            const errorText = await response.text();
+            throw new Error(`Failed to fetch curriculum: ${errorText}`);
+        }
+    } catch (error) {
+        console.error("Error fetching curriculum:", error);
+        throw error;
+    }
+}
+
+export async function getClassCurriculum({
+    sessionId,
+    jwtToken,
+    refreshToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    sessionId: number;
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<CurriculumDto | null> {
+    try {
         const response = await fetch(`/vid/api/video/${sessionId}/curriculum`, {
             headers: {
                 'Authorization': `Bearer ${jwtToken}`,
             },
         });
+
+        if (response.ok && response.status === 204) {
+            console.log("Get Curriculum response: ", response);
+            return null;
+        }
 
         if (response.ok) {
             return await response.json() as CurriculumDto;

@@ -3,8 +3,8 @@ import {
     getTrainingSessionDetails,
     updateTrainingSessionDetails,
     GenerateFighterPairs,
-    CalculateBMI,
-    getClassCurriculum
+    generateClassCurriculum,
+    getClassCurriculum,
 } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
@@ -16,6 +16,7 @@ const TrainingSessionDetails = () => {
     const sessionIdNumber = Number(sessionId);
     const [sessionDetails, setSessionDetails] = useState<SessionDetailViewModel | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isAIloading, setIsAIloading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const jwtToken = useAuthStore((state) => state.accessToken);
     const refreshToken = useAuthStore((state) => state.refreshToken);
@@ -33,6 +34,8 @@ const TrainingSessionDetails = () => {
                 setLoading(true);
                 const details = await getTrainingSessionDetails(sessionIdNumber, { jwtToken, refreshToken, hydrate });
                 setSessionDetails(details);
+                const savedCurriculum = await getClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
+                setCurriculum(savedCurriculum);
             } catch (err) {
                 setError('Failed to load session details');
                 console.error(err);
@@ -107,15 +110,15 @@ const TrainingSessionDetails = () => {
 
     const handleGenerateCurriculum = async () => {
         setError(null);
-        setLoading(true);
+        setIsAIloading(true);
         try {
-            const curriculumData = await getClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
+            const curriculumData = await generateClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
             setCurriculum(curriculumData);
         } catch (err) {
             setError('Failed to generate curriculum');
             console.error(err);
         } finally {
-            setLoading(false);
+            setIsAIloading(false);
         }
     };
 
@@ -136,6 +139,36 @@ const TrainingSessionDetails = () => {
     const handleFeedback = (helpful: boolean) => {
         alert(`Feedback recorded: ${helpful ? 'Helpful' : 'Not Helpful'}`);
     };
+
+    function formatDescriptionWithNumberedList(text: string) {
+        // Regex to match "1. ... 2. ... 3. ..." style lists
+        const numberedListRegex = /(\d+\.\s[^.]+(?:\.[^0-9]|$))/g;
+        const matches = text.match(numberedListRegex);
+
+        if (matches && matches.length > 1) {
+            // Split the text before the first number
+            const firstNumberIndex = text.search(/\d+\.\s/);
+            const beforeList = text.slice(0, firstNumberIndex).trim();
+            const listItems = text
+                .slice(firstNumberIndex)
+                .split(/\d+\.\s/)
+                .filter(Boolean)
+                .map(item => item.replace(/^\s*|\s*\.$/g, '').trim());
+
+            return (
+                <div>
+                    {beforeList && <p>{beforeList}</p>}
+                    <ol className="list-decimal ml-6">
+                        {listItems.map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                        ))}
+                    </ol>
+                </div>
+            );
+        }
+        // Fallback: just return as plain text
+        return <p>{text}</p>;
+    }
 
     if (loading) return <p className="text-center text-lg text-muted-foreground">Loading...</p>;
     if (error) return <p className="text-center text-lg text-destructive">{error}</p>;
@@ -199,17 +232,28 @@ const TrainingSessionDetails = () => {
                             <Button
                                 type="button"
                                 variant='default'
-                                onClick={handleGenerateCurriculum}
-                                disabled={loading}
+                                onClick={async () => {
+                                    if (window.confirm("Are you sure you want to generate today's lessons? This may take a few minutes.")) {
+                                        await handleGenerateCurriculum();
+                                    }
+                                }}
+                                disabled={isAIloading}
                             >
                                 Generate Today's Lessons
                             </Button>
+                            {isAIloading && (
+                                <div className="mt-4 flex items-center space-x-2">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                                    <p className="text-primary">The AI is design the curriculum for you. This may take a few minutes.</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
             ) : (
                 <p className="text-muted-foreground">No session details available.</p>
             )}
+
 
             {/* Curriculum Section */}
             {curriculum && (
@@ -256,7 +300,7 @@ const TrainingSessionDetails = () => {
                                             <span>{expandedSections[`tech-${index}`] ? '▲' : '▼'}</span>
                                         </button>
                                         <div className={`mt-2 ${expandedSections[`tech-${index}`] ? 'block' : 'hidden'}`}>
-                                            <p>{tech.description}</p>
+                                            {formatDescriptionWithNumberedList(tech.description)}
                                             <p className="relative group">
                                                 <span className="font-semibold">Tips: </span>
                                                 <span className="underline decoration-dotted cursor-help group-hover:no-underline">{tech.tips}</span>
@@ -312,7 +356,7 @@ const TrainingSessionDetails = () => {
                                 </Button>
                             </div>
                             <p className="text-lg font-bold mt-2">{curriculum.sparring.name}</p>
-                            <p className="text-muted-foreground">{curriculum.sparring.description}</p>
+                            {formatDescriptionWithNumberedList(curriculum.sparring.description)}
                             <p className="font-semibold">Guidelines:</p>
                             <ul className="list-disc ml-6">
                                 {(curriculum.sparring.guidelines || '').split(';').map((guideline, index) => (

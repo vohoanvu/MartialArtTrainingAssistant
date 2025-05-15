@@ -67,11 +67,11 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
         {
             e.ToTable("app_users");
             e.HasKey(x => x.Id);
-            
+
             e.Property(p => p.CreatedAt)
                 .HasDefaultValue(DateTime.UtcNow)
                 .ValueGeneratedOnAdd();
-            
+
             e.Property(p => p.UpdatedAt)
                 .HasDefaultValue(DateTime.UtcNow)
                 .ValueGeneratedOnAddOrUpdate();
@@ -88,6 +88,12 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
         builder.Entity<VideoSegmentFeedback>()
             .HasIndex(a => a.AnalysisJson)
             .HasMethod("GIN");
+        builder.Entity<TrainingSession>()
+            .HasIndex(ts => ts.RawCurriculumJson)
+            .HasMethod("GIN");
+        builder.Entity<TrainingSession>()
+            .HasIndex(ts => ts.EditedCurriculumJson)
+            .HasMethod("GIN");
 
         // Ensure JSONB columns are mapped correctly
         builder.Entity<AiAnalysisResult>()
@@ -96,6 +102,12 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
         builder.Entity<VideoSegmentFeedback>()
             .Property(a => a.AnalysisJson)
+            .HasColumnType("jsonb");
+        builder.Entity<TrainingSession>()
+            .Property(ts => ts.RawCurriculumJson)
+            .HasColumnType("jsonb");
+        builder.Entity<TrainingSession>()
+            .Property(ts => ts.EditedCurriculumJson)
             .HasColumnType("jsonb");
     }
 }

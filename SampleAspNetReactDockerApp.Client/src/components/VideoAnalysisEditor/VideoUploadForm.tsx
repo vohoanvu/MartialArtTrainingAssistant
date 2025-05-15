@@ -135,7 +135,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Enter a description"
+                        placeholder="Optional: Enter a description"
                         className="mt-1"
                         rows={4}
                         disabled={isLoading}
@@ -143,14 +143,14 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                 </div>
                 <div>
                     <label htmlFor="studentIdentifier" className="block text-sm font-medium text-foreground">
-                        Student Identifier
+                        Specify which fighter are you in the video?
                     </label>
                     <Input
                         type="text"
                         id="studentIdentifier"
                         value={studentIdentifier}
                         onChange={(e) => setStudentIdentifier(e.target.value)}
-                        placeholder="Please identify which fighter you are in the video. For example: Fighter in blue gi"
+                        placeholder="Please specify which fighter you are in the video. For example: Fighter in blue gi"
                         className="mt-1"
                         disabled={isLoading}
                     />

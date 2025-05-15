@@ -315,6 +315,8 @@ namespace VideoSharing.Server.Controllers
                 AiAnalysisResult = AiAnalysisResult,
                 SignedUrl = signedUrl,
                 FighterId = video.AppUser.FighterId,
+                FighterName = video.AppUser.Fighter?.FighterName ?? string.Empty,
+                StudentIdentifier = video.StudentIdentifier
             });
         }
 

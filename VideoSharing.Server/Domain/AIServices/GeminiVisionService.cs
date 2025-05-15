@@ -284,6 +284,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             try
             {
                 _logger.LogInformation("Sending GenerateContent request for class curriculum to model {Model} in project {ProjectId}", _model, _projectId);
+                _logger.LogInformation("Current Prompt: {Prompt}", curriculumPrompt);
                 GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
                 string resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
                     ?? throw new InvalidOperationException("No valid JSON response received from the API.");

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { getVideoDetails, getVideoFeedback, saveVideoAnalysisResult } from '@/services/api';
+import { getFighterDetails, getVideoDetails, getVideoFeedback, saveVideoAnalysisResult } from '@/services/api';
 import VideoPlayer, { VideoPlayerHandle } from '../components/VideoAnalysisEditor/VideoPlayer';
 import useAuthStore from '@/store/authStore';
 import { AnalysisResultDto, Fighter } from '@/types/global';
@@ -11,11 +11,12 @@ const VideoReview: React.FC = () => {
     const { videoId } = useParams<{ videoId: string }>();
     const [feedbackList, setFeedbackList] = useState<AnalysisResultDto | null>(null);
     const [videoUrl, setVideoUrl] = useState('');
-    const { accessToken, refreshToken, hydrate, user } = useAuthStore();
+    const { accessToken, refreshToken, hydrate } = useAuthStore();
 
     const [selectedSegment, setSelectedSegment] = useState<{ start: string; end: string } | null>(null);
     const [fighterDetails, setFighterDetails] = useState<Fighter | null>(null);
     const videoPlayerRef = useRef<VideoPlayerHandle>(null);
+    const [studentIdentifier, setStudentIdentifier] = useState<string | null>(null);
 
     useEffect(() => {
         if (!videoId) return;
@@ -30,6 +31,7 @@ const VideoReview: React.FC = () => {
                 });
                 console.log('Video Details:', videoDetails);
                 setVideoUrl(videoDetails.signedUrl);
+                setStudentIdentifier(videoDetails.studentIdentifier);
 
                 const feedbackData: AnalysisResultDto = await getVideoFeedback({
                     videoId,
@@ -38,10 +40,16 @@ const VideoReview: React.FC = () => {
                     hydrate,
                 });
                 setFeedbackList(feedbackData);
-                console.log('AiAnalysisResultDto data:', feedbackData);
+                //console.log('AiAnalysisResultDto data:', feedbackData);
 
-                const fighterDetails = user?.fighterInfo;
+                const fighterDetails = await getFighterDetails({
+                    fighterId: videoDetails.fighterId,
+                    jwtToken: accessToken,
+                    refreshToken,
+                    hydrate, 
+                })
                 setFighterDetails(fighterDetails ?? null);
+                console.log("Video details: ", videoDetails);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -114,7 +122,7 @@ const VideoReview: React.FC = () => {
                     />
                 </div>
                 <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
-                    <StudentDetails fighterDetails={fighterDetails} />
+                    <StudentDetails fighterDetails={fighterDetails} studentIdentifier={studentIdentifier}/>
                 </div>
             </div>
             <div className="w-full md:w-1/2 mt-4 md:mt-0">

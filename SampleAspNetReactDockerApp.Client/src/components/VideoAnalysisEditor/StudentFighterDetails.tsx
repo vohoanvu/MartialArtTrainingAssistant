@@ -4,6 +4,7 @@ import { Input } from "../ui/input";
 
 interface StudentDetailsProps {
     fighterDetails: Fighter | null;
+    studentIdentifier: string | null;
 }
 
 enum TrainingExperience {
@@ -27,34 +28,8 @@ function getTrainingExperienceFromIndex(index: number): TrainingExperience | und
 
 export const StudentDetails: React.FC<StudentDetailsProps> = ({
     fighterDetails,
+    studentIdentifier,
 }) => {
-    const [studentName, setStudentName] = useState('');
-    const [beltRank, setBeltRank] = useState('');
-    const [studentIdentifier, setStudentIdentifier] = useState('');
-    const [experience, setExperience] = useState(TrainingExperience.MoreThanFiveYears);
-    const [height, setHeight] = useState('0');
-    const [weight, setWeight] = useState('0');
-
-    useEffect(() => {
-        if (fighterDetails) {
-            setStudentName(fighterDetails.fighterName ?? '');
-            setBeltRank(fighterDetails.beltRank ?? '');
-            setStudentIdentifier("TO BE CONTINUED");
-            setHeight(fighterDetails.height != null ? fighterDetails.height.toString() : '');
-            setWeight(fighterDetails.weight != null ? fighterDetails.weight.toString() : '');
-            setExperience(
-                getTrainingExperienceFromIndex(fighterDetails.experience as number) ||
-                TrainingExperience.LessThanTwoYears
-            );
-        } else {
-            setStudentName('');
-            setBeltRank('');
-            setStudentIdentifier('');
-            setHeight('');
-            setWeight('');
-            setExperience(TrainingExperience.LessThanTwoYears);
-        }
-    }, [fighterDetails]);
 
     return (
         <div id="studentDetails" className="grid grid-cols-2 gap-4 p-4 m-2 shadow-md border">
@@ -62,8 +37,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <label className="block text-sm font-medium mb-1">Student Name</label>
                 <Input
                     type="text"
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
+                    value={fighterDetails?.fighterName ?? ''}
                     placeholder="Enter student name..."
                     className="w-full p-2 border rounded-md"
                     readOnly
@@ -74,8 +48,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <label className="block text-sm font-medium mb-1">Belt Rank</label>
                 <Input
                     type="text"
-                    value={beltRank}
-                    onChange={(e) => setBeltRank(e.target.value)}
+                    value={fighterDetails?.beltColor ?? ''}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter belt rank..."
                     readOnly
@@ -86,8 +59,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <label className="block text-sm font-medium mb-1">Student Identifier</label>
                 <Input
                     type="text"
-                    value={studentIdentifier}
-                    onChange={(e) => setStudentIdentifier(e.target.value)}
+                    value={studentIdentifier ?? ''}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter student identifier..."
                     readOnly
@@ -98,10 +70,9 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <label className="block text-sm font-medium mb-1">Height</label>
                 <Input
                     type="text"
-                    value={height}
+                    value={fighterDetails?.height ?? ''}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter height..."
-                    onChange={(e) => setHeight(e.target.value)}
                     readOnly
                 />
             </div>
@@ -110,10 +81,9 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <label className="block text-sm font-medium mb-1">Weight</label>
                 <Input
                     type="text"
-                    value={weight}
+                    value={fighterDetails?.weight ?? ''}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter weight..."
-                    onChange={(e) => setWeight(e.target.value)}
                     readOnly
                 />
             </div>
@@ -122,10 +92,9 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
                 <label className="block text-sm font-medium mb-1">Training Experience</label>
                 <Input
                     type="text"
-                    value={experience}
+                    value={getTrainingExperienceFromIndex(fighterDetails?.experience as number) || TrainingExperience.LessThanTwoYears}
                     className="w-full p-2 border rounded-md"
                     placeholder="Enter training experience..."
-                    onChange={(e) => setExperience(e.target.value as TrainingExperience)}
                     readOnly
                 />
             </div>

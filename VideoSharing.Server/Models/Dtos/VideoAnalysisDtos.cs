@@ -24,7 +24,8 @@ namespace VideoSharing.Server.Models.Dtos
     {
         public int Id { get; set; }
         public string UserId { get; set; }
-        public string FighterName { get; set; }
+        public string? FighterName { get; set; }
+        public string? StudentIdentifier { get; set; }
         public string FilePath { get; set; }
         public DateTime UploadTimestamp { get; set; }
         public string? Description { get; set; }

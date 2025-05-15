@@ -165,7 +165,7 @@ namespace VideoSharing.Server.Controllers
             }
         }
 
-        [HttpGet("{sessionId}/curriculum")]
+        [HttpGet("session/{sessionId}/generate")]
         [Authorize]
         public async Task<IActionResult> GenerateCurriculumAsync(int sessionId)
         {
@@ -175,6 +175,30 @@ namespace VideoSharing.Server.Controllers
             try
             {
                 var curriculum = await curriculumService.GenerateCurriculumAsync(sessionId);
+                return Ok(curriculum);
+            }
+            catch (BadHttpRequestException ex)
+            {
+                _logger.LogWarning(ex, "Invalid sessionId {SessionId} for curriculum generation.", sessionId);
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating curriculum for sessionId {SessionId}", sessionId);
+                return StatusCode(500, new { error = "An unexpected error occurred while generating the curriculum." });
+            }
+        }
+
+        [HttpGet("{sessionId}/curriculum")]
+        [Authorize]
+        public async Task<IActionResult> GetCurriculumAsync(int sessionId)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var curriculumService = scope.ServiceProvider.GetRequiredService<CurriculumRecommendationService>();
+
+            try
+            {
+                var curriculum = await curriculumService.GetCurriculumJsonBlob(sessionId);
                 return Ok(curriculum);
             }
             catch (BadHttpRequestException ex)

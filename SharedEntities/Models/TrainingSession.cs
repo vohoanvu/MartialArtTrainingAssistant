@@ -27,7 +27,11 @@ namespace SharedEntities.Models
 
         public MartialArt MartialArt { get; set; } = MartialArt.BrazilianJiuJitsu_GI;
 
-        public virtual ICollection<Drills> RecommendedDrills { get; set; } = [];
+        public virtual ICollection<Drills>? RecommendedDrills { get; set; }
+
+        public string? RawCurriculumJson { get; set; }
+
+        public string? EditedCurriculumJson { get; set; }
     }
 
     public class TrainingSessionTechniqueJoint
