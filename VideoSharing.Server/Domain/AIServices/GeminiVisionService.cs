@@ -4,13 +4,14 @@ using Microsoft.AspNetCore.StaticFiles;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
 using VideoSharing.Server.Models.Dtos;
 using SharedEntities.Models;
-using SharedEntities.Data;
 
 namespace VideoSharing.Server.Domain.GeminiService
 {
     public interface IGeminiVisionService
     {
         Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, string martialArt, string studentIdentifier, string videoDescription, string skillLevel);
+
+        Task<GeminiChatResponse> SuggestClassCurriculum(List<string> weaknesses, List<Fighter>? students, TrainingSession classSession);
     }
 
     public class GeminiVisionService : IGeminiVisionService
@@ -19,7 +20,7 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly string _projectId;
         private readonly string _location;
         private readonly string _model;
-        private readonly string _customPrompt = @"
+        private readonly string _visionPrompt = @"
         You are an expert [MartialArt] instructor. You have been given video of your student with the description as '[VideoDescription]'.
         Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] video. The student is at the [SkillLevel] level and is training for [TrainingGoal]. Provide a detailed analysis of the student's techniques, execution, strengths, weaknesses, and suggest specific drills for practice. Format the output as a JSON object with the following structure:
         {
@@ -110,9 +111,9 @@ namespace VideoSharing.Server.Domain.GeminiService
         }
 
         /// <inheritdoc/>
-        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, 
-        string martialArt, 
-        string studentIdentifier, 
+        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput,
+        string martialArt,
+        string studentIdentifier,
         string videoDescription,
         string skillLevel)
         {
@@ -136,7 +137,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             }
 
             // Replace placeholders in the prompt
-            string prompt = _customPrompt
+            string prompt = _visionPrompt
                 .Replace("[MartialArt]", martialArt)
                 .Replace("[StudentIdentifier]", studentIdentifier)
                 .Replace("[TrainingGoal]", "both self-defense and competition")
@@ -204,7 +205,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             // Call the Vertex AI API
             try
             {
-                _logger.LogInformation("Sending GenerateContent request for video: {FileUri} to model {Model} in project {ProjectId}", 
+                _logger.LogInformation("Sending GenerateContent request for video: {FileUri} to model {Model} in project {ProjectId}",
                     fileUri, _model, _projectId);
                 GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
                 string resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
@@ -214,13 +215,90 @@ namespace VideoSharing.Server.Domain.GeminiService
             }
             catch (Google.GoogleApiException ex)
             {
-                _logger.LogError(ex, "Vertex AI API call failed for video: {FileUri}, project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}", 
+                _logger.LogError(ex, "Vertex AI API call failed for video: {FileUri}, project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
                     fileUri, _projectId, _model, ex.HttpStatusCode, ex.Error?.ToString());
                 throw new InvalidOperationException($"Vertex AI API call failed: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during Vertex AI API call for video: {FileUri}", fileUri);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<GeminiChatResponse> SuggestClassCurriculum(List<string> weaknesses, List<Fighter>? students, TrainingSession classSession)
+        {
+            var curriculumPrompt = BuildCurriculumPrompt(weaknesses, students, classSession);
+
+            // Construct the GenerateContentRequest for chat (text-only)
+            var request = new GenerateContentRequest
+            {
+                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{_model}",
+                Contents =
+                {
+                    new Content
+                    {
+                        Role = "user",
+                        Parts =
+                        {
+                            new Part
+                            {
+                                Text = curriculumPrompt
+                            }
+                        }
+                    }
+                },
+                SafetySettings =
+                {
+                    new SafetySetting
+                    {
+                        Category = HarmCategory.SexuallyExplicit,
+                        Threshold = SafetySetting.Types.HarmBlockThreshold.Off
+                    },
+                    new SafetySetting
+                    {
+                        Category = HarmCategory.HateSpeech,
+                        Threshold = SafetySetting.Types.HarmBlockThreshold.Off
+                    },
+                    new SafetySetting
+                    {
+                        Category = HarmCategory.DangerousContent,
+                        Threshold = SafetySetting.Types.HarmBlockThreshold.Off
+                    },
+                    new SafetySetting
+                    {
+                        Category = HarmCategory.Harassment,
+                        Threshold = SafetySetting.Types.HarmBlockThreshold.Off
+                    }
+                },
+                GenerationConfig = new GenerationConfig
+                {
+                    Temperature = 0.4f,
+                    TopP = 1.0f,
+                    MaxOutputTokens = 4096,
+                    ResponseMimeType = "application/json",
+                }
+            };
+
+            try
+            {
+                _logger.LogInformation("Sending GenerateContent request for class curriculum to model {Model} in project {ProjectId}", _model, _projectId);
+                GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
+                string resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
+                    ?? throw new InvalidOperationException("No valid JSON response received from the API.");
+                _logger.LogInformation("Received valid curriculum response from Vertex AI.");
+                return new GeminiChatResponse { CurriculumJson = resultJson };
+            }
+            catch (Google.GoogleApiException ex)
+            {
+                _logger.LogError(ex, "Vertex AI API call failed for curriculum generation: project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
+                    _projectId, _model, ex.HttpStatusCode, ex.Error?.ToString());
+                throw new InvalidOperationException($"Vertex AI API call failed: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during Vertex AI API call for curriculum generation.");
                 throw;
             }
         }
@@ -244,6 +322,71 @@ namespace VideoSharing.Server.Domain.GeminiService
                 contentType = "video/mp4"; // Default to mp4 if unknown
             }
             return contentType;
+        }
+
+        private static string BuildCurriculumPrompt(List<string> weaknesses, List<Fighter>? students, TrainingSession classSession)
+        {
+            // Format student details, ensuring null safety
+            var studentDetails = students?.Select(s =>
+                $"- Student: Belt Rank - {s.BelkRank}, Height - {s.Height:F1} ft, Weight - {s.Weight} lbs, Training Experience - {s.Experience}"
+            ).Aggregate((a, b) => $"{a}\n{b}") ?? "No student details provided.";
+
+            return $@"You are an expert Brazilian Jiu-Jitsu instructor. Design a {classSession.Duration}-hours class session curriculum based on the following:
+            - Most common weakness among the students: [{string.Join(", ", weaknesses)}]
+            - Students:
+            -{studentDetails}
+
+            Create a curriculum that includes:
+            - A 10-minute warm-up drill.
+            - 1-2 {classSession.TargetLevel.ToString()} techniques.
+            - 3-5 specific drills.
+            - Controlled positional sparring with guidelines (emphasizing safety and technique over power).
+            - A 10-minute cool-down drill.
+
+            The curriculum should:
+            - Be clear, easy to digest, and reflect professional training structures used in top BJJ gyms.
+            - Be engaging for {classSession.TargetLevel.ToString()}, focusing on technical execution to build confidence.
+            - Not be too physically demanding, to avoid discouragement or potential injuries.
+            - Minimize the risk of in-class drama, such as students using too much raw power.
+
+            Return the curriculum as a JSON object with the following format:
+            {{
+                ""session_title"": ""A thematic title for the session"",
+                ""duration"": ""60 minutes"",
+                ""warm_up"": {{
+                    ""name"": ""Warm-up drill name"",
+                    ""description"": ""Description of the warm-up drill, focusing on preparing the body for the session's techniques."",
+                    ""duration"": ""10 minutes""
+                }},
+                ""techniques"": [
+                    {{
+                    ""name"": ""Technique name"",
+                    ""description"": ""Detailed description of the technique, including key steps."",
+                    ""tips"": ""Instructor tips, such as common mistakes or key points to emphasize.""
+                    }}
+                ],
+                ""drills"": [
+                    {{
+                    ""name"": ""Drill name"",
+                    ""description"": ""Description of the drill, including how it relates to the techniques or weaknesses."",
+                    ""focus"": ""Focus area (e.g., movement, positioning, timing)."",
+                    ""duration"": ""Duration of the drill (e.g., 15 minutes).""
+                    }}
+                ],
+                ""sparring"": {{
+                    ""name"": ""Sparring activity name (e.g., Positional Sparring)"",
+                    ""description"": ""Description of the sparring activity, including starting positions."",
+                    ""guidelines"": ""Guidelines to ensure safety and focus on technique (e.g., no submissions, reset if position changes)."",
+                    ""duration"": ""Duration of the sparring activity (e.g., 15 minutes).""
+                }},
+                ""cool_down"": {{
+                    ""name"": ""Cool-down drill name"",
+                    ""description"": ""Description of the cool-down drill, focusing on recovery and stretching."",
+                    ""duration"": ""10 minutes""
+                }}
+            }}
+
+            Ensure the curriculum is tailored to the students' attributes and addresses the most common weakness effectively. The drills should reinforce the techniques taught and focus on technique and movement rather than strength. Descriptions should be concise yet informative, providing enough details for an instructor to implement effectively.";
         }
     }
 }

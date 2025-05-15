@@ -164,7 +164,30 @@ namespace VideoSharing.Server.Controllers
                 return StatusCode(500, new { error = "An unexpected error occurred" });
             }
         }
-        
+
+        [HttpPost("curriculum/{sessionId}")]
+        [Authorize]
+        public async Task<IActionResult> GenerateCurriculumAsync(int sessionId)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var curriculumService = scope.ServiceProvider.GetRequiredService<CurriculumRecommendationService>();
+
+            try
+            {
+                var curriculum = await curriculumService.GenerateCurriculumAsync(sessionId);
+                return Ok(curriculum);
+            }
+            catch (BadHttpRequestException ex)
+            {
+                _logger.LogWarning(ex, "Invalid sessionId {SessionId} for curriculum generation.", sessionId);
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating curriculum for sessionId {SessionId}", sessionId);
+                return StatusCode(500, new { error = "An unexpected error occurred while generating the curriculum." });
+            }
+        }
 
         private static string? ValidateStructuredJson(string apiResponseJson)
         {

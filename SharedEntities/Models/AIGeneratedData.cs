@@ -78,4 +78,39 @@ namespace SharedEntities.Models
         [JsonPropertyName("positional_scenario")]
         public string PositionalScenario { get; set; }
     }
+
+
+    //Curriculum Chat Response
+    public class CurriculumDto
+    {
+        public string SessionTitle { get; set; }
+        public string Duration { get; set; }
+        public ActivityDto WarmUp { get; set; }
+        public List<TechniqueDto> Techniques { get; set; }
+        public List<DrillDto> Drills { get; set; }
+        public ActivityDto Sparring { get; set; }
+        public ActivityDto CoolDown { get; set; }
+    }
+
+    public class ActivityDto
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Duration { get; set; }
+    }
+
+    public class TechniqueDto
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Tips { get; set; }
+    }
+
+    public class DrillDto
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Focus { get; set; }
+        public string Duration { get; set; }
+    }
 }

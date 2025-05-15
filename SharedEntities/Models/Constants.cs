@@ -2,6 +2,7 @@
 {
     public enum BeltColor
     {
+        None,
         White,
         Blue,
         Purple,

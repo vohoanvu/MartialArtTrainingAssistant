@@ -15,6 +15,11 @@ namespace VideoSharing.Server.Models.Dtos
         public string AnalysisJson { get; set; } = string.Empty;
     }
 
+    public class GeminiChatResponse 
+    {
+        public string CurriculumJson { get; set; } = string.Empty;
+    }
+
     public class UploadedVideoDto
     {
         public int Id { get; set; }
