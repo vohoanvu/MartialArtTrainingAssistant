@@ -81,36 +81,66 @@ namespace SharedEntities.Models
 
 
     //Curriculum Chat Response
-    public class CurriculumDto
+    public class CurriculumResponse
     {
+        [JsonPropertyName("session_title")]
         public string SessionTitle { get; set; }
+
+        [JsonPropertyName("duration")]
         public string Duration { get; set; }
-        public ActivityDto WarmUp { get; set; }
-        public List<TechniqueDto> Techniques { get; set; }
-        public List<DrillDto> Drills { get; set; }
-        public ActivityDto Sparring { get; set; }
-        public ActivityDto CoolDown { get; set; }
+
+        [JsonPropertyName("warm_up")]
+        public ActivityResponse WarmUp { get; set; }
+
+        [JsonPropertyName("techniques")]
+        public List<TechniqueResponse> Techniques { get; set; }
+
+        [JsonPropertyName("drills")]
+        public List<DrillResponse> Drills { get; set; }
+
+        [JsonPropertyName("sparring")]
+        public ActivityResponse Sparring { get; set; }
+
+        [JsonPropertyName("cool_down")]
+        public ActivityResponse CoolDown { get; set; }
     }
 
-    public class ActivityDto
+    public class ActivityResponse
     {
+        [JsonPropertyName("name")]
         public string Name { get; set; }
+
+        [JsonPropertyName("description")]
         public string Description { get; set; }
+
+        [JsonPropertyName("duration")]
         public string Duration { get; set; }
     }
 
-    public class TechniqueDto
+    public class TechniqueResponse
     {
+        [JsonPropertyName("name")]
         public string Name { get; set; }
+
+        [JsonPropertyName("description")]
         public string Description { get; set; }
+
+        [JsonPropertyName("tips")]
         public string Tips { get; set; }
     }
 
-    public class DrillDto
+    public class DrillResponse
     {
+        [JsonPropertyName("name")]
         public string Name { get; set; }
+
+        [JsonPropertyName("description")]
         public string Description { get; set; }
+
+        [JsonPropertyName("focus")]
         public string Focus { get; set; }
+
+        [JsonPropertyName("duration")]
         public string Duration { get; set; }
     }
 }

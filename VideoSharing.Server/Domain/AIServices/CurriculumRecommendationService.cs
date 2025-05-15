@@ -4,12 +4,12 @@ using SharedEntities.Data;
 using SharedEntities.Models;
 using VideoSharing.Server.Domain.GeminiService;
 
-public class CurriculumRecommendationService(MyDatabaseContext context, GeminiVisionService geminiService)
+public class CurriculumRecommendationService(MyDatabaseContext context, IGeminiVisionService geminiService)
 {
     private readonly MyDatabaseContext _context = context;
-    private readonly GeminiVisionService _geminiService = geminiService;
+    private readonly IGeminiVisionService _geminiService = geminiService;
 
-    public async Task<CurriculumDto> GenerateCurriculumAsync(int sessionId)
+    public async Task<CurriculumResponse> GenerateCurriculumAsync(int sessionId)
     {
         // Step 1: Retrieve checked-in students
         var studentUsers = await _context.TrainingSessionFighterJoints
@@ -54,7 +54,7 @@ public class CurriculumRecommendationService(MyDatabaseContext context, GeminiVi
         string curriculumJson = response.CurriculumJson;
 
         // Parse and save
-        var curriculum = JsonSerializer.Deserialize<CurriculumDto>(curriculumJson)
+        var curriculum = JsonSerializer.Deserialize<CurriculumResponse>(curriculumJson)
             ?? throw new JsonException("The Chat Response JSON parsing returned null.");
 
         //(Optional) Step 7: Save recommended drills to TrainingSession

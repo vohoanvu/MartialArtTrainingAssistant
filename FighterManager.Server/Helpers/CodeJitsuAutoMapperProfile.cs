@@ -43,9 +43,11 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<TrainingSession, GetSessionDetailResponse>()
-            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()  ));
+            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes));
         CreateMap<TrainingSession, TrainingSessionDtoBase>()
-            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()  ));
+            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes));
 
         CreateMap<TrainingSessionFighterJoint, ViewFighterDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Fighter!.Id))

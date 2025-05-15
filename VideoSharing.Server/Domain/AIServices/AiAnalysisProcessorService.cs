@@ -122,7 +122,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             // Process suggested_drills
             foreach (var drillDto in analysis.SuggestedDrills)
             {
-                if (techniqueMap.TryGetValue(drillDto.RelatedTechnique, out var technique))
+                if (!string.IsNullOrWhiteSpace(drillDto.RelatedTechnique) && techniqueMap.TryGetValue(drillDto.RelatedTechnique, out var technique))
                 {
                     // Check if Drill already exists
                     var drill = await _context.Drills
@@ -155,7 +155,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 else
                 {
                     //Just in case the AI model forgot to specify the related Technique, associate that drill with the default generic technique
-                    var genericTechnique = await _context.Techniques.FirstAsync(t => t.Name == "Generic Technique");
+                    var genericTechnique = await _context.Techniques.FirstAsync(t => t.Name == "Generic");
                     var drill = new Drills
                     {
                         Name = drillDto.Name,
@@ -460,8 +460,8 @@ namespace VideoSharing.Server.Domain.GeminiService
                             ? (existingAiAnalysisResult.Techniques?.FirstOrDefault(t => t.Name == newDrill.RelatedTechniqueName)
                                 ?? await _context.Techniques.FirstOrDefaultAsync(t => t.Name == newDrill.RelatedTechniqueName)
                                 ?? new Techniques { Name = newDrill.RelatedTechniqueName })
-                            : await _context.Techniques.FirstOrDefaultAsync(t => t.Name == "Generic Technique")
-                              ?? new Techniques { Name = "Generic Technique" };
+                            : await _context.Techniques.FirstOrDefaultAsync(t => t.Name == "Generic")
+                              ?? new Techniques { Name = "Generic" };
 
                         if (!existingAiAnalysisResult.Techniques.Contains(technique))
                         {

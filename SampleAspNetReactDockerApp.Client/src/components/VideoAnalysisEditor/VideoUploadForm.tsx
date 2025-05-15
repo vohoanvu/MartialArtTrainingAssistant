@@ -121,7 +121,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                     <Input
                         type="file"
                         id="videoFile"
-                        accept="video/mp4,video/avi"
+                        accept="video/mp4,video/avi,video/mov,video/mpeg,video/webm"
                         onChange={(e) => setFile(e.target.files?.[0] || null)}
                         className="mt-1"
                         disabled={isLoading}

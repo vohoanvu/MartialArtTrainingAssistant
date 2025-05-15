@@ -30,8 +30,8 @@ const TrainingSessionForm = () => {
                     setInstructorName(details.instructor.fighterName);
                     setTrainingDate(details.trainingDate.slice(0, 16));
                     setCapacity(details.capacity.toString());
-                    setDuration(details.duration.toString());
-                    setDescription(details.description);
+                    setDuration(parseHoursToMinutesString(details.duration));
+                    setDescription(details.description ?? '');
                 } catch (error) {
                     console.error("Failed to load session details:", error);
                 }
@@ -45,13 +45,23 @@ const TrainingSessionForm = () => {
         setIsDialogOpen(true);
     };
 
+    function parseMinutesToHoursFloat(minutes: string): number {
+        const parsed = parseFloat(minutes.replace(',', '.'));
+        if (isNaN(parsed) || parsed <= 0) return 0;
+        return parsed / 60;
+    }
+    function parseHoursToMinutesString(hours: number): string {
+        if (isNaN(hours) || hours <= 0) return "0";
+        return Math.round(hours * 60).toString();
+    }
+
     const handleConfirm = async () => {
         if (!sessionIdNumber) {
             const newSession: CreateTrainingSessionRequest = {
                 trainingDate,
                 description,
                 capacity: parseInt(capacity, 10),
-                duration: parseInt(duration, 10),
+                duration: parseMinutesToHoursFloat(duration),
                 status: 'Active',
             };
             try {
@@ -66,7 +76,7 @@ const TrainingSessionForm = () => {
                 trainingDate,
                 description,
                 capacity: parseInt(capacity, 10),
-                duration: parseInt(duration, 10),
+                duration: parseMinutesToHoursFloat(duration),
                 status: 'Active',
             };
             try {

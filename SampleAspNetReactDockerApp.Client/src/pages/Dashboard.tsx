@@ -99,7 +99,7 @@ export default function Dashboard(): ReactElement {
             navigate(`/session-details/${sessionId}`);
         };
 
-        const handlePairUp = () => {
+        const handleManage = () => {
             navigate(`/session-details/${sessionId}`);
         };
     
@@ -116,8 +116,8 @@ export default function Dashboard(): ReactElement {
                             <Button type="button" onClick={handleEdit}>
                                 Edit
                             </Button>
-                            <Button type="button" onClick={handlePairUp}>
-                                Pair up
+                            <Button type="button" onClick={handleManage}>
+                                Manage
                             </Button>
                         </>
                     )

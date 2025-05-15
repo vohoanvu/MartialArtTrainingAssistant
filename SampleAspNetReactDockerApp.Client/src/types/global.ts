@@ -270,3 +270,33 @@ export interface AnalysisResultDto {
     techniques?: TechniqueDto[] | null; // Updated to use TechniqueDto
 }
 
+
+export interface CurriculumDto {
+    session_title: string;
+    duration: string;
+    warm_up: ActivityDto;
+    techniques: SessionTechniqueDto[];
+    drills: DrillDto[];
+    sparring: ActivityDto;
+    cool_down: ActivityDto;
+}
+
+export interface ActivityDto {
+    name: string;
+    description: string;
+    duration: string;
+    guidelines: string | null;
+}
+
+export interface SessionTechniqueDto {
+    name: string;
+    description: string;
+    tips: string;
+}
+
+export interface DrillDto {
+    name: string;
+    description: string;
+    focus: string;
+    duration: string;
+}

@@ -30,11 +30,11 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
     const [editingNameValue, setEditingNameValue] = useState<string>('');
 
     useEffect(() => {
-        // Remove duplicate "Generic Technique" drills, keep only the first occurrence
+        // Remove duplicate "Generic" drills, keep only the first occurrence
         const drills = (analysisResultDto.drills ?? []).filter(
             (drill, idx, arr) =>
-                drill.relatedTechniqueName !== "Generic Technique" ||
-                arr.findIndex(d => d.relatedTechniqueName === "Generic Technique") === idx
+                drill.relatedTechniqueName !== "Generic" ||
+                arr.findIndex(d => d.relatedTechniqueName === "Generic") === idx
         );
         setDrills(drills);
         setExpandedDrills(new Array(analysisResultDto.drills?.length ?? 0).fill(false));

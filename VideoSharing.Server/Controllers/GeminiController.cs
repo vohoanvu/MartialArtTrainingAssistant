@@ -165,7 +165,7 @@ namespace VideoSharing.Server.Controllers
             }
         }
 
-        [HttpPost("curriculum/{sessionId}")]
+        [HttpGet("{sessionId}/curriculum")]
         [Authorize]
         public async Task<IActionResult> GenerateCurriculumAsync(int sessionId)
         {

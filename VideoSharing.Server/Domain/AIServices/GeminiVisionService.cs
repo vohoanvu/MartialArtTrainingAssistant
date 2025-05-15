@@ -331,10 +331,10 @@ namespace VideoSharing.Server.Domain.GeminiService
                 $"- Student: Belt Rank - {s.BelkRank}, Height - {s.Height:F1} ft, Weight - {s.Weight} lbs, Training Experience - {s.Experience}"
             ).Aggregate((a, b) => $"{a}\n{b}") ?? "No student details provided.";
 
-            return $@"You are an expert Brazilian Jiu-Jitsu instructor. Design a {classSession.Duration}-hours class session curriculum based on the following:
+            return $@"You are an expert {classSession.MartialArt.ToString()} instructor. Design a {classSession.Duration}-hours class session curriculum based on the following:
             - Most common weakness among the students: [{string.Join(", ", weaknesses)}]
             - Students:
-            -{studentDetails}
+                {studentDetails}
 
             Create a curriculum that includes:
             - A 10-minute warm-up drill.
@@ -344,7 +344,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             - A 10-minute cool-down drill.
 
             The curriculum should:
-            - Be clear, easy to digest, and reflect professional training structures used in top BJJ gyms.
+            - Be clear, easy to understand, and reflect professional training structures used in top {classSession.TargetLevel.ToString()} gyms.
             - Be engaging for {classSession.TargetLevel.ToString()}, focusing on technical execution to build confidence.
             - Not be too physically demanding, to avoid discouragement or potential injuries.
             - Minimize the risk of in-class drama, such as students using too much raw power.

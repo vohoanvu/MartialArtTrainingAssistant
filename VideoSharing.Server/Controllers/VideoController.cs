@@ -278,6 +278,7 @@ namespace VideoSharing.Server.Controllers
                     UploadTimestamp = v.UploadedAt,
                     Description = v.Description,
                     AiAnalysisResult = aiGroup.Select(a => a.AnalysisJson).FirstOrDefault(),
+                    FighterName = v.AppUser.Fighter!.FighterName
                 }
             ).ToListAsync();
 

@@ -16,7 +16,7 @@ export interface UploadedVideoDto {
     uploadTimestamp: string;
     aiAnalysisResult: string;
     signedUrl: string;
-    studentIdentifier: string;
+    fighterName: string;
     martialArt: MartialArt;
     fighterId: number;
 }
@@ -126,7 +126,7 @@ const VideoStorageListing = () => {
                             <TableHead>Description</TableHead>
                             <TableHead>Uploaded At</TableHead>
                             <TableHead>Martial Art</TableHead>
-                            <TableHead>Student Identifier</TableHead>
+                            <TableHead>Name</TableHead>
                             <TableHead>Action</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -137,7 +137,7 @@ const VideoStorageListing = () => {
                                 <TableCell>{video.description}</TableCell>
                                 <TableCell>{new Date(video.uploadTimestamp).toLocaleString()}</TableCell>
                                 <TableCell>{video.martialArt}</TableCell>
-                                <TableCell>{video.studentIdentifier}</TableCell>
+                                <TableCell>{video.fighterName}</TableCell>
                                 <TableCell className="flex space-x-2">
                                     <Button
                                         variant="destructive"

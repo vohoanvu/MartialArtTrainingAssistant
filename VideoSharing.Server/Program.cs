@@ -55,6 +55,7 @@ namespace VideoSharing.Server
 
             builder.Services.AddScoped<IGeminiVisionService, GeminiVisionService>();
             builder.Services.AddScoped<AiAnalysisProcessorService>();
+            builder.Services.AddScoped<CurriculumRecommendationService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
