@@ -15,7 +15,7 @@ export default function Login() {
         try {
             const resp = await login({email, password});
             if (resp.successful) {
-                navigate("/dashboard");
+                navigate("/class-session");
             } else {
                 setErrorMessage("Login failed, reason: " + resp.response);
                 console.log("Login failed: ", resp.response)
@@ -28,7 +28,7 @@ export default function Login() {
     useEffect(() => {
         switch (isLogged) {
             case "authenticated":
-                navigate("/"); //go to home page after login
+                navigate("/home"); //go to home page after login
                 break;
             case "unauthenticated":
                 break;

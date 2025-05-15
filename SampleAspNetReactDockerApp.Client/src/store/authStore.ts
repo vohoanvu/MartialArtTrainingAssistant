@@ -154,7 +154,7 @@ const useAuthStore = create<AuthStore>()(
                 removeRefreshToken();
                 get().setLoginStatus('unauthenticated');
                 //Redirect back /Home page
-                window.location.href = "/";
+                window.location.href = "/home";
             },
             hydrate: async () => {
                 const refreshToken = get().refreshToken;

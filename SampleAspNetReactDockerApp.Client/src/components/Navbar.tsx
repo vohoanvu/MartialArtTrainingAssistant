@@ -25,8 +25,8 @@ export default function Navbar(
             <nav className="bg-background text-foreground p-4">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="text-lg font-bold">
-                        <a href="/" className="hover:text-primary">
-                            Martial Art Training Assistant
+                        <a href="/home" className="hover:text-primary">
+                            CodeJitsu
                         </a>
                     </div>
                     <ul className="flex space-x-5 mt-4">
@@ -67,7 +67,7 @@ export default function Navbar(
                             : (
                                 <>
                                     <li>
-                                        <Link to="/login" className="hover:text-primary">
+                                        <Link to="/home" className="hover:text-primary">
                                             {t("navbar.login")}
                                         </Link>
                                     </li>

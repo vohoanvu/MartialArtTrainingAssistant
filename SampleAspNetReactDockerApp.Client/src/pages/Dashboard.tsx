@@ -8,7 +8,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
 import { Button } from "@/components/ui/button";
 
-export default function Dashboard(): ReactElement {
+export default function ClassSession(): ReactElement {
     const isLogged = useAuthStore((state) => state.loginStatus);
     const navigate = useNavigate();
     const [data, setData] = useState<TrainingSessionResponse[] | null>(null);

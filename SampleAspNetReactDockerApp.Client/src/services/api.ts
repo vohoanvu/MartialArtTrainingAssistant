@@ -639,3 +639,31 @@ export async function getClassCurriculum({
         throw error;
     }
 }
+
+export async function joinWailList({ email, role, region }: 
+{ email: string; role?: string; region?: string }) 
+{
+    try {
+        const response = await fetch('/api/fighter/join-waitlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+                role,
+                region,
+            }),
+        });
+
+        if (response.ok) {
+            return await response.json();
+        } else {
+            const errorText = await response.text();
+            throw new Error(`Failed to join waitlist: ${errorText}`);
+        }
+    } catch (error) {
+        console.error("Error joining waitlist:", error);
+        throw error;
+    }
+}

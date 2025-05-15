@@ -107,7 +107,7 @@ export default function Register() {
     };
 
     return (
-        <div className="container mx-auto max-w-md p-8 shadow-lg rounded-lg">
+        <div className="container mx-auto max-w-4xl p-8 shadow-lg rounded-lg">
             <h1 className="text-3xl font-bold text-primary mb-6">Register</h1>
             <form
                 className="space-y-4"

@@ -191,7 +191,7 @@ namespace FighterManager.Server.Controllers
                     return Unauthorized(new { message = "Invalid login attempt" });
                 }
                 var user = await _userManager.FindByNameAsync(model.Email);
-                if (user == null) 
+                if (user == null)
                 {
                     throw new ErrorResponseException()
                             .SetStatusCode(HttpStatusCode.InternalServerError)
@@ -211,6 +211,35 @@ namespace FighterManager.Server.Controllers
             catch (Exception ex)
             {
                 return StatusCode((int)HttpStatusCode.InternalServerError, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("join-waitlist")]
+        public async Task<IActionResult> JoinWaitlist([FromBody] Waitlist request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest(new { Message = "Email is required to join the waitlist." });
+            }
+
+            try
+            {
+                var waitlistEntry = new Waitlist
+                {
+                    Email = request.Email,
+                    Role = request.Role,
+                    Region = request.Region,
+                    JoinedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.Repository<Waitlist>().AddAsync(waitlistEntry);
+                await _unitOfWork.SaveChangesAsync();
+
+                return Ok(new { Message = "Joined waitlist successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while joining the waitlist.", Detail = ex.Message });
             }
         }
     }

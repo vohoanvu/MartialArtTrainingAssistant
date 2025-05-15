@@ -7,7 +7,7 @@ import {Layout} from "@/components/layouts/Layout.tsx";
 import "./services/i18n.ts";
 import {initLang} from "@/store/langStore.ts";
 import Login from "@/pages/Login.tsx";
-import Dashboard from "@/pages/Dashboard.tsx";
+import ClassSession from "@/pages/Dashboard.tsx";
 import About from "@/pages/About.tsx";
 import Register from "@/pages/Register.tsx";
 import Contact from "@/pages/Contact.tsx";
@@ -17,6 +17,7 @@ import TrainingSessionDetails from './components/ClassSessionManagement/Training
 import VideoShareList from './pages/VideoShareList.tsx';
 import VideoStorageListing from './pages/VideoStorageListing.tsx';
 import VideoReview from './pages/VideoReview.tsx';
+import LandingPage from './pages/LandingPage.tsx';
 
 const router = createBrowserRouter([
     {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
         children: [
             {
                 path: '/',
+                element: <LandingPage/>,
+            },
+            {
+                path: '/home',
                 element: <Home/>,
             },
             {
@@ -40,8 +45,8 @@ const router = createBrowserRouter([
                 element: <Register/>,
             },
             {
-                path: '/dashboard',
-                element: <Dashboard/>,
+                path: '/class-session',
+                element: <ClassSession/>,
             },
             {
                 path: '/contact',

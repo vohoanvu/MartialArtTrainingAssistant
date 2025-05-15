@@ -67,7 +67,7 @@ const TrainingSessionForm = () => {
             try {
                 await createTrainingSession(newSession, jwtToken!);
                 setIsDialogOpen(false);
-                navigate('/dashboard');
+                navigate('/class-session');
             } catch (error) {
                 console.error("Failed to create a new session:", error);
             }
@@ -82,7 +82,7 @@ const TrainingSessionForm = () => {
             try {
                 await updateTrainingSessionDetails(sessionIdNumber, updatedSession, { jwtToken, refreshToken, hydrate });
                 setIsDialogOpen(false);
-                navigate('/dashboard');
+                navigate('/class-session');
             } catch (error) {
                 console.error("Failed to update the session:", error);
             }
