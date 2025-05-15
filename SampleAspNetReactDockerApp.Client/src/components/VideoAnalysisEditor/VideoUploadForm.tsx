@@ -150,7 +150,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                         id="studentIdentifier"
                         value={studentIdentifier}
                         onChange={(e) => setStudentIdentifier(e.target.value)}
-                        placeholder="Please specify which fighter you are in the video. For example: Fighter in blue gi"
+                        placeholder="For example: 'I am the Fighter in Blue GI, the opponent is in Black GI'"
                         className="mt-1"
                         disabled={isLoading}
                     />

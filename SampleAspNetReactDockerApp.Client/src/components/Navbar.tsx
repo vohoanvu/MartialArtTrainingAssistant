@@ -36,13 +36,13 @@ export default function Navbar(
                                     <li>
                                         Welcome <strong>{authUser?.email}!</strong>
                                     </li>
-                                    <li>
+                                    {/* <li>
                                         <Link to="/videos">
                                             <Button size="sm" variant="outline" className="w-full">
                                                 Video Showcase
                                             </Button>
                                         </Link>
-                                    </li>
+                                    </li> */}
                                     <li className="">
                                         <Link to="/share-video">
                                             <Button size="sm" variant="outline" className="w-full">

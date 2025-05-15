@@ -332,8 +332,12 @@ namespace VideoSharing.Server.Domain.GeminiService
                 $"- Student: Belt Rank - {s.BelkRank}, Height - {s.Height:F1} ft, Weight - {s.Weight} lbs, Training Experience - {s.Experience}"
             ).Aggregate((a, b) => $"{a}\n{b}") ?? "No student details provided.";
 
+            var weaknessesList = (weaknesses != null && weaknesses.Count > 0)
+                ? weaknesses
+                : ["Guard Retention", "Submission Escapes", "Timing"];
+
             return $@"You are an expert {classSession.MartialArt.ToString()} instructor. Design a {classSession.Duration}-hours class session curriculum based on the following:
-            - Most common weakness among the students: [{string.Join(", ", weaknesses)}]
+            - Most common weakness among the students: [{string.Join(", ", weaknessesList)}]
             - Students:
                 {studentDetails}
 

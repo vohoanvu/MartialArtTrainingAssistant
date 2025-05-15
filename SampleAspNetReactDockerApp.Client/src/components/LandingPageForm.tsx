@@ -114,7 +114,7 @@ const LandingPageForm = () => {
                 </div>
                 <div className="text-center">
                     <h2 className="text-2xl font-bold">For Instructors</h2>
-                    <p>Create and manage training sessions, track student progress, and provide feedback.</p>
+                    <p>Create and manage training sessions, track student progress, provide feedback, and access to AI Curriculum assistant.</p>
                 </div>
             </div>
         </div>

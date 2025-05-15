@@ -41,7 +41,7 @@ public class CurriculumRecommendationService(MyDatabaseContext context, IGeminiV
             .GroupBy(aw => aw.WeaknessCategory)
             .Select(g => new { WeaknessCategory = g.Key, Count = g.Count() })
             .OrderByDescending(g => g.Count)
-            .Take(5)
+            .Take(3)
             .ToListAsync();
         var topWeaknessCategories = weaknessCounts.Select(w => w.WeaknessCategory.Name).ToList();
 

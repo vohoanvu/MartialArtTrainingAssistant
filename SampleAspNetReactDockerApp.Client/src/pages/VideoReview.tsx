@@ -46,7 +46,7 @@ const VideoReview: React.FC = () => {
                     fighterId: videoDetails.fighterId,
                     jwtToken: accessToken,
                     refreshToken,
-                    hydrate, 
+                    hydrate,
                 })
                 setFighterDetails(fighterDetails ?? null);
                 console.log("Video details: ", videoDetails);
@@ -107,33 +107,36 @@ const VideoReview: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-4 md:p-4 m-0 md:m-2">
-            <div className="w-full md:w-1/2 flex flex-col gap-4">
-                <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
-                    <VideoPlayer
-                        ref={videoPlayerRef}
-                        videoUrl={videoUrl}
-                        videoId={videoId || '0'}
-                        identifiedTechniques={feedbackList?.techniques || []}
-                        selectedSegment={selectedSegment}
-                        setSelectedSegment={setSelectedSegment}
-                        clearSelection={clearSelection}
-                        onSegmentSelect={(start, end) => setSelectedSegment({ start, end })}
-                    />
+        <div className="w-full">
+            <h1 className="text-3xl font-bold text-center mt-3">Review this student uploaded tape</h1>
+            <div className="flex flex-col md:flex-row gap-4 md:p-4 m-0 md:m-2">
+                <div className="w-full md:w-1/2 flex flex-col gap-4">
+                    <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
+                        <VideoPlayer
+                            ref={videoPlayerRef}
+                            videoUrl={videoUrl}
+                            videoId={videoId || '0'}
+                            identifiedTechniques={feedbackList?.techniques || []}
+                            selectedSegment={selectedSegment}
+                            setSelectedSegment={setSelectedSegment}
+                            clearSelection={clearSelection}
+                            onSegmentSelect={(start, end) => setSelectedSegment({ start, end })}
+                        />
+                    </div>
+                    <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
+                        <StudentDetails fighterDetails={fighterDetails} studentIdentifier={studentIdentifier} />
+                    </div>
                 </div>
-                <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
-                    <StudentDetails fighterDetails={fighterDetails} studentIdentifier={studentIdentifier}/>
-                </div>
-            </div>
-            <div className="w-full md:w-1/2 mt-4 md:mt-0">
-                <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4 h-full">
-                    <TechniqueFeedback
-                        feedbackData={feedbackList}
-                        onSeek={handleSeek}
-                        saveChanges={handleSaveAnalysisResult}
-                        onInputChange={handleInputChange}
-                        selectedSegment={selectedSegment}
-                    />
+                <div className="w-full md:w-1/2 mt-4 md:mt-0">
+                    <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4 h-full">
+                        <TechniqueFeedback
+                            feedbackData={feedbackList}
+                            onSeek={handleSeek}
+                            saveChanges={handleSaveAnalysisResult}
+                            onInputChange={handleInputChange}
+                            selectedSegment={selectedSegment}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
