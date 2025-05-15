@@ -1,15 +1,15 @@
 ﻿{
   "$schema": "https://json.schemastore.org/template",
-  "author": "Cyprian Gburek",
+  "author": "Vo Hoan Vu",
   "classifications": [
     "Web",
     "Vite.js",
     "React"
   ],
-  "identity": "SampleAspNetReactDockerApp",
-  "name": "Sample ASP.NET Core - Vite React Docker Project Template",
-  "shortname": "s-aspnet-react-docker-app",
-  "sourceName": "SampleAspNetReactDockerApp",
+  "identity": "CodeJitsu",
+  "name": "AI-driven Martial Art Training Assistant",
+  "shortname": "s-codejitsu",
+  "sourceName": "CodeJitsu",
   "tags": {
     "language": "C#",
     "type": "project"
