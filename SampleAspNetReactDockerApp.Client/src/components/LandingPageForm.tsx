@@ -42,8 +42,8 @@ const LandingPageForm = () => {
     }, [isLogged, navigate]);
 
     const handleSSOLogin = (provider: "google" | "facebook") => {
-        // Use the proxied API path so Vite forwards to the backend
-        window.location.href = `https://localhost:7191/api/externalauth/signin-${provider}?returnUrl=${encodeURIComponent(window.location.origin + "/sso-callback")}`;
+        // Use a relative path so Nginx proxies /api to the backend in production
+        window.location.href = `/api/externalauth/signin-${provider}?returnUrl=${encodeURIComponent(window.location.origin + "/sso-callback")}`;
     };
 
     return (
