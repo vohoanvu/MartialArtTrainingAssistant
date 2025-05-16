@@ -8,7 +8,7 @@ import {
 } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
-import { FighterPairResult, GetBMIResponse, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto } from '@/types/global';
+import { FighterPairResult, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto } from '@/types/global';
 import { useParams } from 'react-router-dom';
 
 const TrainingSessionDetails = () => {
@@ -23,7 +23,6 @@ const TrainingSessionDetails = () => {
     const user = useAuthStore((state) => state.user);
     const hydrate = useAuthStore((state) => state.hydrate);
     const [fighterPairResult, setFighterPairResult] = useState<FighterPairResult>();
-    const [instructorBMI, setInstructorBMI] = useState<GetBMIResponse>();
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
     const [notes, setNotes] = useState<string>('');
@@ -85,21 +84,6 @@ const TrainingSessionDetails = () => {
             console.error(err);
         }
     };
-
-    // const handleCalculateBMI = async () => {
-    //     if (!user?.fighterInfo) {
-    //         setError('Failed to retrieve fighter information');
-    //         return;
-    //     }
-
-    //     try {
-    //         const result = await CalculateBMI(user.fighterInfo.height, user.fighterInfo.weight);
-    //         setInstructorBMI(result);
-    //     } catch (err) {
-    //         setError('Failed to calculate BMI');
-    //         console.error(err);
-    //     }
-    // };
 
     const toggleAccordion = (id: string) => {
         setExpandedSections((prev) => ({
@@ -184,13 +168,6 @@ const TrainingSessionDetails = () => {
                     <p><strong>Duration:</strong> {sessionDetails.duration} minutes</p>
                     <p><strong>Status:</strong> {sessionDetails.status}</p>
                     <p><strong>Description Notes:</strong> {sessionDetails.description}</p>
-                    {instructorBMI && (
-                        <div className="mt-2 space-y-1">
-                            <p><strong>Instructor BMI:</strong> {instructorBMI.bmi}</p>
-                            <p><strong>Category:</strong> {instructorBMI.category}</p>
-                            <p><strong>Description:</strong> {instructorBMI.description}</p>
-                        </div>
-                    )}
 
                     <div className="mt-4">
                         <h2 className="text-2xl font-bold">Students Roster</h2>

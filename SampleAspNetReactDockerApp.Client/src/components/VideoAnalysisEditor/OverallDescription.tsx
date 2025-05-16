@@ -12,21 +12,13 @@ interface OverallAnalysisDisplayProps {
 const OverallAnalysisDisplay: React.FC<OverallAnalysisDisplayProps> = ({
     overallDescription,
     strengths,
-    areasForImprovement,
-    handleSaveToServer,
-    onInputChange
+    areasForImprovement
 }) => {
 
     const handleEdit = (item: any) => {
         console.log("Editing:", item);
         // Add actual edit logic here
     };
-
-    const handleSave = (section: any, index: string | number, name: any, value: any) => {
-        //onInputChange('overallAnalysis', null, 'areasForImprovement', e.target.value)
-        onInputChange(section, index, name, value);
-        handleSaveToServer();
-    }
 
     return (
         <div className="space-y-4">
@@ -57,7 +49,6 @@ const OverallAnalysisDisplay: React.FC<OverallAnalysisDisplayProps> = ({
                                 <div className="flex justify-between items-start">
                                     <span className="mr-2">
                                         {strength.description}
-                                        {strength.related_technique && <span className="text-gray-600"> (Related: {strength.related_technique})</span>}
                                     </span>
                                     <button
                                         className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex-shrink-0"
@@ -81,7 +72,6 @@ const OverallAnalysisDisplay: React.FC<OverallAnalysisDisplayProps> = ({
                                 <div className="flex justify-between items-start">
                                     <span className="mr-2">
                                         {area.description}
-                                        {area.related_technique && <span className="text-gray-600"> (Related: {area.related_technique})</span>}
                                     </span>
                                     <button
                                         className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex-shrink-0"

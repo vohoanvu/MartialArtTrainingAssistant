@@ -1,5 +1,4 @@
 import { Fighter } from "@/types/global";
-import { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 
 interface StudentDetailsProps {

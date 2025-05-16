@@ -28,6 +28,11 @@
         ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT_1}"
         CLIENT_APP_PORTS: "${CLIENT_APP_PORTS}"
         POSTGRES_PORT: "${POSTGRES_PORT}"
+        Jwt__Audience: "${JWT_AUDIENCE}"
+        Jwt__Issuer: "${JWT_ISSUER}"
+        Jwt__Key: "${JWT_KEY}"
+        Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID}"
+        Authentication__Google__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
     depends_on:
       - app-db
     networks:
@@ -49,6 +54,12 @@
         GoogleCloud__ProjectId: "${GOOGLE_CLOUD_PROJECT_ID}"
         GoogleCloud__BucketName: "${GOOGLE_CLOUD_BUCKET_NAME}"
         GoogleCloud__ServiceAccountKeyPath: "/app/secrets/codejitsu-cloud-storage-service-account.json"
+        GeminiVision__Location: "${GEMINI_VISION_LOCATION}"
+        GeminiVision__Model: "${GEMINI_VISION_MODEL}"
+        GeminiVision__VideoAnalysisPrompt: "${GEMINI_VISION_VIDEO_ANALYSIS_PROMPT}"
+        Jwt__Audience: "${JWT_AUDIENCE}"
+        Jwt__Issuer: "${JWT_ISSUER}"
+        Jwt__Key: "${JWT_KEY}"
     secrets: # Optional: Use Docker Secrets for service account key
       - gcs_service_account_key
     volumes:

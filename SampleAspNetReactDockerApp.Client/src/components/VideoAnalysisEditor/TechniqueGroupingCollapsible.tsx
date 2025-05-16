@@ -8,13 +8,7 @@ interface TechniqueGroupingCollapsibleProps {
     onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
 }
 
-// const formatTimestamp = (seconds: number): string => {
-//     const minutes = Math.floor(seconds / 60);
-//     const remainingSeconds = Math.floor(seconds % 60);
-//     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-// };
-
-const TechniqueGroupingCollapsible: React.FC<TechniqueGroupingCollapsibleProps> = ({ techniques, onSeek, handleSaveToServer, onInputChange }) => {
+const TechniqueGroupingCollapsible: React.FC<TechniqueGroupingCollapsibleProps> = ({ techniques, onSeek }) => {
     const groupedTechniques = techniques.reduce((acc, tech) => {
         const scenario = tech.positionalScenario.name || 'Null Scenario';
         const type = tech.techniqueType.name || 'Null TechniqueType';
@@ -33,11 +27,6 @@ const TechniqueGroupingCollapsible: React.FC<TechniqueGroupingCollapsibleProps> 
         console.log("Editing:", item);
     };
 
-    const handleSave = (section: any, index: string | number, name: any, value: any) => {
-        //onInputChange('techniques', index, 'name', e.target.value)
-        onInputChange(section, index, name, value);
-        handleSaveToServer();
-    }
     return (
         <div className="w-full space-y-2">
             {Object.entries(groupedTechniques).map(([scenario, types]) => (

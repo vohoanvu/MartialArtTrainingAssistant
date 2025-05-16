@@ -39,3 +39,9 @@ docker compose --env-file ./.env up -d app-api
 ## Docker
 
 The server is configured to run in a Docker container. The Dockerfile is located in the root of the project. The server is configured to run on port 5000.
+
+**TODO list:**
+- Students list import by Excel spreadsheet.
+- SSO registration and authentication (GOOGLE for now).
+- Freemium feature access limit.
+- Stripe payment.

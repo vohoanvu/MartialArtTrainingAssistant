@@ -7,18 +7,11 @@ interface SuggestedDrillsDisplayProps {
     onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
 }
 
-const SuggestedDrillsDisplay: React.FC<SuggestedDrillsDisplayProps> = ({ drills, handleSaveToServer, onInputChange }) => {
-
+const SuggestedDrillsDisplay: React.FC<SuggestedDrillsDisplayProps> = ({ drills }) => {
     const handleEdit = (item: any) => {
         console.log("Editing:", item);
         // Add actual edit logic here
     };
-
-    const handleSave = (section: any, index: string | number, name: any, value: any) => {
-        //onInputChange('drills', index, 'description', e.target.value)
-        onInputChange(section, index, name, value);
-        handleSaveToServer();
-    }
 
     return (
         <div className="space-y-4">
