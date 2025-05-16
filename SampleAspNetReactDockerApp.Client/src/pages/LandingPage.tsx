@@ -87,7 +87,7 @@ const LandingPage: React.FC = () => {
                                     loading="lazy"
                                 /> */}
                                 <p>
-                                    Using Google Vertex AI, get precise, actionable feedback in minutes to sharpen your skills and outpace competitors.
+                                    Using Google Gemini AI to get precise, actionable feedback in minutes to sharpen your skills and outpace competitors.
                                 </p>
                             </CardContent>
                         </Card>

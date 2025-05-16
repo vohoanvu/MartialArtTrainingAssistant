@@ -144,7 +144,8 @@ namespace FighterManager.Server
 
             builder.Services.AddDbContext<MyDatabaseContext>();
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
@@ -176,6 +177,12 @@ namespace FighterManager.Server
                         return Task.CompletedTask;
                     }
                 };
+            })
+            .AddGoogle(googleOptions =>
+            {
+                googleOptions.ClientId = Global.Configuration["Authentication:Google:ClientId"]!;
+                googleOptions.ClientSecret = Global.Configuration["Authentication:Google:ClientSecret"]!;
+                googleOptions.CallbackPath = "/api/externalauth/externallogincallback";
             });
             builder.Services.AddAuthorization();
 

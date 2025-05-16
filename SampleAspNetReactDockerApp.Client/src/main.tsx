@@ -18,6 +18,7 @@ import VideoShareList from './pages/VideoShareList.tsx';
 import VideoStorageListing from './pages/VideoStorageListing.tsx';
 import VideoReview from './pages/VideoReview.tsx';
 import LandingPage from './pages/LandingPage.tsx';
+import SsoCallback from './pages/SSOCallback.tsx';
 
 const router = createBrowserRouter([
     {
@@ -79,6 +80,10 @@ const router = createBrowserRouter([
             {
                 path: '/video-review/:videoId',
                 element: <VideoReview/>,
+            },
+            {
+                path: '/sso-callback',
+                element: <SsoCallback/>
             }
         ]
     }

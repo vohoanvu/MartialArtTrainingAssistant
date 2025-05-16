@@ -13,7 +13,7 @@ const LandingPageForm = () => {
 
     const loginActionForm = async (email: string, password: string) => {
         try {
-            const resp = await login({email, password});
+            const resp = await login({ email, password });
             if (resp.successful) {
                 navigate("/class-session");
             } else {
@@ -38,8 +38,13 @@ const LandingPageForm = () => {
             default:
                 break;
         }
-        
+
     }, [isLogged, navigate]);
+
+    const handleSSOLogin = (provider: "google" | "facebook") => {
+        // Use the proxied API path so Vite forwards to the backend
+        window.location.href = `https://localhost:7191/api/externalauth/signin-${provider}?returnUrl=${encodeURIComponent(window.location.origin + "/sso-callback")}`;
+    };
 
     return (
         <div className="flex flex-col items-center justify-center max-h-screen">
@@ -72,7 +77,7 @@ const LandingPageForm = () => {
                             name="email"
                             className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                             onChange={() => {
-                                if(errorMessage !== '')
+                                if (errorMessage !== '')
                                     setErrorMessage('');
                             }}
                             required
@@ -88,20 +93,35 @@ const LandingPageForm = () => {
                             name="password"
                             className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                             onChange={() => {
-                                if(errorMessage !== '')
+                                if (errorMessage !== '')
                                     setErrorMessage('');
                             }}
                             required
                         />
                     </div>
-                    <Button type="submit" 
-                            variant={"outline"}
-                            className="w-full">
+                    <Button type="submit"
+                        variant={"outline"}
+                        className="w-full">
                         Login
                     </Button>
                 </form>
+                <div className="flex flex-col gap-2 mt-6">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full h-full p-0"
+                        onClick={() => handleSSOLogin("google")}
+                    >
+                        <img
+                            src="/google/neutral/web_neutral_sq_na.svg"
+                            alt="Google"
+                            className="h-auto w-auto mr-4"
+                        />
+                        Sign in with Google
+                    </Button>
+                </div>
             </div>
-            
+
             <p className="mt-4">
                 New User?{' '}
                 <Link to="/register" className="text-blue-500 hover:underline">
