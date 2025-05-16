@@ -30,7 +30,7 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: codejitsuregistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_c41441ccafda497fadac1313141b44de }}/:${{ github.sha }}
+        tags: codejitsuregistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_c41441ccafda497fadac1313141b44de }}:${{ github.sha }}
         file: ./Dockerfile
 
   deploy:
@@ -48,4 +48,4 @@ jobs:
         app-name: 'mycodejitsu'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_22118ded53e046b684f695c1b4960e0a }}
-        images: 'codejitsuregistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_c41441ccafda497fadac1313141b44de }}/:${{ github.sha }}'
+        images: 'codejitsuregistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_c41441ccafda497fadac1313141b44de }}:${{ github.sha }}'
