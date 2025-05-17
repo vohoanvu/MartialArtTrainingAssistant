@@ -182,7 +182,7 @@ namespace MatchMaker.Server
             } 
             else 
             {
-                await app.RunAsync("http://0.0.0.0:8082");
+                await app.RunAsync("http://0.0.0.0:7082");
             }
         }
     }

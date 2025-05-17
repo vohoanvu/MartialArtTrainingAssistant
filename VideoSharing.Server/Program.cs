@@ -206,6 +206,7 @@ namespace VideoSharing.Server
             {
                 options.MultipartBodyLengthLimit = 300 * 1024 * 1024; // 300MB
             });
+            builder.Services.AddHealthChecks();
 
             var app = builder.Build();
             // Initialize the database already executed from FigherManage.Server thread
@@ -252,7 +253,7 @@ namespace VideoSharing.Server
             }
             else
             {
-                await app.RunAsync("http://0.0.0.0:8081");
+                await app.RunAsync("http://0.0.0.0:7081");
             }
         }
     }

@@ -240,7 +240,7 @@ namespace FighterManager.Server
             } 
             else 
             {
-                await app.RunAsync("http://0.0.0.0:8080");
+                await app.RunAsync("http://0.0.0.0:7080");
             }
         }
     }

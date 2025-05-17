@@ -13,7 +13,10 @@ namespace SharedEntities.Data
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUserEntity>>();
 
             if (deleteIfExists) await dbContext.Database.EnsureDeletedAsync();
-            await dbContext.Database.MigrateAsync();
+            if (dbContext.Database.EnsureCreated())
+            {   
+                await dbContext.Database.MigrateAsync();
+            }
 
             await SeedDatabaseAsync(dbContext, userManager);
         }
