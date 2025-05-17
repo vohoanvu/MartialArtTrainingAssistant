@@ -73,6 +73,25 @@ jobs:
       name: production
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     steps:
+      # Log in to Azure
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Set TAG environment variable
+      - name: Set TAG environment variable
+        run: |
+          echo "TAG=${{ github.sha }}" >> $GITHUB_ENV
+
+      # Update App Service configuration with TAG
+      - name: Update App Service configuration
+        run: |
+          az webapp config appsettings set \
+            --resource-group <resource-group-name> \
+            --name mycodejitsu \
+            --settings TAG=${{ github.sha }}
+
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -81,8 +100,3 @@ jobs:
           app-name: mycodejitsu
           slot-name: production
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_22118ded53e046b684f695c1b4960e0a }}
-          images: |
-            codejitsuregistry.azurecr.io/fightermanager:${{ github.sha }}
-            codejitsuregistry.azurecr.io/videosharing:${{ github.sha }}
-            codejitsuregistry.azurecr.io/matchmaker:${{ github.sha }}
-            codejitsuregistry.azurecr.io/client:${{ github.sha }}
