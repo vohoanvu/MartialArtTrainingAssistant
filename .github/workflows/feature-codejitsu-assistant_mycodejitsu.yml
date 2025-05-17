@@ -30,7 +30,7 @@ jobs:
       - name: Build and push FighterManager.Server
         uses: docker/build-push-action@v3
         with:
-          context: ./FighterManager.Server
+          context: .
           file: ./FighterManager.Server/Dockerfile
           push: true
           tags: codejitsuregistry.azurecr.io/fightermanager:${{ github.sha }}
@@ -40,7 +40,7 @@ jobs:
       - name: Build and push VideoSharing.Server
         uses: docker/build-push-action@v3
         with:
-          context: ./VideoSharing.Server
+          context: .
           file: ./VideoSharing.Server/Dockerfile
           push: true
           tags: codejitsuregistry.azurecr.io/videosharing:${{ github.sha }}
@@ -50,7 +50,7 @@ jobs:
       - name: Build and push MatchMaker.Server
         uses: docker/build-push-action@v3
         with:
-          context: ./MatchMaker.Server
+          context: .
           file: ./MatchMaker.Server/Dockerfile
           push: true
           tags: codejitsuregistry.azurecr.io/matchmaker:${{ github.sha }}
@@ -60,7 +60,7 @@ jobs:
       - name: Build and push SampleAspNetReactDockerApp.Client
         uses: docker/build-push-action@v3
         with:
-          context: ./SampleAspNetReactDockerApp.Client
+          context: .
           file: ./SampleAspNetReactDockerApp.Client/Dockerfile
           push: true
           tags: codejitsuregistry.azurecr.io/client:${{ github.sha }}
