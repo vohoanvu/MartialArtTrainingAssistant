@@ -2,12 +2,12 @@
   app-api:
     image: codejitsuregistry.azurecr.io/fightermanager:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
     ports:
-      - "8081:8081"
+      - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_APP_DB: ${ASPNETCORE_APP_DB}
       ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
-      ASPNETCORE_APP_PORT: "8081"
+      ASPNETCORE_APP_PORT: "8080"
       CLIENT_APP_PORTS: "3000:80"
       POSTGRES_PORT: "5432"
       Jwt__Audience: ${JWT_AUDIENCE}
@@ -21,12 +21,12 @@
   video-api:
     image: codejitsuregistry.azurecr.io/videosharing:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
     ports:
-      - "8082:8082"
+      - "8081:8081"
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_APP_DB: ${ASPNETCORE_APP_DB}
       ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
-      ASPNETCORE_APP_PORT: "8082"
+      ASPNETCORE_APP_PORT: "8081"
       CLIENT_APP_PORTS: "3000:80"
       POSTGRES_PORT: "5432"
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
@@ -47,12 +47,12 @@
   pair-api:
     image: codejitsuregistry.azurecr.io/matchmaker:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
     ports:
-      - "8083:8083"
+      - "8082:8082"
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_APP_DB: ${ASPNETCORE_APP_DB}
       ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
-      ASPNETCORE_APP_PORT: "8083"
+      ASPNETCORE_APP_PORT: "8082"
       CLIENT_APP_PORTS: "3000:80"
       POSTGRES_PORT: "5432"
     networks:

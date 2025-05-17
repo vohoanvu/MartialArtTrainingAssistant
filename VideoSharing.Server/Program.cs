@@ -208,7 +208,6 @@ namespace VideoSharing.Server
             });
 
             var app = builder.Build();
-
             // Initialize the database already executed from FigherManage.Server thread
             //await using (var serviceScope = app.Services.CreateAsyncScope())
             //{
@@ -247,13 +246,13 @@ namespace VideoSharing.Server
 
             app.MapFallbackToFile("/index.html");
 
-            if (builder.Environment.IsDevelopment()) 
+            if (builder.Environment.IsDevelopment())
             {
                 await app.RunAsync();
-            } 
-            else 
+            }
+            else
             {
-                await app.RunAsync("http://0.0.0.0:7081");
+                await app.RunAsync("http://0.0.0.0:8081");
             }
         }
     }
