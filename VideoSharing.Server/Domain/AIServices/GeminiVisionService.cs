@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
 using VideoSharing.Server.Models.Dtos;
 using SharedEntities.Models;
+using SharedEntities;
 
 namespace VideoSharing.Server.Domain.GeminiService
 {
@@ -66,14 +67,13 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly ILogger<GeminiVisionService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
-        public GeminiVisionService(IConfiguration configuration, IGoogleCloudStorageService storageService,
+        public GeminiVisionService(IGoogleCloudStorageService storageService,
         ILogger<GeminiVisionService> logger, IServiceProvider serviceProvider)
         {
-            _projectId = configuration["GoogleCloud:ProjectId"] ?? throw new ArgumentNullException("GoogleCloud:ProjectId");
-            _location = configuration["GeminiVision:Location"] ?? "us-central1";
-            _model = configuration["GeminiVision:Model"] ?? "gemini-pro-1.5";
+            _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId);
+            _location = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionLocation);
+            _model = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionModel);
 
-            //configuration["GeminiVision:VideoAnalysisPrompt"] ?? throw new ArgumentNullException("GeminiVision:VideoAnalysisPrompt");
             _storageService = storageService;
             _logger = logger;
             _serviceProvider = serviceProvider;
@@ -81,8 +81,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             // Initialize Vertex AI's PredictionServiceClient with service account credentials
             try
             {
-                var keyPath = configuration["GoogleCloud:ServiceAccountKeyPath"]
-                    ?? throw new ArgumentNullException("GoogleCloud:ServiceAccountKeyPath");
+                var keyPath = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath);
                 if (!File.Exists(keyPath))
                     throw new FileNotFoundException($"Service account key file not found at {keyPath}");
 

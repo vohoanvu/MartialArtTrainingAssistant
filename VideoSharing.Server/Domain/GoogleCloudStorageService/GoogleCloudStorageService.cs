@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
+using SharedEntities;
 
 namespace VideoSharing.Server.Domain.GoogleCloudStorageService
 {
@@ -16,14 +17,12 @@ namespace VideoSharing.Server.Domain.GoogleCloudStorageService
     {
         private readonly StorageClient _storageClient;
         private readonly string _bucketName;
-        private readonly IConfiguration _configuration;
 
-        public GoogleCloudStorageService(IConfiguration config)
+        public GoogleCloudStorageService()
         {
-            _configuration = config;
-            var credential = GoogleCredential.FromFile(config["GoogleCloud:ServiceAccountKeyPath"]);
+            var credential = GoogleCredential.FromFile(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath));
             _storageClient = StorageClient.Create(credential);
-            _bucketName = config["GoogleCloud:BucketName"]!;
+            _bucketName = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudBucketName);
         }
 
         /// <inheritdoc/>
@@ -44,7 +43,7 @@ namespace VideoSharing.Server.Domain.GoogleCloudStorageService
         {
             var objectName = filePath.Replace($"gs://{_bucketName}/", "");
             var urlSigner = UrlSigner.FromCredential(
-                await GoogleCredential.FromFileAsync(_configuration["GoogleCloud:ServiceAccountKeyPath"], CancellationToken.None));
+                await GoogleCredential.FromFileAsync(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath), CancellationToken.None));
             return await urlSigner.SignAsync(_bucketName, objectName, expiration, HttpMethod.Get);
         }
         

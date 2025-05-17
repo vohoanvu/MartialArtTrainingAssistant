@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: test
+data:
+  ASPNETCORE_ENVIRONMENT: "PRODUCTION"
+  ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
+  ASPNETCORE_APP_PORT_1: "8080"
+  ASPNETCORE_APP_PORT_2: "8081"
+  ASPNETCORE_APP_PORT_3: "8082"
+  CLIENT_APP_PORTS: "3000:80"
+  POSTGRES_PORT: "5432"
+  Jwt__Audience: "DEV"
+  Jwt__Issuer: "DEV"
+  GoogleCloud__ProjectId: "codejitsu"
+  GoogleCloud__BucketName: "martial-art-demo-vids"
+  GeminiVision__Location: "us-central1"
+  GeminiVision__Model: "gemini-2.5-pro-preview-03-25"
+  GeminiVision__VideoAnalysisPrompt: "Analyze this sparring video to provide feedback on technique, stance, and movement."
+  DOTNET_RUNNING_IN_CONTAINER: "true"

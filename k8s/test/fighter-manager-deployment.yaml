@@ -29,6 +29,61 @@ spec:
             secretKeyRef:
               name: app-secrets
               key: JWT_KEY
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION
+        - name: ASPNETCORE_APP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: ASPNETCORE_APP_PORT_1
+        - name: CLIENT_APP_PORTS
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: CLIENT_APP_PORTS
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: POSTGRES_PORT
+        - name: Jwt__Audience
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: Jwt__Audience
+        - name: Jwt__Issuer
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: Jwt__Issuer
+        - name: Jwt__Key
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_KEY
+        - name: Authentication__Google__ClientId
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: GOOGLE_CLIENT_ID
+        - name: Authentication__Google__ClientSecret
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: GOOGLE_CLIENT_SECRET
+        - name: DOTNET_RUNNING_IN_CONTAINER
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DOTNET_RUNNING_IN_CONTAINER
         resources:
           requests:
             cpu: "50m"

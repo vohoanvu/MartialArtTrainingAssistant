@@ -11,12 +11,12 @@ public static class Global
     /// Configuration property for accessing environment variables
     /// </summary>
     public static IConfiguration? Configuration { get; set; }
-    
+
     /// <summary>
     /// Returns true if the application is running in a container
     /// </summary>
     public static bool RunsInContainer => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
-    
+
     /// <summary>
     /// Accesses an environment variable
     /// </summary>
@@ -29,55 +29,153 @@ public static class Global
         switch (variable)
         {
             case AppEnvironmentVariables.AppDb:
-                
+
                 if (RunsInContainer)
                 {
                     var possibleValue = Environment.GetEnvironmentVariable("ASPNETCORE_APP_DB");
-                    
+
                     if (!string.IsNullOrEmpty(possibleValue))
                         return possibleValue;
                 }
-                
-                return Configuration?["ConnectionStrings:AppDb"] 
+
+                return Configuration?["ConnectionStrings:AppDb"]
                        ?? throw new InvalidOperationException($"Environment variable {variable} not found");
             case AppEnvironmentVariables.ClientAppPorts:
                 if (RunsInContainer)
                 {
                     var possibleValue = Environment.GetEnvironmentVariable("CLIENT_APP_PORTS");
-                    
+
                     if (!string.IsNullOrEmpty(possibleValue))
                         return possibleValue;
                 }
-                return Configuration?["ClientAppPorts"] 
+                return Configuration?["ClientAppPorts"]
                        ?? throw new InvalidOperationException($"Environment variable {variable} not found");
             case AppEnvironmentVariables.ShowSwaggerInProduction:
                 if (RunsInContainer)
                 {
                     var possibleValue = Environment.GetEnvironmentVariable("ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION");
-                    
+
                     if (!string.IsNullOrEmpty(possibleValue))
                         return possibleValue;
                 }
-                return Configuration?["ShowSwaggerInProduction"] 
+                return Configuration?["ShowSwaggerInProduction"]
                        ?? throw new InvalidOperationException($"Environment variable {variable} not found");
             case AppEnvironmentVariables.DeleteDbIfExistsOnStartup:
-                return Configuration?["DeleteDbIfExistsOnStartup"] 
+                return Configuration?["DeleteDbIfExistsOnStartup"]
                        ?? throw new InvalidOperationException($"Environment variable {variable} not found");
             case AppEnvironmentVariables.YoutubeApiKey:
                 if (RunsInContainer)
                 {
                     var possibleValue = Environment.GetEnvironmentVariable("YOUTUBE_API_KEY");
-                
+
                     if (!string.IsNullOrEmpty(possibleValue))
                         return possibleValue;
                 }
-                return Configuration?["YOUTUBE_API_KEY"] 
+                return Configuration?["YOUTUBE_API_KEY"]
                        ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.GoogleCloudProjectId:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT_ID");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["GoogleCloud:ProjectId"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.GoogleCloudBucketName:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_BUCKET_NAME");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["GoogleCloud:BucketName"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_SERVICEACCOUNTKEYPATH");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["GoogleCloud:ServiceAccountKeyPath"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.GeminiVisionLocation:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("GEMINI_VISION_LOCATION");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["GeminiVision:Location"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.GeminiVisionModel:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("GEMINI_VISION_MODEL");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["GeminiVision:Model"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.GeminiVisionVideoAnalysisPrompt:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("GEMINI_VISION_VIDEO_ANALYSIS_PROMPT");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["GeminiVision:VideoAnalysisPrompt"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.JwtAudience:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["Jwt:Audience"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.JwtIssuer:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("JWT_ISSUER");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["Jwt:Issuer"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.JwtKey:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("JWT_KEY");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["Jwt:Key"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.AuthenticationGoogleClientId:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["Authentication:Google:ClientId"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.AuthenticationGoogleClientSecret:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["Authentication:Google:ClientSecret"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
             default:
                 throw new ArgumentOutOfRangeException(nameof(variable), variable, null);
         }
     }
-    
 }
 
 /// <summary>
@@ -113,5 +211,49 @@ public enum AppEnvironmentVariables
     /// <summary>
     /// The environment variable for external Youtube Data Service API key
     /// </summary>
-    YoutubeApiKey
+    YoutubeApiKey,
+    /// <summary>
+    /// The Google Cloud Project ID
+    /// </summary>
+    GoogleCloudProjectId,
+    /// <summary>
+    /// The Google Cloud Storage Bucket Name
+    /// </summary>
+    GoogleCloudBucketName,
+    /// <summary>
+    /// The Google Cloud Service Account Key Path
+    /// </summary>
+    GoogleCloudServiceAccountKeyPath,
+    /// <summary>
+    /// The Gemini Vision Location
+    /// </summary>
+    GeminiVisionLocation,
+    /// <summary>
+    /// The Gemini Vision Model
+    /// </summary>
+    GeminiVisionModel,
+    /// <summary>
+    /// The Gemini Vision Video Analysis Prompt
+    /// </summary>
+    GeminiVisionVideoAnalysisPrompt,
+    /// <summary>
+    /// JWT Audience
+    /// </summary>
+    JwtAudience,
+    /// <summary>
+    /// JWT Issuer
+    /// </summary>
+    JwtIssuer,
+    /// <summary>
+    /// JWT Key
+    /// </summary>
+    JwtKey,
+    /// <summary>
+    /// Google OAuth ClientId
+    /// </summary>
+    AuthenticationGoogleClientId,
+    /// <summary>
+    /// Google OAuth ClientSecret
+    /// </summary>
+    AuthenticationGoogleClientSecret
 }

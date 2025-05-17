@@ -154,9 +154,9 @@ namespace FighterManager.Server
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateIssuerSigningKey = true,
-                    ValidAudience = Global.Configuration["Jwt:Audience"],
-                    ValidIssuer = Global.Configuration["Jwt:Issuer"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.Configuration["Jwt:Key"]!))
+                    ValidAudience = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtAudience),
+                    ValidIssuer = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtIssuer),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtKey)))
                 };
 
                 //Error logging
@@ -180,8 +180,8 @@ namespace FighterManager.Server
             })
             .AddGoogle(googleOptions =>
             {
-                googleOptions.ClientId = Global.Configuration["Authentication:Google:ClientId"]!;
-                googleOptions.ClientSecret = Global.Configuration["Authentication:Google:ClientSecret"]!;
+                googleOptions.ClientId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.AuthenticationGoogleClientId);
+                googleOptions.ClientSecret = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.AuthenticationGoogleClientSecret);
                 googleOptions.CallbackPath = "/api/externalauth/externallogincallback";
             });
             builder.Services.AddAuthorization();

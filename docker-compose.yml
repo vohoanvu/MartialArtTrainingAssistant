@@ -33,6 +33,7 @@
         Jwt__Key: "${JWT_KEY}"
         Authentication__Google__ClientId: "${GOOGLE_CLIENT_ID}"
         Authentication__Google__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
+        DOTNET_RUNNING_IN_CONTAINER: true
     depends_on:
       - app-db
     networks:
@@ -60,6 +61,7 @@
         Jwt__Audience: "${JWT_AUDIENCE}"
         Jwt__Issuer: "${JWT_ISSUER}"
         Jwt__Key: "${JWT_KEY}"
+        DOTNET_RUNNING_IN_CONTAINER: "true"
     secrets: # Optional: Use Docker Secrets for service account key
       - gcs_service_account_key
     volumes:
@@ -81,6 +83,7 @@
         ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT_3}"
         CLIENT_APP_PORTS: "${CLIENT_APP_PORTS}"
         POSTGRES_PORT: "${POSTGRES_PORT}"
+        DOTNET_RUNNING_IN_CONTAINER: "true"
     depends_on:
       - app-db
     networks:
@@ -98,6 +101,7 @@
       ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "${ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION}"
       # ASPNETCORE_APP_PORT: "${ASPNETCORE_APP_PORT_1}"
       CLIENT_APP_PORTS: "${CLIENT_APP_PORTS}"
+      DOTNET_RUNNING_IN_CONTAINER: "true"
     volumes:
       - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:

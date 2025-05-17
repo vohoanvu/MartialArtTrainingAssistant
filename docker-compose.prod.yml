@@ -15,6 +15,7 @@
       Jwt__Key: ${JWT_KEY}
       Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID}
       Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET}
+      DOTNET_RUNNING_IN_CONTAINER: "true"
     networks:
       - appnet
 
@@ -39,6 +40,7 @@
       Jwt__Audience: ${JWT_AUDIENCE}
       Jwt__Issuer: ${JWT_ISSUER}
       Jwt__Key: ${JWT_KEY}
+      DOTNET_RUNNING_IN_CONTAINER: "true"
     volumes:
       - /secrets/codejitsu-cloud-storage-service-account.json:/home/secrets/codejitsu-cloud-storage-service-account.json:ro
     networks:
@@ -55,6 +57,7 @@
       ASPNETCORE_APP_PORT: "7082"
       CLIENT_APP_PORTS: "3000:80"
       POSTGRES_PORT: "5432"
+      DOTNET_RUNNING_IN_CONTAINER: "true"
     networks:
       - appnet
 
@@ -67,6 +70,7 @@
       ASPNETCORE_APP_DB: ${ASPNETCORE_APP_DB}
       ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
       CLIENT_APP_PORTS: "3000:80"
+      DOTNET_RUNNING_IN_CONTAINER: "true"
     depends_on:
       - fightermanager
     networks:

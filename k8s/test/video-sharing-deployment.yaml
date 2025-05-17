@@ -31,6 +31,31 @@ spec:
               key: YOUTUBE_API_KEY
         - name: GoogleCloud__ServiceAccountKeyPath
           value: "/app/secrets/codejitsu-cloud-storage-service-account.json"
+        - name: GoogleCloud__ProjectId
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: GoogleCloud__ProjectId
+        - name: GoogleCloud__BucketName
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: GoogleCloud__BucketName
+        - name: GeminiVision__Location
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: GeminiVision__Location
+        - name: GeminiVision__Model
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: GeminiVision__Model
+        - name: GeminiVision__VideoAnalysisPrompt
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: GeminiVision__VideoAnalysisPrompt
         volumeMounts:
         - name: sa-key
           mountPath: "/app/secrets"

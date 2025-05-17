@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using SharedEntities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -56,12 +57,12 @@ namespace FighterManager.Server.Domain.FighterService
             };
 
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtKey)));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtIssuer),
+                audience: Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtAudience),
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: creds);
@@ -78,12 +79,12 @@ namespace FighterManager.Server.Domain.FighterService
                 new Claim(JwtRegisteredClaimNames.Email, _userManager.GetEmailAsync(user).Result)  // Alternatively use await in async context
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtKey)));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var refreshToken = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtIssuer),
+                audience: Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtAudience),
                 claims: claims,
                 expires: DateTime.Now.AddDays(7),  // Refresh tokens usually have a longer expiry time
                 signingCredentials: creds);
