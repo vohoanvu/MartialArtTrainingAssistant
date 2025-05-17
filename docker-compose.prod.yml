@@ -41,8 +41,6 @@
       Jwt__Issuer: ${JWT_ISSUER}
       Jwt__Key: ${JWT_KEY}
       DOTNET_RUNNING_IN_CONTAINER: "true"
-    volumes:
-      - /secrets/codejitsu-cloud-storage-service-account.json:/home/secrets/codejitsu-cloud-storage-service-account.json:ro
     networks:
       - appnet
 
@@ -72,7 +70,7 @@
       CLIENT_APP_PORTS: "3000:80"
       DOTNET_RUNNING_IN_CONTAINER: "true"
     depends_on:
-      - fightermanager
+      - app-api
     networks:
       - appnet
 

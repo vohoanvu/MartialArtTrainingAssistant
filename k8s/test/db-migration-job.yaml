@@ -20,8 +20,8 @@ spec:
               key: SUPABASE_DB_CONNECTION
         resources:
           requests:
-            cpu: "100m"
-            memory: "256Mi"
+            cpu: "25m"
+            memory: "32Mi"
           limits:
             cpu: "500m"
             memory: "512Mi"
