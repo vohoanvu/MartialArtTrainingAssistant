@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: match-maker
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: match-maker
+  template:
+    metadata:
+      labels:
+        app: match-maker
+    spec:
+      containers:
+      - name: match-maker
+        image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/match-maker:$SHORT_SHA
+        ports:
+        - containerPort: 8082
+        env:
+        - name: ConnectionStrings__AppDb
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: SUPABASE_DB_CONNECTION
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: match-maker
+  namespace: prod
+spec:
+  selector:
+    app: match-maker
+  ports:
+  - port: 8082
+    targetPort: 8082
+  type: NodePort

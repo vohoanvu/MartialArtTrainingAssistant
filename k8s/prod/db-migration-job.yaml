@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  namespace: prod
+spec:
+  template:
+    spec:
+      containers:
+      - name: migration
+        image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:$SHORT_SHA
+        command: ["dotnet", "ef", "database", "update", "--project", "SharedEntities", "--startup-project", "FighterManager.Server"]
+        env:
+        - name: ConnectionStrings__AppDb
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: SUPABASE_DB_CONNECTION
+      restartPolicy: Never

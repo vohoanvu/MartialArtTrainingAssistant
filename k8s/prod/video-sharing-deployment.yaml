@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-sharing
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: video-sharing
+  template:
+    metadata:
+      labels:
+        app: video-sharing
+    spec:
+      containers:
+      - name: video-sharing
+        image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing:$SHORT_SHA
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ConnectionStrings__AppDb
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: SUPABASE_DB_CONNECTION
+        - name: YOUTUBE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: YOUTUBE_API_KEY
+        - name: GoogleCloud__ServiceAccountKeyPath
+          value: "/app/secrets/codejitsu-cloud-storage-service-account.json"
+        volumeMounts:
+        - name: sa-key
+          mountPath: "/app/secrets"
+          readOnly: true
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+      volumes:
+      - name: sa-key
+        secret:
+          secretName: app-secrets
+          items:
+          - key: GOOGLE_CLOUD_SA_KEY
+            path: codejitsu-cloud-storage-service-account.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-sharing
+  namespace: prod
+spec:
+  selector:
+    app: video-sharing
+  ports:
+  - port: 8081
+    targetPort: 8081
+  type: NodePort
