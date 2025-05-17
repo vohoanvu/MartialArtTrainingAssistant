@@ -47,16 +47,14 @@ steps:
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA']
-  - name: 'alpine'
-    entrypoint: 'sh'
+  - name: 'bitnami/kubectl'
+    entrypoint: 'bash'
     args:
       - '-c'
       - |
-        apk add --no-cache gettext
+        apt-get update && apt-get install -y gettext-base
         envsubst < k8s/test/db-migration-job.yaml > k8s/test/db-migration-job-substituted.yaml
-        cat k8s/test/db-migration-job-substituted.yaml
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/db-migration-job-substituted.yaml', '--namespace=test']
+        kubectl apply -f k8s/test/db-migration-job-substituted.yaml --namespace=test
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
