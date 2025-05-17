@@ -1,0 +1,77 @@
+﻿services:
+  app-api:
+    image: codejitsuregistry.azurecr.io/fightermanager:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
+    ports:
+      - "8081:8081"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_APP_DB: ${ASPNETCORE_APP_DB}
+      ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
+      ASPNETCORE_APP_PORT: "8081"
+      CLIENT_APP_PORTS: "3000:80"
+      POSTGRES_PORT: "5432"
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Key: ${JWT_KEY}
+      Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID}
+      Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET}
+    networks:
+      - appnet
+
+  video-api:
+    image: codejitsuregistry.azurecr.io/videosharing:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
+    ports:
+      - "8082:8082"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_APP_DB: ${ASPNETCORE_APP_DB}
+      ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
+      ASPNETCORE_APP_PORT: "8082"
+      CLIENT_APP_PORTS: "3000:80"
+      POSTGRES_PORT: "5432"
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+      GoogleCloud__ProjectId: ${GOOGLE_CLOUD_PROJECT_ID}
+      GoogleCloud__BucketName: ${GOOGLE_CLOUD_BUCKET_NAME}
+      GoogleCloud__ServiceAccountKeyPath: "/home/secrets/codejitsu-cloud-storage-service-account.json"
+      GeminiVision__Location: ${GEMINI_VISION_LOCATION}
+      GeminiVision__Model: ${GEMINI_VISION_MODEL}
+      GeminiVision__VideoAnalysisPrompt: ${GEMINI_VISION_VIDEO_ANALYSIS_PROMPT}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Key: ${JWT_KEY}
+    volumes:
+      - /secrets/codejitsu-cloud-storage-service-account.json:/home/secrets/codejitsu-cloud-storage-service-account.json:ro
+    networks:
+      - appnet
+
+  pair-api:
+    image: codejitsuregistry.azurecr.io/matchmaker:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
+    ports:
+      - "8083:8083"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_APP_DB: ${ASPNETCORE_APP_DB}
+      ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
+      ASPNETCORE_APP_PORT: "8083"
+      CLIENT_APP_PORTS: "3000:80"
+      POSTGRES_PORT: "5432"
+    networks:
+      - appnet
+
+  app-client:
+    image: codejitsuregistry.azurecr.io/client:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
+    ports:
+      - "3000:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_APP_DB: ${ASPNETCORE_APP_DB}
+      ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
+      CLIENT_APP_PORTS: "3000:80"
+    depends_on:
+      - fightermanager
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge
