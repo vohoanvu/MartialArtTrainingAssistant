@@ -1,73 +1,85 @@
 steps:
-  - name: 'gcr.io/cloud-builders/git'
-    args: ['clone', 'https://github.com/vohoanvu/MartialArtTrainingAssistant.git']
-  - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
-    dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'build', '--no-restore', 'FighterManager.Server/FighterManager.Server.csproj']
-  - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
-    dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'build', '--no-restore', 'VideoSharing.Server/VideoSharing.Server.csproj']
-  - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
-    dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'build', '--no-restore', 'MatchMaker.Server/MatchMaker.Server.csproj']
-  - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
-    dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'build', '--no-restore', 'SharedEntities/SharedEntities.csproj']
-  - name: 'node:18'
-    dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
-    args: ['npm', 'install']
-  - name: 'node:18'
-    dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
-    args: ['npm', 'run', 'build']
-  - name: 'node:18'
-    dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
-    args: ['npm', 'test']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/frontend:$SHORT_SHA', '-f', 'SampleAspNetReactDockerApp.Client/Dockerfile', '.']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/fighter-manager:$SHORT_SHA', '-f', 'FighterManager.Server/Dockerfile', '.']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA', '-f', 'VideoSharing.Server/Dockerfile', '.']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA', '-f', 'MatchMaker.Server/Dockerfile', '.']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/frontend:$SHORT_SHA']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/fighter-manager:$SHORT_SHA']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA']
-  - name: 'gcr.io/cloud-builders/kubectl'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        envsubst < k8s/test/db-migration-job.yaml > k8s/test/db-migration-job-substituted.yaml
-        kubectl apply -f k8s/test/db-migration-job-substituted.yaml --namespace=test
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/frontend-deployment.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/fighter-manager-deployment.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/video-sharing-deployment.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/match-maker-deployment.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+     - name: 'gcr.io/cloud-builders/git'
+       args: ['clone', 'https://github.com/vohoanvu/MartialArtTrainingAssistant.git']
+     - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
+       dir: 'MartialArtTrainingAssistant'
+       args: ['dotnet', 'restore', 'FighterManager.Server/FighterManager.Server.csproj']
+     - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
+       dir: 'MartialArtTrainingAssistant'
+       args: ['dotnet', 'build', '--no-restore', 'FighterManager.Server/FighterManager.Server.csproj']
+     - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
+       dir: 'MartialArtTrainingAssistant'
+       args: ['dotnet', 'restore', 'VideoSharing.Server/VideoSharing.Server.csproj']
+     - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
+       dir: 'MartialArtTrainingAssistant'
+       args: ['dotnet', 'build', '--no-restore', 'VideoSharing.Server/VideoSharing.Server.csproj']
+     - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
+       dir: 'MartialArtTrainingAssistant'
+       args: ['dotnet', 'restore', 'MatchMaker.Server/MatchMaker.Server.csproj']
+     - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
+       dir: 'MartialArtTrainingAssistant'
+       args: ['dotnet', 'build', '--no-restore', 'MatchMaker.Server/MatchMaker.Server.csproj']
+     - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
+       dir: 'MartialArtTrainingAssistant'
+       args: ['dotnet', 'restore', 'SharedEntities/SharedEntities.csproj']
+     - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
+       dir: 'MartialArtTrainingAssistant'
+       args: ['dotnet', 'build', '--no-restore', 'SharedEntities/SharedEntities.csproj']
+     - name: 'node:18'
+       dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
+       args: ['npm', 'install']
+     - name: 'node:18'
+       dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
+       args: ['npm', 'run', 'build']
+     - name: 'node:18'
+       dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
+       args: ['npm', 'test']
+     - name: 'gcr.io/cloud-builders/docker'
+       args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/frontend:$SHORT_SHA', '-f', 'SampleAspNetReactDockerApp.Client/Dockerfile', '.']
+     - name: 'gcr.io/cloud-builders/docker'
+       args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/fighter-manager:$SHORT_SHA', '-f', 'FighterManager.Server/Dockerfile', '.']
+     - name: 'gcr.io/cloud-builders/docker'
+       args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA', '-f', 'VideoSharing.Server/Dockerfile', '.']
+     - name: 'gcr.io/cloud-builders/docker'
+       args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA', '-f', 'MatchMaker.Server/Dockerfile', '.']
+     - name: 'gcr.io/cloud-builders/docker'
+       args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/frontend:$SHORT_SHA']
+     - name: 'gcr.io/cloud-builders/docker'
+       args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/fighter-manager:$SHORT_SHA']
+     - name: 'gcr.io/cloud-builders/docker'
+       args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA']
+     - name: 'gcr.io/cloud-builders/docker'
+       args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA']
+     - name: 'gcr.io/cloud-builders/kubectl'
+       entrypoint: 'bash'
+       args:
+         - '-c'
+         - |
+           envsubst < k8s/test/db-migration-job.yaml > k8s/test/db-migration-job-substituted.yaml
+           kubectl apply -f k8s/test/db-migration-job-substituted.yaml --namespace=test
+       env:
+         - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+         - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+     - name: 'gcr.io/cloud-builders/kubectl'
+       args: ['apply', '-f', 'k8s/test/frontend-deployment.yaml', '--namespace=test']
+       env:
+         - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+         - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+     - name: 'gcr.io/cloud-builders/kubectl'
+       args: ['apply', '-f', 'k8s/test/fighter-manager-deployment.yaml', '--namespace=test']
+       env:
+         - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+         - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+     - name: 'gcr.io/cloud-builders/kubectl'
+       args: ['apply', '-f', 'k8s/test/video-sharing-deployment.yaml', '--namespace=test']
+       env:
+         - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+         - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+     - name: 'gcr.io/cloud-builders/kubectl'
+       args: ['apply', '-f', 'k8s/test/match-maker-deployment.yaml', '--namespace=test']
+       env:
+         - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+         - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
 options:
   substitution_option: 'ALLOW_LOOSE'
   logging: CLOUD_LOGGING_ONLY
