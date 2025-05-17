@@ -62,7 +62,7 @@ steps:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/tmp/db-migration-job-substituted.yaml', '--namespace=test']
+    args: ['apply', '-f', '/workspace/db-migration-job-substituted.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
