@@ -53,8 +53,10 @@ steps:
       - '-c'
       - |
         apk add --no-cache gettext
-        envsubst < k8s/test/db-migration-job.yaml > /tmp/db-migration-job-substituted.yaml
-        cat /tmp/db-migration-job-substituted.yaml
+        mkdir -p /workspace/tmp
+        envsubst < k8s/test/db-migration-job.yaml > /workspace/tmp/db-migration-job-substituted.yaml
+        cat /workspace/tmp/db-migration-job-substituted.yaml
+        ls -l /workspace/tmp
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', '/tmp/db-migration-job-substituted.yaml', '--namespace=test']
     env:

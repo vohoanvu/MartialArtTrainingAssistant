@@ -94,7 +94,7 @@ public static class Global
             case AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath:
                 if (RunsInContainer)
                 {
-                    var possibleValue = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_SERVICEACCOUNTKEYPATH");
+                    var possibleValue = Environment.GetEnvironmentVariable("GoogleCloud__ServiceAccountKeyPath");
                     if (!string.IsNullOrEmpty(possibleValue))
                         return possibleValue;
                 }
