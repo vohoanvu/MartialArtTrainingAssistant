@@ -4,16 +4,25 @@ metadata:
   name: db-migration
   namespace: test
 spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
   template:
     spec:
       containers:
       - name: migration
-        image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:$SHORT_SHA
-        command: ["dotnet", "ef", "database", "update", "--project", "SharedEntities", "--startup-project", "FighterManager.Server"]
+        image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:[COMMIT_SHA]
+        command: ["dotnet", "ef", "database", "update", "--project", "SharedEntities/SharedEntities.csproj", "--startup-project", "FighterManager.Server/FighterManager.Server.csproj"]
         env:
         - name: ConnectionStrings__AppDb
           valueFrom:
             secretKeyRef:
               name: app-secrets
               key: SUPABASE_DB_CONNECTION
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
       restartPolicy: Never
