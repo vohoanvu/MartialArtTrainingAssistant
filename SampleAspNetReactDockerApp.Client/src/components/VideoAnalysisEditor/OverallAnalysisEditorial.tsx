@@ -57,7 +57,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
     const addArea = () => {
         setAreasForImprovement([
             ...areasForImprovement,
-            { description: '', weaknessCategory: '', relatedTechniqueId: 0 },
+            { description: '', weaknessCategory: '', relatedTechniqueId: 0, keywords: '' },
         ]);
     };
 

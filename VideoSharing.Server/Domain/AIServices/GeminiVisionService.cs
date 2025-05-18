@@ -22,7 +22,10 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly string _model;
         private readonly string _visionPrompt = @"
         You are an expert [MartialArt] instructor. You have been given video of your student with the description as '[VideoDescription]'.
-        Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] video. The student is at the [SkillLevel] level and is training for [TrainingGoal]. Provide a detailed analysis of the student's techniques, execution, strengths, weaknesses, and suggest specific drills for practice. Format the output as a JSON object with the following structure:
+        Analyze the performance of the student, identified as [StudentIdentifier], in this [MartialArt] video. The student is at the [SkillLevel] level and is training for [TrainingGoal]. 
+        Provide a detailed analysis of the student's techniques, execution, strengths, weaknesses, and suggest specific drills for practice on what they could do differently. 
+        Pay close attention to the student's score-losing techniques, based loosely on official IBJJF rule set, and tailor the situational drills (positional sparring) to only focus on practicing that weakness.
+        Format the output as a JSON object with the following example format:
         {
             ""overall_description"": ""A detailed description of the student's overall performance in the sparring session."",
             ""techniques_identified"": [
@@ -43,17 +46,18 @@ namespace VideoSharing.Server.Domain.GeminiService
             ],
             ""areas_for_improvement"": [
                 {
-                ""description"": ""Description of an area where the student can improve."",
-                ""weakness_category"": ""Select from: ['Takedown Defense', 'Guard Retention', 'Submission Escapes', 'Posture Control', 'Grip Strength', 'Timing', 'Stamina']""
+                ""description"": ""Description of an area where the student can improve. e.g., the student got stuck in botton side control, or maybe they got a triangle but didnt know how to finish it."",
+                ""weakness_category"": ""Select from: ['Takedown Defense/Offense', 'Guard Passing/Retention', 'Submission', 'Posture Control', 'Grip Strength', 'Timing', 'Stamina']""
                 ""related_technique"": ""Optional: Name of the technique related to this area.""
+                ""keywords"": ""sample keywords related to each weakness that students can use to search for related online content/instructional videos themselves.""
                 }
             ],
             ""suggested_drills"": [
                 {
-                ""name"": ""Name of the drill (e.g., 'Armbar Repetition Drill')"",
-                ""description"": ""Detailed description of the drill."",
-                ""focus"": ""Focus area of the drill (e.g., 'Technique Execution', 'Timing')"",
-                ""duration"": ""Recommended duration for the drill (e.g., '5 minutes')"",
+                ""name"": ""Name of the drill (e.g., 'Guard Passing Drill')"",
+                ""description"": ""Detailed description of the drill. e.g., start from closed guard, with your partner on bottom, you are on top trying to pass their guard. If either the bottom person sweeps or top person passes the guard, reset the match with opposite starting positions."",
+                ""focus"": ""e.g., You should focus on passing guard or sweep your opponent, by paying attention to smaller moves such as grip fighting or underhook setup"",
+                ""duration"": ""e.g., '5 minutes'"",
                 ""related_technique"": ""Name of the technique the drill is intended to improve.""
                 }
             ]
@@ -334,7 +338,7 @@ namespace VideoSharing.Server.Domain.GeminiService
 
             var weaknessesList = (weaknesses != null && weaknesses.Count > 0)
                 ? weaknesses
-                : ["Guard Retention", "Submission Escapes", "Timing"];
+                : ["Guard Retention", "Guard Passing", "Submission Escapes"];
 
             return $@"You are an expert {classSession.MartialArt.ToString()} instructor. Design a {classSession.Duration}-hours class session curriculum based on the following:
             - Most common weakness among the students: [{string.Join(", ", weaknessesList)}]
@@ -350,17 +354,15 @@ namespace VideoSharing.Server.Domain.GeminiService
 
             The curriculum should:
             - Be clear, easy to understand, and reflect professional training structures used in top {classSession.TargetLevel.ToString()} gyms.
-            - Be engaging for {classSession.TargetLevel.ToString()}, focusing on technical execution to build confidence.
-            - Not be too physically demanding, to avoid discouragement or potential injuries.
-            - Minimize the risk of in-class drama, such as students using too much raw power.
+            - Be engaging for {classSession.TargetLevel.ToString()}, focusing on situational drilling (positional sparring) of a specific technique weakness instead of full-on rolling until submission.
 
             Return the curriculum as a JSON object with the following format:
             {{
-                ""session_title"": ""A thematic title for the session"",
+                ""session_title"": ""Guard Passing sequence"",
                 ""duration"": ""60 minutes"",
                 ""warm_up"": {{
-                    ""name"": ""Warm-up drill name"",
-                    ""description"": ""Description of the warm-up drill, focusing on preparing the body for the session's techniques."",
+                    ""name"": ""e.g. Rollback/sit-through, Triangle sit-ups"",
+                    ""description"": ""e.g. Each person do this solo drill by starting as technical stand-up, rolling back on your shoulders all the way through, and then use your hip thrust to sit back up on one knee. For Triangle sit-ups, start as sit-up position and falling back on your shoulders and lifting your hips up to simulate a triangle lock."",
                     ""duration"": ""10 minutes""
                 }},
                 ""techniques"": [
@@ -374,14 +376,14 @@ namespace VideoSharing.Server.Domain.GeminiService
                     {{
                     ""name"": ""Drill name"",
                     ""description"": ""Description of the drill, including how it relates to the techniques or weaknesses."",
-                    ""focus"": ""Focus area (e.g., movement, positioning, timing)."",
+                    ""focus"": ""Focus Area. e.h., focus on protecting your guard and not let the opponent pass, for example, by keeping elbows tight to the body and fight the underhook."",
                     ""duration"": ""Duration of the drill (e.g., 15 minutes).""
                     }}
                 ],
                 ""sparring"": {{
-                    ""name"": ""Sparring activity name (e.g., Positional Sparring)"",
-                    ""description"": ""Description of the sparring activity, including starting positions."",
-                    ""guidelines"": ""Guidelines to ensure safety and focus on technique (e.g., no submissions, reset if position changes)."",
+                    ""name"": ""Sparring activity name (e.g., Positional Sparring, or full-power sparring)"",
+                    ""description"": ""Description of the sparring activity, including starting positions. e.g., start from closed guard, with your partner on bottom, you are on top trying to pass their guard. If either the bottom person sweeps or top person passes the guard, reset the match with opposite starting positions."",
+                    ""guidelines"": ""Guidelines to ensure safety and focus on technique (e.g., no submissions, reset if position changes, students should focus on passing guard or sweep your opponent, by paying attention to smaller moves such as grip fighting or underhook setup)."",
                     ""duration"": ""Duration of the sparring activity (e.g., 15 minutes).""
                 }},
                 ""cool_down"": {{

@@ -57,6 +57,9 @@ namespace SharedEntities.Models
 
         [JsonPropertyName("related_technique")]
         public string? RelatedTechnique { get; set; }
+
+        [JsonPropertyName("keywords")]
+        public string Keywords { get; set; }
     }
 
     public class TechniqueIdentified

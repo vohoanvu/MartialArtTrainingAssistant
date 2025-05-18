@@ -228,6 +228,7 @@ export interface AreaForImprovement {
     description: string;
     weaknessCategory: string;
     relatedTechniqueId: number | null;
+    keywords: string;
 }
 
 export interface SuggestedDrill {
