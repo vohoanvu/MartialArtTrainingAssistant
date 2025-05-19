@@ -61,9 +61,15 @@ steps:
       - |
         apk add --no-cache gettext
         mkdir -p /workspace/tmp
-        for file in k8s/test/*.yaml; do
-          envsubst < "$file" > "/workspace/tmp/$(basename "$file")"
-          cat "/workspace/tmp/$(basename "$file")"
+        for file in k8s/test/db-migration-job.yaml k8s/test/frontend-deployment.yaml k8s/test/fighter-manager-deployment.yaml k8s/test/video-sharing-deployment.yaml k8s/test/match-maker-deployment.yaml; do
+          if [ -f "$file" ]; then
+            envsubst '$SHORT_SHA,$PROJECT_ID' < "$file" > "/workspace/tmp/$(basename "$file")"
+            echo "Substituted $file:"
+            cat "/workspace/tmp/$(basename "$file")"
+          else
+            echo "Error: $file not found"
+            exit 1
+          fi
         done
         ls -l /workspace/tmp
   - name: 'gcr.io/cloud-builders/kubectl'
