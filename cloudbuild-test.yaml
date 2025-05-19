@@ -47,7 +47,7 @@ steps:
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA']
-    - name: 'alpine'
+  - name: 'alpine'
     entrypoint: 'sh'
     args:
       - '-c'
