@@ -55,6 +55,16 @@ steps:
       - 'SHORT_SHA=$SHORT_SHA'
       - 'PROJECT_ID=$PROJECT_ID'
   - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/test/secrets.yml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/test/configmap.yaml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+  - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/test/generated/frontend-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
