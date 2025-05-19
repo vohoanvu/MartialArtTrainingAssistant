@@ -52,15 +52,19 @@ steps:
     args:
       - '-c'
       - |
-        apk add --no-cache gettext yq
+        apk add --no-cache gettext
         mkdir -p /workspace/tmp
         for file in k8s/test/*.yaml; do
           envsubst < "$file" > "/workspace/tmp/$(basename "$file")"
-          if ! yq eval -o=json "/workspace/tmp/$(basename "$file")" > /dev/null; then
+          echo "Processing $file"
+          cat "/workspace/tmp/$(basename "$file")"
+          # Validate YAML syntax
+          if ! echo "$(cat "/workspace/tmp/$(basename "$file")")" | yaml2json > /dev/null; then
             echo "Error: Invalid YAML in /workspace/tmp/$(basename "$file")"
             exit 1
           fi
         done
+        ls -l /workspace/tmp
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', '/workspace/tmp/db-migration-job.yaml', '--namespace=test']
     env:
