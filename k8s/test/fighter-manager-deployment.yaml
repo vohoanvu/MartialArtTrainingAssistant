@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: fighter-manager
-        image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:$SHORT_SHA
+        image: "us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:$SHORT_SHA"
         ports:
         - containerPort: 8080
         env:
