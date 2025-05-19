@@ -4,37 +4,38 @@ metadata:
   name: codejitsu-ingress
   namespace: test
   annotations:
-    kubernetes.io/ingress.class: " GCE"
+    kubernetes.io/ingress.class: "gce"
+    networking.gke.io/managed-certificates: "codejitsu-certificate"
 spec:
   rules:
-  - host: test.codejitsu.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: frontend
-            port:
-              number: 80
-      - path: /api/fighter
-        pathType: Prefix
-        backend:
-          service:
-            name: fighter-manager
-            port:
-              number: 8080
-      - path: /api/video
-        pathType: Prefix
-        backend:
-          service:
-            name: video-sharing
-            port:
-              number: 8081
-      - path: /api/pair
-        pathType: Prefix
-        backend:
-          service:
-            name: match-maker
-            port:
-              number: 8082
+    - host: test.codejitsu.vusolutions.com
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: fighter-manager
+                port:
+                  number: 8080
+          - path: /vid/api
+            pathType: Prefix
+            backend:
+              service:
+                name: video-sharing
+                port:
+                  number: 8081
+          - path: /pair/api
+            pathType: Prefix
+            backend:
+              service:
+                name: match-maker
+                port:
+                  number: 8082
