@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: test
+data:
+  nginx.conf: |
+    server {
+        listen 80;
+        client_max_body_size 100M;
+        server_name localhost;
+
+        location /api {
+            proxy_pass http://fighter-manager.test.svc.cluster.local:8080;
+        }
+
+        location /vid/api {
+            proxy_pass http://video-sharing.test.svc.cluster.local:8081/api;
+        }
+
+        location /pair/api {
+            proxy_pass http://match-maker.test.svc.cluster.local:8082/api;
+        }
+
+        location /swagger {
+            proxy_pass http://fighter-manager.test.svc.cluster.local:8080/swagger;
+        }
+        
+        location /vid/swagger {
+            proxy_pass http://video-sharing.test.svc.cluster.local:8081/swagger;
+        }
+
+        location /pair/swagger {
+            proxy_pass http://match-maker.test.svc.cluster.local:8082/swagger;
+        }
+
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html;
+            try_files $uri $uri/ /index.html;
+        }
+
+        location /videoShareHub {
+            proxy_pass http://video-sharing.test.svc.cluster.local:8081;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host \$host;
+            proxy_cache_bypass \$http_upgrade;
+        }
+    }

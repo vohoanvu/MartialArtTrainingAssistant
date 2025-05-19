@@ -65,6 +65,11 @@ steps:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/test/nginx-configmap.yaml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+  - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/test/generated/frontend-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'

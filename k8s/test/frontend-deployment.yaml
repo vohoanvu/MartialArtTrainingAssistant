@@ -18,6 +18,10 @@ spec:
         image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/frontend:${SHORT_SHA}"
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
         resources:
           requests:
             cpu: "25m"
@@ -25,6 +29,13 @@ spec:
           limits:
             cpu: "200m"
             memory: "256Mi"
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+          items:
+          - key: nginx.conf
+            path: default.conf
 ---
 apiVersion: v1
 kind: Service
