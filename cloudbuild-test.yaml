@@ -67,7 +67,7 @@ steps:
         for file in $files; do
           if [ -f "$file" ]; then
             echo "Processing $file"
-            envsubst '\${SHORT_SHA},\${PROJECT_ID}' < "$file" > "/workspace/tmp/$(basename "$file")"
+            envsubst '\$SHORT_SHA,\$PROJECT_ID' < "$file" > "/workspace/tmp/$(basename "$file")"
             echo "Substituted content of /workspace/tmp/$(basename "$file"):"
             cat "/workspace/tmp/$(basename "$file")"
           else
