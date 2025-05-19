@@ -47,42 +47,40 @@ steps:
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA']
-  - name: 'alpine'
+    - name: 'alpine'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
         apk add --no-cache gettext
-        envsubst < k8s/test/db-migration-job.yaml > /workspace/db-migration-job-substituted.yaml
-        cat /workspace/db-migration-job-substituted.yaml
-        ls -l /workspace
+        mkdir -p /workspace/tmp
+        for file in k8s/test/*.yaml; do
+          envsubst < "$file" > "/workspace/tmp/$(basename "$file")"
+          cat "/workspace/tmp/$(basename "$file")"
+        done
+        ls -l /workspace/tmp
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/db-migration-job-substituted.yaml', '--namespace=test']
+    args: ['apply', '-f', '/workspace/tmp/db-migration-job.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/db-migration-job-substituted.yaml', '--namespace=test']
+    args: ['apply', '-f', '/workspace/tmp/frontend-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/frontend-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', '/workspace/tmp/fighter-manager-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/fighter-manager-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', '/workspace/tmp/video-sharing-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/video-sharing-deployment.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/match-maker-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', '/workspace/tmp/match-maker-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
