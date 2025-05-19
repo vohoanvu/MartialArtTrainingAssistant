@@ -54,28 +54,9 @@ steps:
       - |
         echo "DEBUG SHORT_SHA: $SHORT_SHA"
         echo "DEBUG PROJECT_ID: $PROJECT_ID"
-  - name: "alpine"
-    entrypoint: "sh"
-    args:
-      - "-c"
-      - |
-        apk add --no-cache gettext
-        mkdir -p /workspace/tmp
-        export SHORT_SHA="$SHORT_SHA"
-        export PROJECT_ID="$PROJECT_ID"
-        files="k8s/test/db-migration-job.yaml k8s/test/frontend-deployment.yaml k8s/test/fighter-manager-deployment.yaml k8s/test/video-sharing-deployment.yaml k8s/test/match-maker-deployment.yaml"
-        for file in $files; do
-          if [ -f "$file" ]; then
-            echo "Processing $file"
-            envsubst '\${SHORT_SHA},\${PROJECT_ID}' < "$file" > "/workspace/tmp/$(basename "$file")"
-            echo "Substituted content of /workspace/tmp/$(basename "$file"):"
-            cat "/workspace/tmp/$(basename "$file")"
-          else
-            echo "Error: $file not found"
-            exit 1
-          fi
-        done
-        ls -l /workspace/tmp
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args: ['generate-yaml.sh']
     env:
       - 'SHORT_SHA=$SHORT_SHA'
       - 'PROJECT_ID=$PROJECT_ID'

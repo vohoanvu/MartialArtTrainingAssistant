@@ -25,4 +25,4 @@ for file in "$TEMPLATE_DIR"/*.yaml; do
         sed "s|\${SHORT_SHA}|$SHORT_SHA|g" >"$output_file"
 done
 
-echo "YAML files generated in $OUTPUT_DIR"
+echo "YAML files generated at $OUTPUT_DIR"
