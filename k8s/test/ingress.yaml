@@ -8,7 +8,6 @@ metadata:
     networking.gke.io/managed-certificates: "codejitsu-certificate"
 spec:
   rules:
-    - host: test.codejitsu.vusolutions.com
     - http:
         paths:
           - path: /
