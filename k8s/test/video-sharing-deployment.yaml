@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: video-sharing
-        image: "us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing:$SHORT_SHA"
+        image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/video-sharing:${SHORT_SHA}"
         ports:
         - containerPort: 8081
         env:

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: match-maker
-        image: "us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/match-maker:$SHORT_SHA"
+        image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/match-maker:${SHORT_SHA}"
         ports:
         - containerPort: 8082
         env:

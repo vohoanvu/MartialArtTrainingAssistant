@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
       - name: migration
-        image: "us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:$SHORT_SHA"
+        image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/fighter-manager:${SHORT_SHA}"
         command: ["dotnet", "ef", "database", "update", "--project", "SharedEntities/SharedEntities.csproj", "--startup-project", "FighterManager.Server/FighterManager.Server.csproj"]
         env:
         - name: ConnectionStrings__AppDb

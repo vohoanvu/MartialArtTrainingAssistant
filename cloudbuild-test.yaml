@@ -67,7 +67,7 @@ steps:
         for file in $files; do
           if [ -f "$file" ]; then
             echo "Processing $file"
-            envsubst '\$SHORT_SHA,\$PROJECT_ID' < "$file" > "/workspace/tmp/$(basename "$file")"
+            envsubst '\${SHORT_SHA},\${PROJECT_ID}' < "$file" > "/workspace/tmp/$(basename "$file")"
             echo "Substituted content of /workspace/tmp/$(basename "$file"):"
             cat "/workspace/tmp/$(basename "$file")"
           else
@@ -76,6 +76,9 @@ steps:
           fi
         done
         ls -l /workspace/tmp
+    env:
+      - 'SHORT_SHA=$SHORT_SHA'
+      - 'PROJECT_ID=$PROJECT_ID'
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', '/workspace/tmp/db-migration-job.yaml', '--namespace=test']
     env:
