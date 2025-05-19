@@ -19,12 +19,6 @@ steps:
   - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
     dir: 'MartialArtTrainingAssistant'
     args: ['dotnet', 'build', '--no-restore', 'MatchMaker.Server/MatchMaker.Server.csproj']
-  - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
-    dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'restore', 'SharedEntities/SharedEntities.csproj']
-  - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
-    dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'build', '--no-restore', 'SharedEntities/SharedEntities.csproj']
   - name: 'node:18'
     dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
     args: ['npm', 'install']
@@ -60,11 +54,6 @@ steps:
     env:
       - 'SHORT_SHA=$SHORT_SHA'
       - 'PROJECT_ID=$PROJECT_ID'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/generated/db-migration-job.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/test/generated/frontend-deployment.yaml', '--namespace=test']
     env:
