@@ -61,27 +61,27 @@ steps:
       - 'SHORT_SHA=$SHORT_SHA'
       - 'PROJECT_ID=$PROJECT_ID'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/tmp/db-migration-job.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/db-migration-job.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/tmp/frontend-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/frontend-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/tmp/fighter-manager-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/fighter-manager-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/tmp/video-sharing-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/video-sharing-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/tmp/match-maker-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/match-maker-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
