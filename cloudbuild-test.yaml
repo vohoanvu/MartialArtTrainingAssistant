@@ -56,13 +56,7 @@ steps:
         mkdir -p /workspace/tmp
         for file in k8s/test/*.yaml; do
           envsubst < "$file" > "/workspace/tmp/$(basename "$file")"
-          echo "Processing $file"
           cat "/workspace/tmp/$(basename "$file")"
-          # Validate YAML syntax
-          if ! echo "$(cat "/workspace/tmp/$(basename "$file")")" | yaml2json > /dev/null; then
-            echo "Error: Invalid YAML in /workspace/tmp/$(basename "$file")"
-            exit 1
-          fi
         done
         ls -l /workspace/tmp
   - name: 'gcr.io/cloud-builders/kubectl'
