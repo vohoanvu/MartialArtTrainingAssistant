@@ -61,10 +61,12 @@ steps:
       - |
         apk add --no-cache gettext
         mkdir -p /workspace/tmp
-        for file in k8s/test/db-migration-job.yaml k8s/test/frontend-deployment.yaml k8s/test/fighter-manager-deployment.yaml k8s/test/video-sharing-deployment.yaml k8s/test/match-maker-deployment.yaml; do
+        files="k8s/test/db-migration-job.yaml k8s/test/frontend-deployment.yaml k8s/test/fighter-manager-deployment.yaml k8s/test/video-sharing-deployment.yaml k8s/test/match-maker-deployment.yaml"
+        for file in $files; do
           if [ -f "$file" ]; then
-            envsubst '$SHORT_SHA,$PROJECT_ID' < "$file" > "/workspace/tmp/$(basename "$file")"
-            echo "Substituted $file:"
+            echo "Processing $file"
+            envsubst '\$SHORT_SHA,\$PROJECT_ID' < "$file" > "/workspace/tmp/$(basename "$file")"
+            echo "Substituted content of /workspace/tmp/$(basename "$file"):"
             cat "/workspace/tmp/$(basename "$file")"
           else
             echo "Error: $file not found"
