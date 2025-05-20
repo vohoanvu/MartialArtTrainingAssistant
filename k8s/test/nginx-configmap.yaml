@@ -11,7 +11,64 @@ data:
             server_name localhost;
             access_log /var/log/nginx/access.log;
 
-            # WebSocket support for /videoShareHub
+            location /api {
+                proxy_pass http://fighter-manager:7080;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location /vid/api/ {
+                rewrite ^/vid/api/(.*) /api/$1 last;
+                proxy_pass http://video-sharing:7081;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location /pair/api/ {
+                rewrite ^/pair/api/(.*) /api/$1 last;
+                proxy_pass http://match-maker:7082;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location /swagger {
+                proxy_pass http://fighter-manager:7080/swagger;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location /vid/swagger {
+                proxy_pass http://video-sharing:7081/swagger;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location /pair/swagger {
+                proxy_pass http://match-maker:7082/swagger;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location / {
+                proxy_pass http://frontend:80;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
             location /videoShareHub {
                 proxy_pass http://video-sharing:7081;
                 proxy_http_version 1.1;
@@ -19,11 +76,5 @@ data:
                 proxy_set_header Connection "upgrade";
                 proxy_set_header Host $host;
                 proxy_cache_bypass $http_upgrade;
-            }
-
-            location / {
-                root   /usr/share/nginx/html;
-                index  index.html;
-                try_files $uri $uri/ /index.html;
             }
         }
