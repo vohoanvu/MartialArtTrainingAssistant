@@ -246,6 +246,7 @@ namespace VideoSharing.Server
             app.MapControllers();
 
             app.MapFallbackToFile("/index.html");
+            app.MapHealthChecks("/health");
 
             if (builder.Environment.IsDevelopment())
             {
