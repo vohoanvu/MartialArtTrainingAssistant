@@ -69,7 +69,7 @@ spec:
               memory: "256Mi"
           readinessProbe:
             httpGet:
-              path: /vid/api/health
+              path: /health
               port: 7081
             initialDelaySeconds: 5
             periodSeconds: 10
@@ -90,6 +90,8 @@ spec:
   selector:
     app: video-sharing
   ports:
-    - port: 7081
-      targetPort: 7081
-  type: NodePort
+  - port: 7081
+    targetPort: 7081
+    protocol: TCP
+    name: http
+  type: ClusterIP
