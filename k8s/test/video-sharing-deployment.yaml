@@ -17,7 +17,7 @@ spec:
         - name: video-sharing
           image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/video-sharing:${SHORT_SHA}"
           ports:
-            - containerPort: 8081
+            - containerPort: 7081
           env:
             - name: ConnectionStrings__AppDb
               valueFrom:
@@ -70,7 +70,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /vid/api/health
-              port: 8081
+              port: 7081
             initialDelaySeconds: 5
             periodSeconds: 10
       volumes:
@@ -90,6 +90,6 @@ spec:
   selector:
     app: video-sharing
   ports:
-    - port: 8081
-      targetPort: 8081
+    - port: 7081
+      targetPort: 7081
   type: NodePort

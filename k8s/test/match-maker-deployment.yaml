@@ -17,7 +17,7 @@ spec:
       - name: match-maker
         image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/match-maker:${SHORT_SHA}"
         ports:
-        - containerPort: 8082
+        - containerPort: 7082
         env:
         - name: ConnectionStrings__AppDb
           valueFrom:
@@ -41,6 +41,6 @@ spec:
   selector:
     app: match-maker
   ports:
-  - port: 8082
-    targetPort: 8082
+  - port: 7082
+    targetPort: 7082
   type: NodePort
