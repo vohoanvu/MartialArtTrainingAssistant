@@ -7,6 +7,7 @@ metadata:
     kubernetes.io/ingress.class: "gce"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/rewrite-target: /video/\$3
 spec:
   rules:
     - http:
@@ -25,7 +26,7 @@ spec:
                 name: fighter-manager
                 port:
                   number: 7080
-          - path: /vid/api
+          - path: /vid/api(/|$)(.*)
             pathType: Prefix
             backend:
               service:
