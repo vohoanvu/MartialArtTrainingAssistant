@@ -24,6 +24,11 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: SUPABASE_DB_CONNECTION
+            - name: ASPNETCORE_APP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: ASPNETCORE_APP_PORT_2
             - name: YOUTUBE_API_KEY
               valueFrom:
                 secretKeyRef:

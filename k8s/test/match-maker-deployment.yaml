@@ -38,7 +38,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: app-config
-              key: ASPNETCORE_APP_PORT_1
+              key: ASPNETCORE_APP_PORT_3
         - name: CLIENT_APP_PORTS
           valueFrom:
             configMapKeyRef:

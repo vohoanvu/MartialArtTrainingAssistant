@@ -11,7 +11,7 @@ data:
         server_name localhost;
 
         location /api {
-            proxy_pass http://fighter-manager:7080/api;
+            proxy_pass http://fighter-manager:7080;
         }
 
         location /vid/api {
@@ -27,11 +27,11 @@ data:
         }
         
         location /vid/swagger {
-            proxy_pass http://fighter-manager:7081/swagger;
+            proxy_pass http://video-sharing:7081/swagger;
         }
 
         location /pair/swagger {
-            proxy_pass http://fighter-manager:7082/swagger;
+            proxy_pass http://match-maker:7082/swagger;
         }
 
         location / {
