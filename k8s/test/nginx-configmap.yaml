@@ -15,11 +15,11 @@ data:
         }
 
         location /vid/api {
-            proxy_pass http://video-sharing:7081/api;
+            proxy_pass http://video-sharing:7081;
         }
 
         location /pair/api {
-            proxy_pass http://match-maker:7082/api;
+            proxy_pass http://match-maker:7082;
         }
 
         location /swagger {
