@@ -15,6 +15,7 @@ data:
         }
 
         location /vid/api {
+            rewrite /vid/api/(.*) /api/$1 break;
             proxy_pass http://video-sharing:7081;
         }
 
