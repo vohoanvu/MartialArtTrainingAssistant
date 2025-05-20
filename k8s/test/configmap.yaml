@@ -6,9 +6,9 @@ metadata:
 data:
   ASPNETCORE_ENVIRONMENT: "PRODUCTION"
   ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION: "true"
-  ASPNETCORE_APP_PORT_1: "8080"
-  ASPNETCORE_APP_PORT_2: "8081"
-  ASPNETCORE_APP_PORT_3: "8082"
+  ASPNETCORE_APP_PORT_1: "7080"
+  ASPNETCORE_APP_PORT_2: "7081"
+  ASPNETCORE_APP_PORT_3: "7082"
   CLIENT_APP_PORTS: "3000:80"
   POSTGRES_PORT: "5432"
   Jwt__Audience: "DEV"
@@ -19,3 +19,5 @@ data:
   GeminiVision__Model: "gemini-2.5-pro-preview-03-25"
   GeminiVision__VideoAnalysisPrompt: "Analyze this sparring video to provide feedback on technique, stance, and movement."
   DOTNET_RUNNING_IN_CONTAINER: "true"
+  ASPNETCORE_URLS: "http://+:7080;http://+:7081;http://+:7082"
+  ASPNETCORE_HTTPS_PORT: ""
