@@ -15,6 +15,10 @@ data:
                 proxy_pass http://fighter-manager:7080;
             }
 
+            location /vid/api/ {
+                rewrite ^/vid/api/(.*) /api/$1 last;
+            }
+
             location /vid/api {
                 proxy_pass http://video-sharing:7081/api;
                 proxy_set_header Host $host;
