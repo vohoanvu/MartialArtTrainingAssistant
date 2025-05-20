@@ -24,6 +24,51 @@ spec:
             secretKeyRef:
               name: app-secrets
               key: SUPABASE_DB_CONNECTION
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION
+        - name: ASPNETCORE_APP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: ASPNETCORE_APP_PORT_1
+        - name: CLIENT_APP_PORTS
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: CLIENT_APP_PORTS
+        - name: Jwt__Audience
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: Jwt__Audience
+        - name: Jwt__Issuer
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: Jwt__Issuer
+        - name: Jwt__Key
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_KEY
+        - name: Jwt__Key
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_KEY
+        - name: DOTNET_RUNNING_IN_CONTAINER
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DOTNET_RUNNING_IN_CONTAINER
         resources:
           requests:
             cpu: "25m"
@@ -41,6 +86,8 @@ spec:
   selector:
     app: match-maker
   ports:
-  - port: 7082
-    targetPort: 7082
-  type: NodePort
+  - port: 7080
+    targetPort: 7080
+    protocol: TCP
+    name: http
+  type: ClusterIP

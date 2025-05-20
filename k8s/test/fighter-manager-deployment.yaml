@@ -24,11 +24,6 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: SUPABASE_DB_CONNECTION
-            - name: Jwt__Key
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: JWT_KEY
             - name: ASPNETCORE_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
@@ -64,6 +59,11 @@ spec:
                 configMapKeyRef:
                   name: app-config
                   key: Jwt__Issuer
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: JWT_KEY
             - name: Jwt__Key
               valueFrom:
                 secretKeyRef:
