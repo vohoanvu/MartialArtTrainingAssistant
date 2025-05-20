@@ -86,8 +86,8 @@ spec:
   selector:
     app: match-maker
   ports:
-  - port: 7080
-    targetPort: 7080
+  - port: 7082
+    targetPort: 7082
     protocol: TCP
     name: http
   type: ClusterIP
