@@ -4,9 +4,12 @@ metadata:
   name: codejitsu-ingress
   namespace: test
   annotations:
-    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/rewrite-target: /api/$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/websocket-services: "video-sharing"
 spec:
   rules:
     - http:
@@ -25,14 +28,14 @@ spec:
                 name: fighter-manager
                 port:
                   number: 7080
-          - path: /vid/api
+          - path: /vid/api/(.*)
             pathType: Prefix
             backend:
               service:
                 name: video-sharing
                 port:
                   number: 7081
-          - path: /pair/api
+          - path: /pair/api/(.*)
             pathType: Prefix
             backend:
               service:
