@@ -10,6 +10,7 @@ metadata:
     nginx.ingress.kubernetes.io/websocket-services: "video-sharing"
     nginx.ingress.kubernetes.io/client-header-buffer-size: "8k"
     nginx.ingress.kubernetes.io/large-client-header-buffers: "4 32k"
+    nginx.ingress.kubernetes.io/rewrite-target: /api/$1
 spec:
   ingressClassName: nginx
   rules:
@@ -29,14 +30,14 @@ spec:
                 name: fighter-manager
                 port:
                   number: 7080
-          - path: /vid/api
+          - path: /vid/api/(.*)
             pathType: ImplementationSpecific
             backend:
               service:
                 name: video-sharing
                 port:
                   number: 7081
-          - path: /pair/api
+          - path: /pair/api/(.*)
             pathType: ImplementationSpecific
             backend:
               service:
