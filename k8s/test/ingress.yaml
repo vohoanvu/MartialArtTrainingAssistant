@@ -34,8 +34,6 @@ spec:
                 name: video-sharing
                 port:
                   number: 7081
-            annotation:
-              nginx.ingress.kubernetes.io/rewrite-target: /api/$1
           - path: /pair/api/(.*)
             pathType: Prefix
             backend:
@@ -43,8 +41,6 @@ spec:
                 name: match-maker
                 port:
                   number: 7082
-            annotation:
-              nginx.ingress.kubernetes.io/rewrite-target: /api/$1
           - path: /videoShareHub
             pathType: Prefix
             backend:
