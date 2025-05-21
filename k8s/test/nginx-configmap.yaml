@@ -28,7 +28,7 @@ data:
 
             location ~* ^/vid/api/(.*) {
                 rewrite ^/vid/api/(.*) /api/$1 break;
-                proxy_pass http://video-sharing:7081;
+                proxy_pass http://video-sharing:7081/api/$1;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -37,7 +37,7 @@ data:
 
             location ~* ^/pair/api/(.*) {
                 rewrite ^/pair/api/(.*) /api/$1 break;
-                proxy_pass http://match-maker:7082;
+                proxy_pass http://match-maker:7082/api/$1;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
