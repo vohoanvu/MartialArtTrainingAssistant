@@ -32,10 +32,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
-          volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/conf.d
-              readOnly: true
           resources:
             requests:
               cpu: "25m"
@@ -43,13 +39,6 @@ spec:
             limits:
               cpu: "200m"
               memory: "256Mi"
-      volumes:
-        - name: nginx-config
-          configMap:
-            name: nginx-config
-            items:
-              - key: nginx.conf
-                path: default.conf
 ---
 apiVersion: v1
 kind: Service
