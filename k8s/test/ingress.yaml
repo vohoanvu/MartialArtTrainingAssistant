@@ -16,13 +16,27 @@ spec:
   rules:
     - http:
         paths:
-          - path: /
+          - path: /swagger
             pathType: Prefix
             backend:
               service:
-                name: frontend
+                name: fighter-manager # Route to the correct service
                 port:
-                  number: 80
+                  number: 7080
+          - path: /vid/swagger
+            pathType: Prefix
+            backend:
+              service:
+                name: video-sharing # Route to the correct service
+                port:
+                  number: 7081
+          - path: /pair/swagger
+            pathType: Prefix
+            backend:
+              service:
+                name: match-maker # Route to the correct service
+                port:
+                  number: 7082
           - path: /api
             pathType: Prefix
             backend:
@@ -51,3 +65,10 @@ spec:
                 name: video-sharing
                 port:
                   number: 7081
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
