@@ -10,7 +10,7 @@ metadata:
     nginx.ingress.kubernetes.io/websocket-services: "video-sharing"
     nginx.ingress.kubernetes.io/client-header-buffer-size: "8k"
     nginx.ingress.kubernetes.io/large-client-header-buffers: "4 32k"
-    nginx.ingress.kubernetes.io/rewrite-target: /api/$1
+    #nginx.ingress.kubernetes.io/rewrite-target: /api/$1
 spec:
   ingressClassName: nginx
   rules:

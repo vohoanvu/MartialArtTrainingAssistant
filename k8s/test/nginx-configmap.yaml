@@ -68,12 +68,12 @@ data:
                 proxy_set_header X-Forwarded-Proto $scheme;
             }
 
-            location /assets/ {
-                root /usr/share/nginx/html; # Or alias /usr/share/nginx/html/assets;
-                try_files $uri =404;    # If an asset is not found, it should be a 404
-                                        # not index.html. This helps debugging.
-                                        # Nginx will set the correct MIME type automatically.
-            }
+            # location /assets/ {
+            #     root /usr/share/nginx/html; # Or alias /usr/share/nginx/html/assets;
+            #     try_files $uri =404;    # If an asset is not found, it should be a 404
+            #                             # not index.html. This helps debugging.
+            #                             # Nginx will set the correct MIME type automatically.
+            # }
 
             location / {
                 proxy_pass http://frontend:80;
