@@ -141,6 +141,7 @@ if (aspNetCore_environment === "Development" || aspNetCore_shouldShowSwaggerInPr
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    base: '/',
     plugins: [plugin(), mkcert()],
     resolve: {
         alias: {
