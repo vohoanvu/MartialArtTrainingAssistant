@@ -43,7 +43,7 @@ namespace VideoSharing.Server
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 var youtubeService = new YouTubeService(new BaseClientService.Initializer()
                 {
-                    ApiKey = configuration["YOUTUBE_API_KEY"],
+                    ApiKey = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.YoutubeApiKey),
                     ApplicationName = "YoutubeVideSharingApp"
                 });
 

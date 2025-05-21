@@ -10,7 +10,6 @@ metadata:
     nginx.ingress.kubernetes.io/websocket-services: "video-sharing" # For /videoShareHub
     nginx.ingress.kubernetes.io/client-header-buffer-size: "8k"
     nginx.ingress.kubernetes.io/large-client-header-buffers: "4 32k"
-    # NO rewrite-target here, or a different one if needed for some paths
 spec:
   ingressClassName: nginx
   rules:
@@ -30,14 +29,14 @@ spec:
                 name: fighter-manager
                 port:
                   number: 7080
-          - path: /vid/swagger # video-sharing expects /swagger
+          - path: /vid/swagger # video-sharing expects /vid/swagger
             pathType: Prefix
             backend:
               service:
                 name: video-sharing
                 port:
                   number: 7081
-          - path: /pair/swagger # match-maker expects /swagger
+          - path: /pair/swagger # match-maker expects /pair/swagger
             pathType: Prefix
             backend:
               service:
