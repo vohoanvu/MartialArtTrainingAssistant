@@ -141,17 +141,11 @@ if (aspNetCore_environment === "Development" || aspNetCore_shouldShowSwaggerInPr
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    base: '/',
     plugins: [plugin(), mkcert()],
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url))
         }
-    },
-    build: {
-        outDir: 'dist',
-        assetsDir: 'assets',
-        sourcemap: false
     },
     server: {
         proxy: serverProxies,
