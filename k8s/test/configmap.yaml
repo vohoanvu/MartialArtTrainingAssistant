@@ -20,4 +20,4 @@ data:
   GeminiVision__VideoAnalysisPrompt: "Analyze this sparring video to provide feedback on technique, stance, and movement."
   DOTNET_RUNNING_IN_CONTAINER: "true"
   ASPNETCORE_URLS: "http://+:7080;http://+:7081;http://+:7082"
-  ASPNETCORE_HTTPS_PORT: ""
+  ASPNETCORE_HTTPS_PORT: "https://+:8080;http://+:8081;http://+:8082"
