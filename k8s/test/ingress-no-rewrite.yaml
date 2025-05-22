@@ -20,7 +20,7 @@ spec:
       secretName: test-thecodejitsu-com-tls # cert-manager will create/manage this Secret to store the certificate
   rules:
     - host: thecodejitsu.com
-    - http:
+      http: # Indent this correctly
         paths:
           - path: /api # fighter-manager expects /api
             pathType: Prefix

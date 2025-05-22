@@ -20,17 +20,17 @@ spec:
       secretName: test-thecodejitsu-com-tls
   rules:
     - host: thecodejitsu.com
-    - http:
+      http:
         paths:
-          - path: /vid/swagger # video-sharing expects /swagger
-            pathType: Prefix
+          - path: /vid/swagger/(.*) # video-sharing expects /swagger
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: video-sharing
                 port:
                   number: 7081
-          - path: /pair/swagger # match-maker expects /swagger
-            pathType: Prefix
+          - path: /pair/swagger/(.*) # match-maker expects /swagger
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: match-maker

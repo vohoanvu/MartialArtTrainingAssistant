@@ -20,7 +20,7 @@ spec:
       secretName: test-thecodejitsu-com-tls
   rules:
     - host: thecodejitsu.com
-    - http:
+      http:
         paths:
           - path: /vid/api/(.*)
             pathType: ImplementationSpecific
