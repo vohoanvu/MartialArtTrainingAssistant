@@ -14,66 +14,92 @@ spec:
         app: video-sharing
     spec:
       containers:
-      - name: video-sharing
-        image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing:$SHORT_SHA
-        ports:
-        - containerPort: 8081
-        env:
-        - name: ConnectionStrings__AppDb
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: SUPABASE_DB_CONNECTION
-        - name: YOUTUBE_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: YOUTUBE_API_KEY
-        - name: GoogleCloud__ServiceAccountKeyPath
-          value: "/app/secrets/codejitsu-cloud-storage-service-account.json"
-        - name: GoogleCloud__ProjectId
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: GoogleCloud__ProjectId
-        - name: GoogleCloud__BucketName
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: GoogleCloud__BucketName
-        - name: GeminiVision__Location
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: GeminiVision__Location
-        - name: GeminiVision__Model
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: GeminiVision__Model
-        - name: GeminiVision__VideoAnalysisPrompt
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: GeminiVision__VideoAnalysisPrompt
-        volumeMounts:
-        - name: sa-key
-          mountPath: "/app/secrets"
-          readOnly: true
-        resources:
-          requests:
-            cpu: "25m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
+        - name: video-sharing
+          image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/video-sharing:${SHORT_SHA}"
+          ports:
+            - containerPort: 7081
+          env:
+            - name: ConnectionStrings__AppDb
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: SUPABASE_DB_CONNECTION
+            - name: ASPNETCORE_APP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: ASPNETCORE_APP_PORT_2
+            - name: YOUTUBE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: YOUTUBE_API_KEY
+            - name: Jwt__Issuer
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: Jwt__Issuer
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: JWT_KEY
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: JWT_KEY
+            - name: GoogleCloud__ServiceAccountKeyPath
+              value: "/app/secrets/codejitsu-cloud-storage-service-account.json"
+            - name: GoogleCloud__ProjectId
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: GoogleCloud__ProjectId
+            - name: GoogleCloud__BucketName
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: GoogleCloud__BucketName
+            - name: GeminiVision__Location
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: GeminiVision__Location
+            - name: GeminiVision__Model
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: GeminiVision__Model
+            - name: GeminiVision__VideoAnalysisPrompt
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: GeminiVision__VideoAnalysisPrompt
+          volumeMounts:
+            - name: sa-key
+              mountPath: "/app/secrets"
+              readOnly: true
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 7081
+            initialDelaySeconds: 5
+            periodSeconds: 10
       volumes:
-      - name: sa-key
-        secret:
-          secretName: app-secrets
-          items:
-          - key: GOOGLE_CLOUD_SA_KEY
-            path: codejitsu-cloud-storage-service-account.json
+        - name: sa-key
+          secret:
+            secretName: app-secrets
+            items:
+              - key: GOOGLE_CLOUD_SA_KEY
+                path: codejitsu-cloud-storage-service-account.json
 ---
 apiVersion: v1
 kind: Service
@@ -84,6 +110,8 @@ spec:
   selector:
     app: video-sharing
   ports:
-  - port: 8081
-    targetPort: 8081
-  type: NodePort
+  - port: 7081
+    targetPort: 7081
+    protocol: TCP
+    name: http
+  type: ClusterIP

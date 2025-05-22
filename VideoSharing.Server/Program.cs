@@ -43,7 +43,7 @@ namespace VideoSharing.Server
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 var youtubeService = new YouTubeService(new BaseClientService.Initializer()
                 {
-                    ApiKey = configuration["YOUTUBE_API_KEY"],
+                    ApiKey = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.YoutubeApiKey),
                     ApplicationName = "YoutubeVideSharingApp"
                 });
 
@@ -218,6 +218,19 @@ namespace VideoSharing.Server
             //        Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
             //    );
             //}
+            app.Use(async (context, next) =>
+            {
+                app.Logger.LogInformation("Request: {Method} {Path} {QueryString}", context.Request.Method, context.Request.Path, context.Request.QueryString);
+                try
+                {
+                    await next(context);
+                }
+                catch (Exception ex)
+                {
+                    app.Logger.LogError(ex, "Error processing request: {Path}", context.Request.Path);
+                    throw;
+                }
+            });
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
@@ -246,6 +259,7 @@ namespace VideoSharing.Server
             app.MapControllers();
 
             app.MapFallbackToFile("/index.html");
+            app.MapHealthChecks("/health");
 
             if (builder.Environment.IsDevelopment())
             {

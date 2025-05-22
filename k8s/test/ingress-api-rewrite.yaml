@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: codejitsu-ingress-api-rewrite
+  namespace: test
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/client-header-buffer-size: "8k"
+    nginx.ingress.kubernetes.io/large-client-header-buffers: "4 32k"
+    nginx.ingress.kubernetes.io/rewrite-target: /api/$1
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - thecodejitsu.com
+      secretName: test-thecodejitsu-com-tls
+  rules:
+    - host: thecodejitsu.com
+    - http:
+        paths:
+          - path: /vid/api/(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: video-sharing
+                port:
+                  number: 7081
+          - path: /pair/api/(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: match-maker
+                port:
+                  number: 7082

@@ -19,12 +19,6 @@ steps:
   - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
     dir: 'MartialArtTrainingAssistant'
     args: ['dotnet', 'build', '--no-restore', 'MatchMaker.Server/MatchMaker.Server.csproj']
-  - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
-    dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'restore', 'SharedEntities/SharedEntities.csproj']
-  - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
-    dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'build', '--no-restore', 'SharedEntities/SharedEntities.csproj']
   - name: 'node:18'
     dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
     args: ['npm', 'install']
@@ -47,42 +41,77 @@ steps:
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA']
-  - name: 'alpine'
+  - name: 'busybox'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        apk add --no-cache gettext
-        envsubst < k8s/test/db-migration-job.yaml > /workspace/db-migration-job-substituted.yaml
-        cat /workspace/db-migration-job-substituted.yaml
-        ls -l /workspace
+        echo "DEBUG SHORT_SHA: $SHORT_SHA"
+        echo "DEBUG PROJECT_ID: $PROJECT_ID"
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args: ['generate-yaml.sh']
+    env:
+      - 'SHORT_SHA=$SHORT_SHA'
+      - 'PROJECT_ID=$PROJECT_ID'
+  # Apply the cert-manager ClusterIssuer FIRST
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/db-migration-job-substituted.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/letsencrypt-staging-issuer.yaml']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    id: 'Apply Staging Issuer'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/test/secrets.yaml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    waitFor: ['Apply Staging Issuer']
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/test/configmap.yaml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+  - name: 'gcr.io/cloud-builders/kubectl' # Apply the first ingress
+    args: ['apply', '-f', 'k8s/test/ingress-api-rewrite.yaml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    waitFor: ['Apply Staging Issuer']
+  - name: 'gcr.io/cloud-builders/kubectl' # Apply the second ingress
+    args: ['apply', '-f', 'k8s/test/ingress-no-rewrite.yaml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    waitFor: ['Apply Staging Issuer']
+  - name: 'gcr.io/cloud-builders/kubectl' # Apply the third ingress
+    args: ['apply', '-f', 'k8s/test/ingress-swagger-rewrite.yaml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    waitFor: ['Apply Staging Issuer']
+  # - name: 'gcr.io/cloud-builders/kubectl'
+  #   args: ['apply', '-f', 'k8s/test/nginx-configmap.yaml', '--namespace=test']
+  #   env:
+  #     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+  #     - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/test/generated/frontend-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', '/workspace/db-migration-job-substituted.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/fighter-manager-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/frontend-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/video-sharing-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/fighter-manager-deployment.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/video-sharing-deployment.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/match-maker-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/match-maker-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
@@ -91,4 +120,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
 substitutions:
   _SHORT_SHA: ${SHORT_SHA}
-timeout: 900s
+timeout: 1200s

@@ -96,10 +96,29 @@ public static class Global
                 {
                     var possibleValue = Environment.GetEnvironmentVariable("GoogleCloud__ServiceAccountKeyPath");
                     if (!string.IsNullOrEmpty(possibleValue))
+                    {
+                        Console.WriteLine($"Using GoogleCloud__ServiceAccountKeyPath: {possibleValue}");
+                        if (!File.Exists(possibleValue))
+                        {
+                            Console.WriteLine($"Service account key file does not exist at: {possibleValue}");
+                            throw new FileNotFoundException($"Service account key file does not exist at: {possibleValue}");
+                        }
                         return possibleValue;
+                    }
                 }
-                return Configuration?["GoogleCloud:ServiceAccountKeyPath"]
-                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+                var configValue = Configuration?["GoogleCloud:ServiceAccountKeyPath"];
+                if (!string.IsNullOrEmpty(configValue))
+                {
+                    Console.WriteLine($"Using GoogleCloud:ServiceAccountKeyPath from configuration: {configValue}");
+                    if (!File.Exists(configValue))
+                    {
+                        Console.WriteLine($"Service account key file does not exist at: {configValue}");
+                        throw new FileNotFoundException($"Service account key file does not exist at: {configValue}");
+                    }
+                    return configValue;
+                }
+                Console.WriteLine($"Environment variable {variable} not found");
+                throw new InvalidOperationException($"Environment variable {variable} not found");
             case AppEnvironmentVariables.GeminiVisionLocation:
                 if (RunsInContainer)
                 {

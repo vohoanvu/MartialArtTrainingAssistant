@@ -14,17 +14,31 @@ spec:
         app: frontend
     spec:
       containers:
-      - name: frontend
-        image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/frontend:$SHORT_SHA
-        ports:
-        - containerPort: 80
-        resources:
-          requests:
-            cpu: "25m"
-            memory: "64Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
+        - name: frontend
+          image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/frontend:${SHORT_SHA}"
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /index.html
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -35,6 +49,6 @@ spec:
   selector:
     app: frontend
   ports:
-  - port: 80
-    targetPort: 80
+    - port: 80
+      targetPort: 80
   type: NodePort

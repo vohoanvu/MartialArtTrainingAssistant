@@ -1,0 +1,30 @@
+# filepath: k8s/test/letsencrypt-staging-issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer # Using ClusterIssuer makes it available across all namespaces
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    # The ACME server URL for Let's Encrypt's staging environment.
+    # This is for testing and does not issue publicly trusted certificates.
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+
+    # Email address used for ACME registration.
+    # Replace with your actual email address. Let's Encrypt uses this for important account notifications.
+    email: vohoanvu@outlook.com
+
+    # Name of a secret used to store the ACME account private key.
+    # cert-manager will create this secret in the cert-manager namespace.
+    privateKeySecretRef:
+      name: letsencrypt-staging-account-key
+
+    # Enable the HTTP-01 challenge provider.
+    # This is how Let's Encrypt verifies you control the domain.
+    # It works by cert-manager temporarily modifying an Ingress to serve a challenge file.
+    solvers:
+      - http01:
+          ingress:
+            # Important: This must match the Ingress class your Nginx Ingress controller uses.
+            # If you installed Nginx Ingress with a different class name, update this.
+            # 'nginx' is a common default.
+            class: nginx

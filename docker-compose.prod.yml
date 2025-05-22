@@ -33,7 +33,7 @@
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
       GoogleCloud__ProjectId: ${GOOGLE_CLOUD_PROJECT_ID}
       GoogleCloud__BucketName: ${GOOGLE_CLOUD_BUCKET_NAME}
-      GoogleCloud__ServiceAccountKeyPath: "/home/secrets/codejitsu-cloud-storage-service-account.json"
+      GoogleCloud__ServiceAccountKeyPath: "/home/site/secrets/codejitsu-cloud-storage-service-account.json"
       GeminiVision__Location: ${GEMINI_VISION_LOCATION}
       GeminiVision__Model: ${GEMINI_VISION_MODEL}
       GeminiVision__VideoAnalysisPrompt: ${GEMINI_VISION_VIDEO_ANALYSIS_PROMPT}

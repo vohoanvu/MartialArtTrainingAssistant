@@ -194,6 +194,7 @@ namespace FighterManager.Server
             .AddEntityFrameworkStores<MyDatabaseContext>()
             .AddSignInManager<FighterSignInService<AppUserEntity>>()
             .AddUserManager<UserManager<AppUserEntity>>();
+            builder.Services.AddHealthChecks();
 
             var app = builder.Build();
 
@@ -225,7 +226,6 @@ namespace FighterManager.Server
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
 
-
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
@@ -233,12 +233,13 @@ namespace FighterManager.Server
             app.MapControllers();
 
             app.MapFallbackToFile("/index.html");
+            app.MapHealthChecks("/health");
 
-            if (builder.Environment.IsDevelopment()) 
+            if (builder.Environment.IsDevelopment())
             {
                 await app.RunAsync();
-            } 
-            else 
+            }
+            else
             {
                 await app.RunAsync("http://0.0.0.0:7080");
             }

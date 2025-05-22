@@ -436,3 +436,4 @@ Runtime/Logs/**/*
 /FighterManager.Server/appsettings.Development.json
 /MatchMaker.Server/appsettings.Development.json
 /VideoSharing.Server/appsettings.Development.json
+.github/instructions/codejitsu-repo.instructions.md
