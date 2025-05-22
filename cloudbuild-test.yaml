@@ -54,11 +54,19 @@ steps:
     env:
       - 'SHORT_SHA=$SHORT_SHA'
       - 'PROJECT_ID=$PROJECT_ID'
+  # Apply the cert-manager ClusterIssuer FIRST
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/test/letsencrypt-staging-issuer.yaml']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    id: 'Apply Staging Issuer'
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/test/secrets.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    waitFor: ['Apply Staging Issuer']
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/test/configmap.yaml', '--namespace=test']
     env:
@@ -69,11 +77,19 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    waitFor: ['Apply Staging Issuer']
   - name: 'gcr.io/cloud-builders/kubectl' # Apply the second ingress
     args: ['apply', '-f', 'k8s/test/ingress-no-rewrite.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    waitFor: ['Apply Staging Issuer']
+  - name: 'gcr.io/cloud-builders/kubectl' # Apply the third ingress
+    args: ['apply', '-f', 'k8s/test/ingress-swagger-rewrite.yaml', '--namespace=test']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+    waitFor: ['Apply Staging Issuer']
   # - name: 'gcr.io/cloud-builders/kubectl'
   #   args: ['apply', '-f', 'k8s/test/nginx-configmap.yaml', '--namespace=test']
   #   env:
@@ -104,4 +120,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
 substitutions:
   _SHORT_SHA: ${SHORT_SHA}
-timeout: 900s
+timeout: 1200s

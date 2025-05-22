@@ -10,9 +10,16 @@ metadata:
     nginx.ingress.kubernetes.io/websocket-services: "video-sharing" # For /videoShareHub
     nginx.ingress.kubernetes.io/client-header-buffer-size: "8k"
     nginx.ingress.kubernetes.io/large-client-header-buffers: "4 32k"
+    cert-manager.io/cluster-issuer: letsencrypt-staging # Tells cert-manager to use this ClusterIssuer
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true" # Optional: Redirects HTTP to HTTPS
 spec:
   ingressClassName: nginx
+  tls: # Add this TLS section
+    - hosts:
+        - thecodejitsu.com
+      secretName: test-thecodejitsu-com-tls # cert-manager will create/manage this Secret to store the certificate
   rules:
+    - host: thecodejitsu.com
     - http:
         paths:
           - path: /api # fighter-manager expects /api
@@ -29,20 +36,6 @@ spec:
                 name: fighter-manager
                 port:
                   number: 7080
-          - path: /vid/swagger # video-sharing expects /vid/swagger
-            pathType: Prefix
-            backend:
-              service:
-                name: video-sharing
-                port:
-                  number: 7081
-          - path: /pair/swagger # match-maker expects /pair/swagger
-            pathType: Prefix
-            backend:
-              service:
-                name: match-maker
-                port:
-                  number: 7082
           - path: /videoShareHub # video-sharing expects /videoShareHub
             pathType: Prefix
             backend:
