@@ -66,7 +66,9 @@ let serverProxies: Record<string, ProxyOptions> =
         {
             "/api": {
                 target: backendUrl,
-                agent: httpsAgent
+                agent: httpsAgent,
+                changeOrigin: true,
+                secure: false
             },
             '/videoShareHub': {
                 target: videoBackendUrl,
@@ -96,6 +98,8 @@ let serverProxies: Record<string, ProxyOptions> =
         {
             "/api": {
                 target: backendUrl,
+                changeOrigin: true,
+                secure: false
             },
             "/videoShareHub": {
                 target: videoBackendUrl,

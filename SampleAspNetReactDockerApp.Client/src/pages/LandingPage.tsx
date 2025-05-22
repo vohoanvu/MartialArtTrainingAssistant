@@ -21,7 +21,7 @@ const LandingPage: React.FC = () => {
             await joinWailList({ email, role, region });
             toast({
                 title: 'Success!',
-                description: 'You have joined the waitlist. Expect a 50% discount on launch!',
+                description: 'You’ve joined the waitlist. Expect a game-changing tool soon!',
             });
             setEmail('');
             setRole('');
@@ -43,24 +43,24 @@ const LandingPage: React.FC = () => {
             <section className="bg-primary text-primary-foreground py-20">
                 <div className="container mx-auto px-4 text-center">
                     <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                        Master BJJ Faster with AI-Powered Training
+                        Revolutionize Your BJJ Dojo with AI Assistance
                     </h1>
                     <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-                        This Martial Art Training Assistant platform uses cutting-edge AI to analyze your sparring videos, optimize class plans, and personalize your BJJ journey. Join our exclusive beta for a 50% discount at launch!
+                        Imagine having a dedicated AI Assistant that manages your classes, analyzes sparring footage, and personalizes learning for every student—streamlining your dojo operations and boosting retention like never before.
                     </p>
                     <Button
                         asChild
                         className="bg-card text-primary hover:bg-accent hover:text-accent-foreground text-lg px-8 py-3 shadow"
                     >
-                        <a href="#waitlist">Claim Your 50% Beta Discount Now</a>
+                        <a href="#waitlist">Join the AI Revolution in BJJ Training – Get Started Today!</a>
                     </Button>
                     <div className="mt-12">
-                    {/* <img
-                        src="/mockups/ai-video-analysis.png"
-                        alt="AI Video Analysis Dashboard"
-                        className="mx-auto w-full max-w-3xl rounded-lg shadow-lg"
-                        loading="lazy"
-                    /> */}
+                        {/* <img
+                            src="/mockups/ai-dashboard.png"
+                            alt="AI Assistant Dashboard"
+                            className="mx-auto w-full max-w-3xl rounded-lg shadow-lg"
+                            loading="lazy"
+                        /> */}
                     </div>
                 </div>
             </section>
@@ -69,64 +69,91 @@ const LandingPage: React.FC = () => {
             <section className="py-16">
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold text-center mb-12">
-                        Transform Your Dojo with AI-Driven Insights
+                        Your AI Assistant: Streamline Operations, Enhance Learning
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <Card className="bg-card text-card-foreground shadow-lg border border-border">
                             <CardHeader>
-                                <CardTitle>AI-Powered Video Analysis</CardTitle>
+                                <CardTitle>Effortless Class Management</CardTitle>
                                 <CardDescription>
-                                    Instantly decode your sparring videos with AI to pinpoint BJJ techniques, strengths, and weaknesses.
+                                    Let your AI Assistant oversee daily dojo activities like a pro.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {/* <img
-                                    src="/mockups/video-analysis-thumbnail.png"
-                                    alt="Video Analysis Feedback"
+                                    src="/mockups/class-management.png"
+                                    alt="Class Management Dashboard"
                                     className="w-32 h-24 rounded-md object-cover"
                                     loading="lazy"
                                 /> */}
-                                <p>
-                                    Using Google Gemini AI to get precise, actionable feedback in minutes to sharpen your skills and outpace competitors.
-                                </p>
+                                <ul className="list-disc pl-5 mt-2">
+                                    <li>Automate attendance and pair students by size and skill.</li>
+                                    <li>Generate tailored training curriculums for each class.</li>
+                                    <li>Track sparring and drilling time effortlessly.</li>
+                                </ul>
                             </CardContent>
                         </Card>
                         <Card className="bg-card text-card-foreground shadow-lg border border-border">
                             <CardHeader>
-                                <CardTitle>Smart Class Management</CardTitle>
+                                <CardTitle>In-Depth Sparring Analysis</CardTitle>
                                 <CardDescription>
-                                    Effortlessly organize sessions with AI-optimized student pairings based on size, skill, and experience.
+                                    Turn footage into actionable insights with AI precision.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {/* <img
-                                    src="/mockups/class-management-thumbnail.png"
-                                    alt="Video Analysis Feedback"
+                                    src="/mockups/sparring-analysis.png"
+                                    alt="Sparring Analysis Report"
                                     className="w-32 h-24 rounded-md object-cover"
                                     loading="lazy"
                                 /> */}
-                                <p>
-                                    Save time and maximize training impact with tools designed for BJJ instructors.
-                                </p>
+                                <ul className="list-disc pl-5 mt-2">
+                                    <li>Upload footage for AI-driven breakdowns.</li>
+                                    <li>Get feedback on techniques, strengths, and improvements.</li>
+                                    <li>Use it as a template for personalized coaching.</li>
+                                </ul>
                             </CardContent>
                         </Card>
                         <Card className="bg-card text-card-foreground shadow-lg border border-border">
                             <CardHeader>
-                                <CardTitle>AI-Driven Curriculum Planner</CardTitle>
+                                <CardTitle>Personalized Learning Journeys</CardTitle>
                                 <CardDescription>
-                                    Get personalized drill plans tailored to your students’ unique weaknesses and belt levels.
+                                    Extend your expertise to every student, effortlessly.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {/* <img
-                                    src="/mockups/curriculum-planner-thumbnail.png"
-                                    alt="Video Analysis Feedback"
+                                    src="/mockups/personalized-lessons.png"
+                                    alt="Personalized Feedback Distribution"
                                     className="w-32 h-24 rounded-md object-cover"
                                     loading="lazy"
                                 /> */}
-                                <p>
-                                    Boost student progress with data-driven classes powered by advanced AI analytics.
-                                </p>
+                                <ul className="list-disc pl-5 mt-2">
+                                    <li>Students upload videos for your review.</li>
+                                    <li>AI distributes your approved feedback via email.</li>
+                                    <li>Curated resources enhance student engagement.</li>
+                                </ul>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </section>
+
+            {/* Testimonials Section */}
+            <section className="bg-muted py-16">
+                <div className="container mx-auto px-4 text-center">
+                    <h2 className="text-3xl font-bold mb-8">What Instructors Are Saying</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        <Card>
+                            <CardContent className="pt-6">
+                                <p className="italic">"This AI Assistant saved me hours of planning and brought more students to my dojo!"</p>
+                                <p className="mt-4 font-semibold">— Coach Alex, USA</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="pt-6">
+                                <p className="italic">"Student retention jumped 30% since we started using personalized feedback."</p>
+                                <p className="mt-4 font-semibold">— Sensei Maria, Brazil</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -137,22 +164,22 @@ const LandingPage: React.FC = () => {
             <section id="waitlist" className="bg-muted py-16">
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold text-center mb-8">
-                        Join the AI-Powered BJJ Revolution
+                        Be the First to Experience the Future of BJJ Instruction
                     </h2>
                     <p className="text-lg text-center mb-8 max-w-xl mx-auto">
-                        Be among the first to harness AI for BJJ training. Join our exclusive beta waitlist and unlock a 50% discount on the premium tier at launch!
+                        Join BJJ instructors worldwide transforming their dojos with AI. Sign up now and unlock exclusive early access!
                     </p>
                     {/* <img
-                        src="/mockups/curriculum-dashboard.png"
-                        alt="AI Curriculum Planner Dashboard"
+                        src="/mockups/ai-curriculum.png"
+                        alt="AI Curriculum Dashboard"
                         className="mx-auto w-full max-w-2xl rounded-lg shadow-lg"
                         loading="lazy"
                     /> */}
                     <Card className="max-w-md mx-auto bg-card text-card-foreground shadow-lg border border-border">
                         <CardHeader>
-                            <CardTitle>Early Access to AI Innovation</CardTitle>
+                            <CardTitle>Early Access to Your AI Assistant</CardTitle>
                             <CardDescription>
-                                Shape the future of BJJ with your feedback and get cutting-edge tools first.
+                                Shape the future of BJJ with cutting-edge tools designed for you.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -176,8 +203,8 @@ const LandingPage: React.FC = () => {
                                             <SelectValue placeholder="Select your role" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Instructor">Instructor</SelectItem>
-                                            <SelectItem value="Student">Student</SelectItem>
+                                            <SelectItem value="Instructor">BJJ Instructor</SelectItem>
+                                            <SelectItem value="Student">BJJ Student</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -211,6 +238,7 @@ const LandingPage: React.FC = () => {
             {/* Footer */}
             <footer className="bg-card border-t border-border text-muted-foreground py-8">
                 <div className="container mx-auto px-4 text-center">
+                    <p className="mb-2">Empowering BJJ Instructors Worldwide with AI</p>
                     <p>&copy; 2025 Martial Art Training Assistant. All rights reserved.</p>
                     <div className="mt-4 space-x-4">
                         <a href="/privacy" className="hover:underline">Privacy Policy</a>
