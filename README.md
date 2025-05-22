@@ -1,4 +1,4 @@
-# Youtube Video Sharing Web App
+# CodeJitsu: AI-Powered Martial Art Training Assistant
 
 ## Table of Contents
 
