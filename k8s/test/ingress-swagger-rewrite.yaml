@@ -20,7 +20,7 @@ spec:
       secretName: test-thecodejitsu-com-tls
   rules:
     - host: thecodejitsu.com
-    - http:
+      http:
         paths:
           - path: /vid/swagger # video-sharing expects /swagger
             pathType: Prefix
