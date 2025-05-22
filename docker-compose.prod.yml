@@ -1,5 +1,5 @@
 ﻿services:
-  app-api:
+  fighter-manager:
     image: codejitsuregistry.azurecr.io/fightermanager:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
     ports:
       - "7080:7080"
@@ -19,7 +19,7 @@
     networks:
       - appnet
 
-  video-api:
+  video-sharing:
     image: codejitsuregistry.azurecr.io/videosharing:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
     ports:
       - "7081:7081"
@@ -44,7 +44,7 @@
     networks:
       - appnet
 
-  pair-api:
+  match-maker:
     image: codejitsuregistry.azurecr.io/matchmaker:2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6
     ports:
       - "7082:7082"
@@ -70,7 +70,7 @@
       CLIENT_APP_PORTS: "3000:80"
       DOTNET_RUNNING_IN_CONTAINER: "true"
     depends_on:
-      - app-api
+      - fighter-manager
     networks:
       - appnet
 

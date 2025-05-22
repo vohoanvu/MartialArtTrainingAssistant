@@ -15,7 +15,7 @@
     networks:
       - appnet
   # Backend of the application (ASP.NET Core)
-  app-api:
+  fighter-manager:
     build:
       context: .
       dockerfile: FighterManager.Server/Dockerfile
@@ -38,7 +38,7 @@
       - app-db
     networks:
       - appnet
-  video-api:
+  video-sharing:
     build:
       context: .
       dockerfile: VideoSharing.Server/Dockerfile
@@ -70,7 +70,7 @@
       - app-db
     networks:
       - appnet
-  pair-api:
+  match-maker:
     build:
       context: .
       dockerfile: MatchMaker.Server/Dockerfile
@@ -105,7 +105,7 @@
     volumes:
       - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - app-api
+      - fighter-manager
     networks:
       - appnet
 volumes:
