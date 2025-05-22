@@ -23,14 +23,14 @@ spec:
       http:
         paths:
           - path: /vid/swagger/(.*) # video-sharing expects /swagger
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: video-sharing
                 port:
                   number: 7081
           - path: /pair/swagger/(.*) # match-maker expects /swagger
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: match-maker
