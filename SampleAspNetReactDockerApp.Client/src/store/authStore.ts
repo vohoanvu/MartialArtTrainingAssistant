@@ -1,9 +1,9 @@
-﻿import {User} from "@/types/global";
-import {create} from "zustand";
+﻿import { User } from "@/types/global";
+import { create } from "zustand";
 //setAuthToken, setRefreshToken 
-import {removeAuthToken, removeRefreshToken } from "@/lib/utils.ts";
-import {paths} from "@/services/endpoints.ts";
-import {createJSONStorage, persist} from "zustand/middleware";
+import { removeAuthToken, removeRefreshToken } from "@/lib/utils.ts";
+import { paths } from "@/services/endpoints.ts";
+import { createJSONStorage, persist } from "zustand/middleware";
 //import { t } from "i18next";
 
 export interface RegisterFighterBody {
@@ -59,13 +59,13 @@ interface AuthActions {
     setUser: (user: User) => void;
     clearUser: () => void;
     setLoginStatus: (status: 'authenticated' | 'unauthenticated' | 'pending') => void;
-    login: (request: paths["/api/fighter/login"]["post"]["requestBody"]["content"]["application/json"]) => Promise<{successful : boolean, response : string | null}>;
+    login: (request: paths["/api/fighter/login"]["post"]["requestBody"]["content"]["application/json"]) => Promise<{ successful: boolean, response: string | null }>;
     signIn: () => Promise<void>;
-    register: (email: string, password: string) => Promise<{ successful : boolean, response : string | null }>;
+    register: (email: string, password: string) => Promise<{ successful: boolean, response: string | null }>;
     logout: () => void;
     hydrate: () => Promise<void>;
     getUserInfo: () => Promise<void>;
-    registerFighter: (body: RegisterFighterBody) => Promise<{ successful : boolean, response : string | null }>;
+    registerFighter: (body: RegisterFighterBody) => Promise<{ successful: boolean, response: string | null }>;
 }
 
 /**
@@ -85,16 +85,16 @@ const useAuthStore = create<AuthStore>()(
             refreshToken: null,
             user: null,
             loginStatus: 'unauthenticated',
-            setTokens: (accessToken, refreshToken) => set({accessToken, refreshToken}),
-            clearTokens: () => set({accessToken: null, refreshToken: null}),
-            setUser: (user) => set({user}),
-            clearUser: () => set({user: null}),
-            setLoginStatus: (status) => set({loginStatus: status}),
+            setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
+            clearTokens: () => set({ accessToken: null, refreshToken: null }),
+            setUser: (user) => set({ user }),
+            clearUser: () => set({ user: null }),
+            setLoginStatus: (status) => set({ loginStatus: status }),
             login: async (request: paths["/api/fighter/login"]["post"]["requestBody"]["content"]["application/json"]) => {
 
                 const response = await fetch("api/fighter/login", {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(request)
                 });
 
@@ -113,12 +113,12 @@ const useAuthStore = create<AuthStore>()(
                 const response = await fetch('/api/auth/v1/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json', 
+                        'Content-Type': 'application/json',
                     }
                 });
 
                 if (response.ok) {
-                    const {accessToken, refreshToken} = await response.json();
+                    const { accessToken, refreshToken } = await response.json();
                     get().setTokens(accessToken, refreshToken);
                     get().setLoginStatus('authenticated');
                 } else {
@@ -132,13 +132,13 @@ const useAuthStore = create<AuthStore>()(
                     const response = await fetch('/api/auth/v1/refresh', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json', 
+                            'Content-Type': 'application/json',
                             'Authorization': `Bearer ${refreshToken}`
                         }
                     });
 
                     if (response.ok) {
-                        const {accessToken, refreshToken} = await response.json();
+                        const { accessToken, refreshToken } = await response.json();
                         get().setTokens(accessToken, refreshToken);
                         get().setLoginStatus('authenticated');
                     } else {
@@ -157,50 +157,48 @@ const useAuthStore = create<AuthStore>()(
                 window.location.href = "/home";
             },
             hydrate: async () => {
-                const refreshToken = get().refreshToken;
-                if (refreshToken === null) {
-                    get().setLoginStatus('unauthenticated');
+                const { accessToken, refreshToken } = get();
+                if (!refreshToken || !accessToken) {
+                    get().setLoginStatus("unauthenticated");
                     window.location.href = "/login";
                     return;
                 }
-
-                const response = await fetch('/api/auth/v1/refresh', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json', 
-                        //'Authorization': `Bearer ${refreshToken}`
-                    }
+                const response = await fetch("/api/auth/v1/refresh", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ accessToken, refreshToken }),
                 });
-                console.log('GET /api/auth/v1/refresh...', response.ok);
+                console.log("POST /api/auth/v1/refresh...", response.ok);
                 if (response.ok) {
-                    const {accessToken, refreshToken} = await response.json();
-                    get().setTokens(accessToken, refreshToken);
-                    get().setLoginStatus('authenticated');
+                    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await response.json();
+                    get().setTokens(newAccessToken, newRefreshToken);
+                    get().setLoginStatus("authenticated");
+                    await get().getUserInfo();
                 } else {
-                    get().setLoginStatus('unauthenticated');
+                    get().setLoginStatus("unauthenticated");
                     window.location.href = "/login";
                 }
             },
             register: async (email, password) => {
                 const response = await fetch("api/auth/v1/register", {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email, password})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
                 });
-                
+
                 const responseCode = response.status;
                 return responseCode === 200 ? { successful: true, response: null } : { successful: false, response: await response.text() };
             },
             registerFighter: async (body: RegisterFighterBody) => {
                 const response = await fetch("api/fighter/register", {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 console.log('POST /api/fighter/register...', response);
                 const responseCode = response.status;
-                return responseCode === 201 ? 
-                    { successful: true, response: null } : 
+                return responseCode === 201 ?
+                    { successful: true, response: null } :
                     { successful: false, response: await response.text() };
             },
             getUserInfo: async () => {
