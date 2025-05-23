@@ -27,8 +27,9 @@ namespace FighterManager.Server.Controllers
         public IActionResult SignInWithGoogle(string returnUrl = "/")
         {
             var redirectUrl = Url.Action(
-                nameof(ExternalLoginCallback),
-                "ExternalAuth", new { returnUrl },
+                "externallogincallback",
+                "externalauth",
+                new { returnUrl },
                 "https"
             );
             var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
@@ -39,8 +40,9 @@ namespace FighterManager.Server.Controllers
         public IActionResult SignInWithFacebook(string returnUrl = "/")
         {
             var redirectUrl = Url.Action(
-                nameof(ExternalLoginCallback),
-                "ExternalAuth", new { returnUrl },
+                "externallogincallback",
+                "externalauth",
+                new { returnUrl },
                 "https"
             );
             var properties = _signInManager.ConfigureExternalAuthenticationProperties("Facebook", redirectUrl);
