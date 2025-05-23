@@ -57,12 +57,28 @@ namespace FighterManager.Server.Controllers
                 return Content(htmlPage, "text/html");
             }
 
-            var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+            var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: true);
             AppUserEntity user;
             if (!signInResult.Succeeded)
             {
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                user = new AppUserEntity { UserName = email, Email = email };
+                user = new AppUserEntity
+                {
+                    UserName = email,
+                    Email = email,
+                    Fighter = new()
+                    {
+                        FighterName = "Google SSO User",
+                        Height = 0.0,
+                        Weight = 0.0,
+                        BMI = 0.0,
+                        Gender = Enum.TryParse<Gender>(info.Principal.FindFirstValue(ClaimTypes.Gender), out var gender) ? gender : Gender.Male,
+                        Role = FighterRole.Instructor,
+                        Birthdate = DateTime.TryParse(info.Principal.FindFirstValue(ClaimTypes.DateOfBirth), out var birthdate) ? birthdate : DateTime.MinValue,
+                        MaxWorkoutDuration = 30,
+                        BelkRank = BeltColor.Black,
+                    },
+                };
                 await _userManager.CreateAsync(user);
                 await _userManager.AddLoginAsync(user, info);
             }
