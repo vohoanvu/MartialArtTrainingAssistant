@@ -18,6 +18,7 @@ using SharedEntities;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
 using VideoSharing.Server.Domain.GeminiService;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace VideoSharing.Server
 {
@@ -209,6 +210,14 @@ namespace VideoSharing.Server
             builder.Services.AddHealthChecks();
 
             var app = builder.Build();
+            var forwardedHeadersOptions = new ForwardedHeadersOptions
+            {
+                // Forward the X-Forwarded-For (client IP) and X-Forwarded-Proto (protocol, e.g., https) headers.
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            };
+            forwardedHeadersOptions.KnownProxies.Clear();
+            forwardedHeadersOptions.KnownNetworks.Clear();
+            app.UseForwardedHeaders(forwardedHeadersOptions);
             // Initialize the database already executed from FigherManage.Server thread
             //await using (var serviceScope = app.Services.CreateAsyncScope())
             //{
