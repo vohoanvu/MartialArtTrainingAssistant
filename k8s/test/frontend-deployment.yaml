@@ -16,6 +16,7 @@ spec:
       containers:
         - name: frontend
           image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/frontend:${SHORT_SHA}"
+          command: ["/bin/sh", "-c", "echo 'Container alive for inspection'; sleep 3600"]
           ports:
             - containerPort: 80
           livenessProbe:
