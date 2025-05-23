@@ -8,6 +8,7 @@ using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
 using SharedEntities;
 using SharedEntities.Data;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace MatchMaker.Server
 {
@@ -150,6 +151,27 @@ namespace MatchMaker.Server
             //builder.Services.AddSignalR();
 
             var app = builder.Build();
+            var forwardedHeadersOptions = new ForwardedHeadersOptions
+            {
+                // Forward the X-Forwarded-For (client IP) and X-Forwarded-Proto (protocol, e.g., https) headers.
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            };
+            forwardedHeadersOptions.KnownProxies.Clear();
+            forwardedHeadersOptions.KnownNetworks.Clear();
+            app.UseForwardedHeaders(forwardedHeadersOptions);
+            app.Use(async (context, next) =>
+            {
+                app.Logger.LogInformation("Request: {Method} {Path} {QueryString}", context.Request.Method, context.Request.Path, context.Request.QueryString);
+                try
+                {
+                    await next(context);
+                }
+                catch (Exception ex)
+                {
+                    app.Logger.LogError(ex, "Error processing request: {Path}", context.Request.Path);
+                    throw;
+                }
+            });
 
             app.UseDefaultFiles();
             app.UseStaticFiles();

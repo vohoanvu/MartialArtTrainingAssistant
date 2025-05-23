@@ -14,6 +14,7 @@ using Swashbuckle.AspNetCore.Filters;
 using SharedEntities;
 using SharedEntities.Data;
 using SharedEntities.Models;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace FighterManager.Server
 {
@@ -197,6 +198,18 @@ namespace FighterManager.Server
             builder.Services.AddHealthChecks();
 
             var app = builder.Build();
+            // Configure Forwarded Headers
+            // This should be one of the first middleware components registered.
+            var forwardedHeadersOptions = new ForwardedHeadersOptions
+            {
+                // Forward the X-Forwarded-For (client IP) and X-Forwarded-Proto (protocol, e.g., https) headers.
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            };
+            // In containerized environments like GKE, the ingress controller is the immediate upstream proxy.
+            // Clearing KnownProxies and KnownNetworks ensures that the headers from this proxy are trusted.
+            forwardedHeadersOptions.KnownProxies.Clear();
+            forwardedHeadersOptions.KnownNetworks.Clear();
+            app.UseForwardedHeaders(forwardedHeadersOptions);
 
             // Initialize the database if it doesn't exist
             await using (var serviceScope = app.Services.CreateAsyncScope())
@@ -226,6 +239,8 @@ namespace FighterManager.Server
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
 
+            // UseHttpsRedirection should also come after UseForwardedHeaders to correctly redirect HTTP to HTTPS
+            // based on the original client request, not the direct request to Kestrel.
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
