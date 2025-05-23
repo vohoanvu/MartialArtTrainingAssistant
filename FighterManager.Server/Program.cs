@@ -9,24 +9,18 @@ using Microsoft.OpenApi.Models;
 using FighterManager.Server.Domain.FighterService;
 using FighterManager.Server.Helpers;
 using Serilog;
-using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
 using SharedEntities;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using System.Security.Claims;
 
 namespace FighterManager.Server
 {
-    /// <summary>
-    /// Main entry point for the application.
-    /// </summary>
     public class Program
     {
-        /// <summary>
-        /// Main entry point for the application.
-        /// </summary>
-        /// <param name="args"></param>
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -40,12 +34,10 @@ namespace FighterManager.Server
             builder.Services.AddScoped<IIdentityResponseEnhancer, IdentityResponseEnhancer>();
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(opts =>
             {
                 opts.EnableAnnotations();
-
                 opts.SwaggerDoc("v1", new OpenApiInfo()
                 {
                     Title = "Martial Art Training Assistant",
@@ -68,10 +60,8 @@ namespace FighterManager.Server
                     BearerFormat = "JWT",
                     Description = "Please enter into field a valid JWT token"
                 });
-;
                 opts.OperationFilter<SecurityRequirementsOperationFilter>();
 
-                // Add XML comments to Swagger
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 if (File.Exists(xmlPath))
@@ -98,10 +88,8 @@ namespace FighterManager.Server
                 opts.ApiVersionReader = new UrlSegmentApiVersionReader();
             });
 
-            // Add CORS
             builder.Services.AddCors(options =>
             {
-                // Set up CORS policies for the application based on the environment the application is running in
                 if (builder.Environment.IsDevelopment())
                 {
                     options.AddDefaultPolicy(corsBuilder =>
@@ -113,31 +101,19 @@ namespace FighterManager.Server
                 {
                     var allowedOriginPorts = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.ClientAppPorts)
                         .Split(":");
-
                     var possibleHttpsOrigins = allowedOriginPorts.Select(port => $"https://localhost:{port}").ToArray();
                     var possibleHttpOrigins = allowedOriginPorts.Select(port => $"http://localhost:{port}").ToArray();
-
                     options.AddDefaultPolicy(corsBuilder =>
-                        corsBuilder.WithOrigins(possibleHttpsOrigins
-                                .Concat(possibleHttpOrigins).ToArray())
+                        corsBuilder.WithOrigins(possibleHttpsOrigins.Concat(possibleHttpOrigins).ToArray())
                             .AllowAnyMethod().AllowAnyHeader());
                 }
             });
 
-            // Serilog
             builder.Logging.ClearProviders();
             builder.Host.UseSerilog((context, configuration) =>
             {
-                // Uncomment the following lines to use the configuration from the builder
-
-                // context.Configuration = builder.Configuration;
-                // configuration.ReadFrom.Configuration(context.Configuration);
-
-                configuration
-                    .MinimumLevel.Information()
-                    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-                    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                configuration.ReadFrom.Configuration(context.Configuration)
+                    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Verbose)
                     .Enrich.FromLogContext()
                     .WriteTo.Console()
                     .WriteTo.File("../logs/log-.log", rollingInterval: RollingInterval.Day);
@@ -145,7 +121,11 @@ namespace FighterManager.Server
 
             builder.Services.AddDbContext<MyDatabaseContext>();
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultChallengeScheme = "Google";
+            })
             .AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = false;
@@ -159,8 +139,6 @@ namespace FighterManager.Server
                     ValidIssuer = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtIssuer),
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtKey)))
                 };
-
-                //Error logging
                 options.Events = new JwtBearerEvents
                 {
                     OnAuthenticationFailed = context =>
@@ -183,7 +161,80 @@ namespace FighterManager.Server
             {
                 googleOptions.ClientId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.AuthenticationGoogleClientId);
                 googleOptions.ClientSecret = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.AuthenticationGoogleClientSecret);
-                googleOptions.CallbackPath = "/api/externalauth/externallogincallback";
+                googleOptions.CallbackPath = "/signin-google-callback";
+                googleOptions.SaveTokens = true;
+                googleOptions.Events = new OAuthEvents
+                {
+                    OnTicketReceived = async context =>
+                    {
+                        var signInService = context.HttpContext.RequestServices.GetRequiredService<FighterSignInService<AppUserEntity>>();
+                        var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUserEntity>>();
+                        var signInManager = context.HttpContext.RequestServices.GetRequiredService<SignInManager<AppUserEntity>>();
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        try
+                        {
+                            var info = context.Principal;
+                            var email = info!.FindFirst(ClaimTypes.Email)?.Value;
+                            AppUserEntity? user = null;
+                            if (email != null)
+                            {
+                                user = await userManager.FindByEmailAsync(email);
+                                if (user == null)
+                                {
+                                    user = new AppUserEntity
+                                    {
+                                        UserName = email,
+                                        Email = email,
+                                        EmailConfirmed = true,
+                                        Fighter = new()
+                                        {
+                                            FighterName = info.FindFirst(ClaimTypes.Name)?.Value ?? "SSO User",
+                                            Height = 0.0,
+                                            Weight = 0.0,
+                                            BMI = 0.0,
+                                            Gender = Enum.TryParse<Gender>(info.FindFirst(ClaimTypes.Gender)?.Value, true, out var gender) ? gender : Gender.Male,
+                                            Role = FighterRole.Instructor,
+                                            Birthdate = DateTime.TryParse(info.FindFirst(ClaimTypes.DateOfBirth)?.Value, out var birthdate) ? birthdate : DateTime.MinValue,
+                                            MaxWorkoutDuration = 30,
+                                            BelkRank = BeltColor.Black
+                                        }
+                                    };
+                                    var createResult = await userManager.CreateAsync(user);
+                                    if (!createResult.Succeeded)
+                                    {
+                                        logger.LogError("Failed to create user: {Errors}", string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                                        context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("UserCreationFailed")}");
+                                        context.HandleResponse();
+                                        return;
+                                    }
+                                    var loginInfo = new ExternalLoginInfo(info, "Google", info.FindFirstValue(ClaimTypes.NameIdentifier)!, null!);
+                                    await userManager.AddLoginAsync(user, loginInfo);
+                                }
+                            }
+                            if (user == null)
+                            {
+                                logger.LogError("Failed to find or create user for Google SSO");
+                                context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("UserCreationFailed")}");
+                                context.HandleResponse();
+                                return;
+                            }
+                            await signInManager.SignInAsync(user, isPersistent: true);
+                            var accessToken = await signInService.GenerateJwtTokenAsync(user);
+                            var refreshToken = signInService.GenerateRefreshToken(user);
+                            var returnUrl = context.Properties!.GetString("returnUrl") ?? "/sso-callback";
+                            var redirectUrl = $"{returnUrl}{(returnUrl.Contains("?") ? "&" : "?")}token={Uri.EscapeDataString(accessToken)}&refreshToken={Uri.EscapeDataString(refreshToken)}";
+                            logger.LogInformation("Google SSO callback processed successfully. Redirecting to {RedirectUrl}", redirectUrl);
+                            context.HttpContext.Response.Redirect(redirectUrl);
+                            context.HandleResponse();
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, "Error processing Google SSO callback");
+                            context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("AuthenticationFailed")}");
+                            context.HandleResponse();
+                        }
+                    }
+                };
             });
             builder.Services.AddAuthorization();
 
@@ -198,20 +249,15 @@ namespace FighterManager.Server
             builder.Services.AddHealthChecks();
 
             var app = builder.Build();
-            // Configure Forwarded Headers
-            // This should be one of the first middleware components registered.
+
             var forwardedHeadersOptions = new ForwardedHeadersOptions
             {
-                // Forward the X-Forwarded-For (client IP) and X-Forwarded-Proto (protocol, e.g., https) headers.
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             };
-            // In containerized environments like GKE, the ingress controller is the immediate upstream proxy.
-            // Clearing KnownProxies and KnownNetworks ensures that the headers from this proxy are trusted.
             forwardedHeadersOptions.KnownProxies.Clear();
             forwardedHeadersOptions.KnownNetworks.Clear();
             app.UseForwardedHeaders(forwardedHeadersOptions);
 
-            // Initialize the database if it doesn't exist
             await using (var serviceScope = app.Services.CreateAsyncScope())
             {
                 await DbHelper.EnsureDbIsCreatedAndSeededAsync(
@@ -225,7 +271,6 @@ namespace FighterManager.Server
             app.UseStaticFiles();
             app.UseAuthentication();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment() ||
                 Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.ShowSwaggerInProduction) == "true")
             {
@@ -233,20 +278,14 @@ namespace FighterManager.Server
                 app.UseSwaggerUI();
             }
 
-            // Use the middleware before mapping Identity endpoints
             app.UseMiddleware<ResponseEnhancementMiddleware>();
 
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
 
-            // UseHttpsRedirection should also come after UseForwardedHeaders to correctly redirect HTTP to HTTPS
-            // based on the original client request, not the direct request to Kestrel.
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
             app.MapControllers();
-
             app.MapFallbackToFile("/index.html");
             app.MapHealthChecks("/health");
 
