@@ -26,7 +26,7 @@ steps:
     dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
     args: ['npm', 'run', 'build']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/frontend:$SHORT_SHA', '-f', 'SampleAspNetReactDockerApp.Client/Dockerfile', '.']
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/frontend:$SHORT_SHA', '-f', 'SampleAspNetReactDockerApp.Client/Dockerfile', 'SampleAspNetReactDockerApp.Client']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/fighter-manager:$SHORT_SHA', '-f', 'FighterManager.Server/Dockerfile', '.']
   - name: 'gcr.io/cloud-builders/docker'
