@@ -60,7 +60,7 @@ namespace FighterManager.Server.Controllers
             }
 
             var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: true);
-            AppUserEntity user;
+            AppUserEntity? user;
             if (!signInResult.Succeeded)
             {
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
@@ -86,8 +86,14 @@ namespace FighterManager.Server.Controllers
             }
             else
             {
-                user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey)
-                    ?? throw new Exception("External login failed: user not found.");
+                user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                if (user == null)
+                {
+                    // Log this critical error: a user was signed in by external provider but not found in local DB.
+                    // _logger.LogError("External login succeeded but user not found for Provider: {LoginProvider}, Key: {ProviderKey}", info.LoginProvider, info.ProviderKey);
+                    var errorHtml = "<html><head><script>window.location='/login?error=External login consistency issue'</script></head><body></body></html>";
+                    return Content(errorHtml, "text/html");
+                }
             }
 
             var jwt = await _fighterSignInService.GenerateJwtTokenAsync(user);
