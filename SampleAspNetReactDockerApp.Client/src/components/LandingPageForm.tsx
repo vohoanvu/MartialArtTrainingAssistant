@@ -113,9 +113,14 @@ const LandingPageForm = () => {
                         onClick={() => handleSSOLogin("google")}
                     >
                         <img
-                            src="/google/neutral/web_neutral_sq_na.svg"
+                            src="/signin-assets/Web/svg/light/web_light_sq_na.svg"
                             alt="Google"
-                            className="h-auto w-auto mr-4"
+                            className="h-auto w-auto mr-4 dark:hidden"
+                        />
+                        <img
+                            src="/signin-assets/Web/svg/dark/web_dark_sq_na.svg"
+                            alt="Google"
+                            className="h-auto w-auto mr-4 hidden dark:block"
                         />
                         Sign in with Google
                     </Button>

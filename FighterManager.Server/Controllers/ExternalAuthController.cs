@@ -37,92 +37,77 @@ namespace FighterManager.Server.Controllers
             return Challenge(properties, "Google");
         }
 
-        // [HttpGet("signin-google-callback")]
-        // public async Task<IActionResult> SignInGoogleCallback(string returnUrl = "/")
-        // {
-        //     // Ensure response hasn’t started
-        //     if (HttpContext.Response.HasStarted)
-        //     {
-        //         _logger.LogWarning("Response has already started in SignInGoogleCallback");
-        //         return StatusCode(500, "Internal server error: Response already started");
-        //     }
+        [NonAction]
+        public static async Task HandleGoogleTicketReceived(TicketReceivedContext context)
+        {
+            var signInService = context.HttpContext.RequestServices.GetRequiredService<FighterSignInService<AppUserEntity>>();
+            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUserEntity>>();
+            var signInManager = context.HttpContext.RequestServices.GetRequiredService<SignInManager<AppUserEntity>>();
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<ExternalAuthController>>();
 
-        //     // Get external login info
-        //     var info = await _signInManager.GetExternalLoginInfoAsync();
-        //     if (info == null)
-        //     {
-        //         _logger.LogError("External login info is null");
-        //         return Redirect($"{returnUrl}?error={Uri.EscapeDataString("ExternalLoginFailed")}");
-        //     }
-
-        //     try
-        //     {
-        //         // Check if user exists or needs to be created
-        //         var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-        //         AppUserEntity user = null;
-        //         if (email != null)
-        //         {
-        //             user = await _userManager.FindByEmailAsync(email);
-        //             if (user == null)
-        //             {
-        //                 user = new AppUserEntity
-        //                 {
-        //                     UserName = email,
-        //                     Email = email,
-        //                     EmailConfirmed = true, // Trust Google-authenticated users
-        //                     Fighter = new()
-        //                     {
-        //                         FighterName = info.Principal.FindFirstValue(ClaimTypes.Name) ?? "SSO User",
-        //                         Height = 0.0,
-        //                         Weight = 0.0,
-        //                         BMI = 0.0,
-        //                         Gender = Enum.TryParse<Gender>(info.Principal.FindFirstValue(ClaimTypes.Gender), true, out var gender) ? gender : Gender.Male,
-        //                         Role = FighterRole.Instructor,
-        //                         Birthdate = DateTime.TryParse(info.Principal.FindFirstValue(ClaimTypes.DateOfBirth), out var birthdate) ? birthdate : DateTime.MinValue,
-        //                         MaxWorkoutDuration = 30,
-        //                         BelkRank = BeltColor.Black
-        //                     }
-        //                 };
-        //                 var createResult = await _userManager.CreateAsync(user);
-        //                 if (!createResult.Succeeded)
-        //                 {
-        //                     _logger.LogError("Failed to create user: {Errors}", string.Join(", ", createResult.Errors.Select(e => e.Description)));
-        //                     return Redirect($"{returnUrl}?error={Uri.EscapeDataString("UserCreationFailed")}");
-        //                 }
-        //                 // Link Google login
-        //                 var loginInfo = new ExternalLoginInfo(info.Principal, "Google", info.Principal.FindFirstValue(ClaimTypes.NameIdentifier), null);
-        //                 await _userManager.AddLoginAsync(user, loginInfo);
-        //             }
-        //         }
-
-        //         if (user == null)
-        //         {
-        //             _logger.LogError("Failed to find or create user for Google SSO");
-        //             return Redirect($"{returnUrl}?error={Uri.EscapeDataString("UserCreationFailed")}");
-        //         }
-
-        //         // Sign in user to establish Identity cookie
-        //         await _signInManager.SignInAsync(user, isPersistent: true);
-
-        //         // Generate tokens
-        //         var accessToken = await _fighterSignInService.GenerateJwtTokenAsync(user);
-        //         var refreshToken = _fighterSignInService.GenerateRefreshToken(user);
-
-        //         // Complete authentication to prevent middleware from writing response
-        //         var properties = new AuthenticationProperties
-        //         {
-        //             RedirectUri = $"{returnUrl}{(returnUrl.Contains("?") ? "&" : "?")}token={Uri.EscapeDataString(accessToken)}&refreshToken={Uri.EscapeDataString(refreshToken)}"
-        //         };
-        //         await HttpContext.ChallengeAsync("Google", properties);
-
-        //         _logger.LogInformation("Google SSO callback processed successfully. Redirecting to {RedirectUrl}", properties.RedirectUri);
-        //         return new EmptyResult(); // Prevent further controller response
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         _logger.LogError(ex, "Error processing Google SSO callback");
-        //         return Redirect($"{returnUrl}?error={Uri.EscapeDataString("AuthenticationFailed")}");
-        //     }
-        // }
+            try
+            {
+                var info = context.Principal;
+                var email = info!.FindFirst(ClaimTypes.Email)?.Value;
+                AppUserEntity? user = null;
+                if (email != null)
+                {
+                    user = await userManager.FindByEmailAsync(email);
+                    if (user == null)
+                    {
+                        user = new AppUserEntity
+                        {
+                            UserName = email,
+                            Email = email,
+                            EmailConfirmed = true,
+                            Fighter = new()
+                            {
+                                FighterName = info.FindFirst(ClaimTypes.Name)?.Value ?? "SSO User",
+                                Height = 0.0,
+                                Weight = 0.0,
+                                BMI = 0.0,
+                                Gender = Enum.TryParse<Gender>(info.FindFirst(ClaimTypes.Gender)?.Value, true, out var gender) ? gender : Gender.Male,
+                                Role = FighterRole.Instructor,
+                                Birthdate = DateTime.TryParse(info.FindFirst(ClaimTypes.DateOfBirth)?.Value, out var birthdate) ? birthdate : DateTime.MinValue,
+                                MaxWorkoutDuration = 30,
+                                BelkRank = BeltColor.Black,
+                                Experience = TrainingExperience.MoreThanFiveYears
+                            }
+                        };
+                        var createResult = await userManager.CreateAsync(user);
+                        if (!createResult.Succeeded)
+                        {
+                            logger.LogError("Failed to create user: {Errors}", string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                            context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("UserCreationFailed")}");
+                            context.HandleResponse();
+                            return;
+                        }
+                        var loginInfo = new ExternalLoginInfo(info, "Google", info.FindFirstValue(ClaimTypes.NameIdentifier)!, null!);
+                        await userManager.AddLoginAsync(user, loginInfo);
+                    }
+                }
+                if (user == null)
+                {
+                    logger.LogError("Failed to find or create user for Google SSO");
+                    context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("UserCreationFailed")}");
+                    context.HandleResponse();
+                    return;
+                }
+                await signInManager.SignInAsync(user, isPersistent: true);
+                var accessToken = await signInService.GenerateJwtTokenAsync(user);
+                var refreshToken = signInService.GenerateRefreshToken(user);
+                var returnUrl = context.Properties!.GetString("returnUrl") ?? "/sso-callback";
+                var redirectUrl = $"{returnUrl}{(returnUrl.Contains("?") ? "&" : "?")}token={Uri.EscapeDataString(accessToken)}&refreshToken={Uri.EscapeDataString(refreshToken)}";
+                logger.LogInformation("Google SSO callback processed successfully. Redirecting to {RedirectUrl}", redirectUrl);
+                context.HttpContext.Response.Redirect(redirectUrl);
+                context.HandleResponse();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error processing Google SSO callback");
+                context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("AuthenticationFailed")}");
+                context.HandleResponse();
+            }
+        }
     }
 }

@@ -15,7 +15,8 @@ using SharedEntities.Data;
 using SharedEntities.Models;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using System.Security.Claims;
+using Serilog.Events;
+using FighterManager.Server.Controllers;
 
 namespace FighterManager.Server
 {
@@ -112,8 +113,16 @@ namespace FighterManager.Server
             builder.Logging.ClearProviders();
             builder.Host.UseSerilog((context, configuration) =>
             {
-                configuration.ReadFrom.Configuration(context.Configuration)
-                    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Verbose)
+                // Uncomment the following lines to use the configuration from the builder
+
+                // context.Configuration = builder.Configuration;
+                // configuration.ReadFrom.Configuration(context.Configuration);
+
+                configuration
+                    .MinimumLevel.Information()
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+                    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                     .Enrich.FromLogContext()
                     .WriteTo.Console()
                     .WriteTo.File("../logs/log-.log", rollingInterval: RollingInterval.Day);
@@ -165,75 +174,7 @@ namespace FighterManager.Server
                 googleOptions.SaveTokens = true;
                 googleOptions.Events = new OAuthEvents
                 {
-                    OnTicketReceived = async context =>
-                    {
-                        var signInService = context.HttpContext.RequestServices.GetRequiredService<FighterSignInService<AppUserEntity>>();
-                        var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUserEntity>>();
-                        var signInManager = context.HttpContext.RequestServices.GetRequiredService<SignInManager<AppUserEntity>>();
-                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                        try
-                        {
-                            var info = context.Principal;
-                            var email = info!.FindFirst(ClaimTypes.Email)?.Value;
-                            AppUserEntity? user = null;
-                            if (email != null)
-                            {
-                                user = await userManager.FindByEmailAsync(email);
-                                if (user == null)
-                                {
-                                    user = new AppUserEntity
-                                    {
-                                        UserName = email,
-                                        Email = email,
-                                        EmailConfirmed = true,
-                                        Fighter = new()
-                                        {
-                                            FighterName = info.FindFirst(ClaimTypes.Name)?.Value ?? "SSO User",
-                                            Height = 0.0,
-                                            Weight = 0.0,
-                                            BMI = 0.0,
-                                            Gender = Enum.TryParse<Gender>(info.FindFirst(ClaimTypes.Gender)?.Value, true, out var gender) ? gender : Gender.Male,
-                                            Role = FighterRole.Instructor,
-                                            Birthdate = DateTime.TryParse(info.FindFirst(ClaimTypes.DateOfBirth)?.Value, out var birthdate) ? birthdate : DateTime.MinValue,
-                                            MaxWorkoutDuration = 30,
-                                            BelkRank = BeltColor.Black
-                                        }
-                                    };
-                                    var createResult = await userManager.CreateAsync(user);
-                                    if (!createResult.Succeeded)
-                                    {
-                                        logger.LogError("Failed to create user: {Errors}", string.Join(", ", createResult.Errors.Select(e => e.Description)));
-                                        context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("UserCreationFailed")}");
-                                        context.HandleResponse();
-                                        return;
-                                    }
-                                    var loginInfo = new ExternalLoginInfo(info, "Google", info.FindFirstValue(ClaimTypes.NameIdentifier)!, null!);
-                                    await userManager.AddLoginAsync(user, loginInfo);
-                                }
-                            }
-                            if (user == null)
-                            {
-                                logger.LogError("Failed to find or create user for Google SSO");
-                                context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("UserCreationFailed")}");
-                                context.HandleResponse();
-                                return;
-                            }
-                            await signInManager.SignInAsync(user, isPersistent: true);
-                            var accessToken = await signInService.GenerateJwtTokenAsync(user);
-                            var refreshToken = signInService.GenerateRefreshToken(user);
-                            var returnUrl = context.Properties!.GetString("returnUrl") ?? "/sso-callback";
-                            var redirectUrl = $"{returnUrl}{(returnUrl.Contains("?") ? "&" : "?")}token={Uri.EscapeDataString(accessToken)}&refreshToken={Uri.EscapeDataString(refreshToken)}";
-                            logger.LogInformation("Google SSO callback processed successfully. Redirecting to {RedirectUrl}", redirectUrl);
-                            context.HttpContext.Response.Redirect(redirectUrl);
-                            context.HandleResponse();
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogError(ex, "Error processing Google SSO callback");
-                            context.HttpContext.Response.Redirect($"/sso-callback?error={Uri.EscapeDataString("AuthenticationFailed")}");
-                            context.HandleResponse();
-                        }
-                    }
+                    OnTicketReceived = ExternalAuthController.HandleGoogleTicketReceived
                 };
             });
             builder.Services.AddAuthorization();
