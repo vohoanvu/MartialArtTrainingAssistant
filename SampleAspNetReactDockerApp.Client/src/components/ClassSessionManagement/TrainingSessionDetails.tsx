@@ -9,7 +9,8 @@ import {
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
 import { FighterPairResult, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto } from '@/types/global';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAttendanceStore } from '@/store/attendanceStore';
 
 const TrainingSessionDetails = () => {
     const { sessionId } = useParams<{ sessionId: string }>();
@@ -26,6 +27,8 @@ const TrainingSessionDetails = () => {
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
     const [notes, setNotes] = useState<string>('');
+    const navigate = useNavigate();
+    const { setSessionDetailViewModel } = useAttendanceStore();
 
     useEffect(() => {
         const fetchSessionDetails = async () => {
@@ -33,6 +36,7 @@ const TrainingSessionDetails = () => {
                 setLoading(true);
                 const details = await getTrainingSessionDetails(sessionIdNumber, { jwtToken, refreshToken, hydrate });
                 setSessionDetails(details);
+                setSessionDetailViewModel(sessionId!, details);
                 const savedCurriculum = await getClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
                 setCurriculum(savedCurriculum);
             } catch (err) {
@@ -203,6 +207,13 @@ const TrainingSessionDetails = () => {
                         </Button>
                     ) : (
                         <div className="flex flex-wrap gap-2 mt-4">
+                            <Button 
+                                type="button" 
+                                onClick={() => navigate(`/sessions/${sessionId}/attendance`)} 
+                                variant='default'
+                            >
+                                Take Attendance
+                            </Button>
                             <Button type="button" variant='outline' onClick={handlePairUp}>
                                 PAIR UP
                             </Button>

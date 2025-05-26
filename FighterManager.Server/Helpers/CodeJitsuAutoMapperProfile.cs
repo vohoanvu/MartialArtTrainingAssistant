@@ -69,7 +69,8 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ForMember(dest => dest.Experience, opt => opt.MapFrom(src =>
                 TrainingExperience.LessThanTwoYears))
             .ForMember(dest => dest.MaxWorkoutDuration, opt => opt.MapFrom(src => 5))
-            .ForMember(dest => dest.BelkRank, opt => opt.MapFrom(src => src.BeltColor))
+            .ForMember(dest => dest.BelkRank, opt => opt.MapFrom(src => Enum.Parse<BeltColor>(src.BeltColor)))
+            .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => Enum.Parse<Gender>(src.Gender) ))
             .ForMember(dest => dest.FighterName, opt => opt.MapFrom(src => 
                 src.FighterName.Trim()));
     }

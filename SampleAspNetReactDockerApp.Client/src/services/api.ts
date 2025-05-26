@@ -666,3 +666,25 @@ export async function joinWailList({ email, role, region }:
         throw error;
     }
 }
+
+
+export const takeAttendance = async (
+    sessionId: number,
+    request: TakeAttendanceRequest,
+    auth: AuthParams
+): Promise<TakeAttendanceResponse> => {
+    const response = await fetch(`/api/trainingsession/${sessionId}/attendance`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.jwtToken}`
+        },
+        body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to take attendance');
+    }
+
+    return response.json();
+};

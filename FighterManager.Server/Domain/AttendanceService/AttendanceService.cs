@@ -24,7 +24,8 @@ namespace FighterManager.Server.Domain.AttendanceService
         public AttendanceService(
             IAttendanceRepository attendanceRepository,
             IMapper mapper,
-            UserManager<AppUserEntity> userManager)
+            UserManager<AppUserEntity> userManager,
+            ILogger<AttendanceService> logger)
         {
             _attendanceRepository = attendanceRepository;
             _mapper = mapper;

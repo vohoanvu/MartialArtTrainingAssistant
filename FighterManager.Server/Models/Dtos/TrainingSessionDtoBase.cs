@@ -1,4 +1,4 @@
-﻿using SharedEntities.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace FighterManager.Server.Models.Dtos
 {
@@ -35,11 +35,9 @@ namespace FighterManager.Server.Models.Dtos
 
     public class AttendanceRecordDto
     {
-        [Required]
         [StringLength(100)]
         public required string FighterName { get; set; }
 
-        [Required]
         public DateTime Birthdate { get; set; }
 
         [Range(0, 500)] // Add reasonable limits
@@ -48,11 +46,9 @@ namespace FighterManager.Server.Models.Dtos
         [Range(0, 300)] // Add reasonable limits
         public double Height { get; set; }
 
-        [Required]
-        public BeltColor BeltColor { get; set; }
+        public required string BeltColor { get; set; }
 
-        [Required]
-        public Gender Gender { get; set; }
+        public required string Gender { get; set; }
     }
 
     public class TakeAttendanceRequest

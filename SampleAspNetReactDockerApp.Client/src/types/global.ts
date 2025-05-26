@@ -301,3 +301,22 @@ export interface DrillDto {
     focus: string;
     duration: string;
 }
+
+export interface AttendanceRecordDto {
+    fighterName: string;
+    birthdate: Date;
+    weight: number;
+    height: number;
+    beltColor: string;
+    gender: string;
+}
+
+export interface TakeAttendanceRequest {
+    records: AttendanceRecordDto[];
+}
+
+export interface TakeAttendanceResponse {
+    success: boolean;
+    message?: string;
+    updatedSession?: SessionDetailViewModel;
+}

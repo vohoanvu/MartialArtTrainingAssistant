@@ -20,6 +20,7 @@ import VideoReview from './pages/VideoReview.tsx';
 import LandingPage from './pages/LandingPage.tsx';
 import SsoCallback from './pages/SSOCallback.tsx';
 import { Toaster } from './components/ui/toaster.tsx';
+import AttendancePage from './components/ClassSessionManagement/AttendancePage.tsx';
 
 const router = createBrowserRouter([
     {
@@ -85,6 +86,10 @@ const router = createBrowserRouter([
             {
                 path: '/sso-callback',
                 element: <SsoCallback/>
+            },
+            {
+                path: '/sessions/:sessionId/attendance',
+                element: <AttendancePage />
             }
         ]
     }
