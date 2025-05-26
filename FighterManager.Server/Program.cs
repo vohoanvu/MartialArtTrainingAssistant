@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Serilog.Events;
 using FighterManager.Server.Controllers;
+using FighterManager.Server.Repository;
+using FighterManager.Server.Domain.AttendanceService;
 
 namespace FighterManager.Server
 {
@@ -33,6 +35,8 @@ namespace FighterManager.Server
             builder.Services.AddScoped<FighterRegistrationService>();
             builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddScoped<IIdentityResponseEnhancer, IdentityResponseEnhancer>();
+            builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+            builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
