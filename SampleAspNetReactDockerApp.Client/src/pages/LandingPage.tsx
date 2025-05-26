@@ -8,7 +8,7 @@ import { joinWailList } from '../services/api';
 
 const LandingPage: React.FC = () => {
     const [email, setEmail] = useState('');
-    const [role, setRole] = useState('');
+    const [role, setRole] = useState('Instructor');
     const [region, setRegion] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
@@ -16,16 +16,24 @@ const LandingPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-
+    
         try {
-            await joinWailList({ email, role, region });
-            toast({
-                title: 'Success!',
-                description: 'You’ve joined the waitlist. Expect a game-changing tool soon!',
-            });
-            setEmail('');
-            setRole('');
-            setRegion('');
+            const resp = await joinWailList({ email, role, region });
+            if (resp == 200) {
+                toast({
+                    title: "You’re on the List!",
+                    description: "Thank you for joining. You’ll be among the first to experience our AI Assistant—keep an eye on your inbox for early access!",
+                });
+                setEmail('');
+                setRole('');
+                setRegion('');
+            } else {
+                toast({
+                    title: 'Error',
+                    description: 'Failed to join waitlist. Please try again.',
+                    variant: 'destructive',
+                });
+            }
         } catch (error) {
             toast({
                 title: 'Error',
@@ -164,7 +172,7 @@ const LandingPage: React.FC = () => {
             <section id="waitlist" className="bg-muted py-16">
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold text-center mb-8">
-                        Be the First to Experience the Future of BJJ Instruction
+                        Be the First to Experience the Future of AI-assisted BJJ coaching
                     </h2>
                     <p className="text-lg text-center mb-8 max-w-xl mx-auto">
                         Join BJJ instructors worldwide transforming their dojos with AI. Sign up now and unlock exclusive early access!
@@ -216,8 +224,10 @@ const LandingPage: React.FC = () => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="North America">North America</SelectItem>
+                                            <SelectItem value="South America">South America</SelectItem>
                                             <SelectItem value="Europe">Europe</SelectItem>
                                             <SelectItem value="Asia">Asia</SelectItem>
+                                            <SelectItem value="Africa">Africa</SelectItem>
                                             <SelectItem value="Other">Other</SelectItem>
                                         </SelectContent>
                                     </Select>

@@ -655,12 +655,11 @@ export async function joinWailList({ email, role, region }:
                 region,
             }),
         });
-
+        console.log("Join wailitst Response: ", response);
         if (response.ok) {
-            return await response.json();
+            return await response.status;
         } else {
-            const errorText = await response.text();
-            throw new Error(`Failed to join waitlist: ${errorText}`);
+            return response;
         }
     } catch (error) {
         console.error("Error joining waitlist:", error);

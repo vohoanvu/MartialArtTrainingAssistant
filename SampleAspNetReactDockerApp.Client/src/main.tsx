@@ -19,6 +19,7 @@ import VideoStorageListing from './pages/VideoStorageListing.tsx';
 import VideoReview from './pages/VideoReview.tsx';
 import LandingPage from './pages/LandingPage.tsx';
 import SsoCallback from './pages/SSOCallback.tsx';
+import { Toaster } from './components/ui/toaster.tsx';
 
 const router = createBrowserRouter([
     {
@@ -94,5 +95,6 @@ initLang();
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <RouterProvider router={router}/>
+        <Toaster />
     </React.StrictMode>,
 )
