@@ -11,6 +11,7 @@ namespace FighterManager.Server.Repository
         Task<Fighter?> GetFighterByNameAsync(string fighterName);
         Task<Fighter> AddFighterAsync(Fighter fighter);
         Task AddSessionFighterJointAsync(TrainingSessionFighterJoint joint);
+        Task<TrainingSessionFighterJoint?> GetSessionFighterJointAsync(int sessionId, int fighterId);
         Task SaveChangesAsync();
     }
 
@@ -65,6 +66,12 @@ namespace FighterManager.Server.Repository
         public async Task AddSessionFighterJointAsync(TrainingSessionFighterJoint joint)
         {
             await _context.TrainingSessionFighterJoints.AddAsync(joint);
+        }
+
+        public async Task<TrainingSessionFighterJoint?> GetSessionFighterJointAsync(int sessionId, int fighterId)
+        {
+            return await _context.TrainingSessionFighterJoints
+                .FirstOrDefaultAsync(j => j.TrainingSessionId == sessionId && j.FighterId == fighterId);
         }
 
         public async Task SaveChangesAsync()

@@ -92,9 +92,20 @@ namespace FighterManager.Server.Domain.AttendanceService
                     processedFighters.Add(fighter);
                 }
 
-                // 3. Create joint records
+                // 3. Create joint records (with duplicate check)
                 foreach (var fighter in processedFighters)
                 {
+                    // Check if fighter is already associated with this session
+                    var existingJoint = await _attendanceRepository.GetSessionFighterJointAsync(sessionId, fighter.Id);
+                    if (existingJoint != null)
+                    {
+                        return new TakeAttendanceResponse
+                        {
+                            Success = false,
+                            Message = $"Fighter '{fighter.FighterName}' is already registered for this session"
+                        };
+                    }
+
                     var joint = new TrainingSessionFighterJoint
                     {
                         TrainingSessionId = sessionId,

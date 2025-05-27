@@ -670,7 +670,7 @@ export async function joinWailList({ email, role, region }:
 }
 
 
-export const takeAttendance = async (
+export const takeWalkInAttendance = async (
     sessionId: number,
     request: TakeAttendanceRequest
 ): Promise<TakeAttendanceResponse> => {
@@ -679,10 +679,6 @@ export const takeAttendance = async (
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
     });
-
-    if (!response.ok) {
-        throw new Error('Failed to take attendance');
-    }
 
     return response.json();
 };

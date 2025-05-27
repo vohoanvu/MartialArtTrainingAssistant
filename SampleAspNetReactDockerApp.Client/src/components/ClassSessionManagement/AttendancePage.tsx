@@ -11,8 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { AttendanceRecordDto, SessionDetailViewModel } from '@/types/global';
-import { takeAttendance } from '@/services/api';
-import useAuthStore from '@/store/authStore';
+import { takeWalkInAttendance } from '@/services/api';
 import { useAttendanceStore } from '@/store/attendanceStore';
 import ConfirmationDialog from '../ui/ConfirmationDialog';
 
@@ -285,13 +284,14 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                 return;
             }
 
-            const response = await takeAttendance(
+            const response = await takeWalkInAttendance(
                 trainingSessionId,
                 { records: validRecords },
             );
 
             if (response.success) {
                 clearSessionRecords(trainingSessionId!);
+                onCancel();
                 navigate(`/session-details/${trainingSessionId}`);
             } else {
                 alert(response.message || 'Failed to record attendance');
