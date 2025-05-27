@@ -39,14 +39,15 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ForMember(dest => dest.Capacity, opt => opt.MapFrom(src => src.Capacity ?? default))
             .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration ?? default))
             .ForMember(dest => dest.InstructorId, opt => opt.MapFrom(src => src.InstructorId ?? default))
+            .ForMember(dest => dest.SessionNotes, opt => opt.MapFrom(src => src.Description))
             .ReverseMap()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<TrainingSession, GetSessionDetailResponse>()
-            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()))
+            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students!.Select(s => s.FighterId).ToList()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes));
         CreateMap<TrainingSession, TrainingSessionDtoBase>()
-            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()))
+            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students!.Select(s => s.FighterId).ToList()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes));
 
         CreateMap<TrainingSessionFighterJoint, ViewFighterDto>()

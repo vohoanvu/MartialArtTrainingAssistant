@@ -18,6 +18,8 @@ import {
     Fighter,
     AnalysisResultDto,
     CurriculumDto,
+    TakeAttendanceRequest,
+    TakeAttendanceResponse,
 } from "@/types/global.ts";
 import axios from 'axios';
 
@@ -670,15 +672,11 @@ export async function joinWailList({ email, role, region }:
 
 export const takeAttendance = async (
     sessionId: number,
-    request: TakeAttendanceRequest,
-    auth: AuthParams
+    request: TakeAttendanceRequest
 ): Promise<TakeAttendanceResponse> => {
     const response = await fetch(`/api/trainingsession/${sessionId}/attendance`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.jwtToken}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
     });
 

@@ -91,7 +91,7 @@ namespace FighterManager.Server.Controllers
                 .FirstOrDefaultAsync();
             if (updatedSession != null)
             {
-                 var sessionDetailResponse = _objectMapper.Map<GetSessionDetailResponse>(updatedSession);
+                var sessionDetailResponse = _objectMapper.Map<GetSessionDetailResponse>(updatedSession);
 
                 return Ok(sessionDetailResponse);
             }
@@ -132,14 +132,14 @@ namespace FighterManager.Server.Controllers
         {
             try
             {
-                var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(instructorId))
+                var instructorUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(instructorUserId))
                     return Unauthorized();
 
                 var response = await _attendanceService.ProcessAttendanceAsync(
                     id, 
                     request.Records,
-                    instructorId);
+                    instructorUserId);
 
                 if (!response.Success)
                     return BadRequest(new { response.Message });

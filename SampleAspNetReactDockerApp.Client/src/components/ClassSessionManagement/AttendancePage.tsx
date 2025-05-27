@@ -48,9 +48,9 @@ interface AttendancePageProps {
 
 export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onCancel }: AttendancePageProps) => {
     const navigate = useNavigate();
-    const jwtToken = useAuthStore((state) => state.accessToken);
-    const refreshToken = useAuthStore((state) => state.refreshToken);
-    const hydrate = useAuthStore((state) => state.hydrate);
+    // const jwtToken = useAuthStore((state) => state.accessToken);
+    // const refreshToken = useAuthStore((state) => state.refreshToken);
+    // const hydrate = useAuthStore((state) => state.hydrate);
     const [isFinalizeDialogOpen, setIsFinalizeDialogOpen] = useState(false);
 
     const {
@@ -288,12 +288,11 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
             const response = await takeAttendance(
                 trainingSessionId,
                 { records: validRecords },
-                { jwtToken, refreshToken, hydrate }
             );
 
             if (response.success) {
                 clearSessionRecords(trainingSessionId!);
-                navigate(`/sessions/${trainingSessionId}`);
+                navigate(`/session-details/${trainingSessionId}`);
             } else {
                 alert(response.message || 'Failed to record attendance');
             }
@@ -332,7 +331,7 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                         variant="secondary"
                         onClick={generateFakeRecords}
                     >
-                        Fake Students Attendance
+                        Create Fake Student Data for Testing
                     </Button>
                     <Button
                         onClick={() => setIsFinalizeDialogOpen(true)}

@@ -11,6 +11,7 @@ import useAuthStore from '@/store/authStore';
 import { FighterPairResult, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto } from '@/types/global';
 import { useParams } from 'react-router-dom';
 import AttendancePage from './AttendancePage';
+import ConfirmationDialog from '../ui/ConfirmationDialog';
 
 const TrainingSessionDetails = () => {
     const { sessionId } = useParams<{ sessionId: string }>();
@@ -28,6 +29,7 @@ const TrainingSessionDetails = () => {
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
     const [notes, setNotes] = useState<string>('');
     const [showAttendanceForm, setShowAttendanceForm] = useState(false);
+    const [isAIDialogOpen, SetIsAIDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchSessionDetails = async () => {
@@ -35,8 +37,10 @@ const TrainingSessionDetails = () => {
                 setLoading(true);
                 const details = await getTrainingSessionDetails(sessionIdNumber, { jwtToken, refreshToken, hydrate });
                 setSessionDetails(details);
-                const savedCurriculum = await getClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
-                setCurriculum(savedCurriculum);
+                if (details && details.studentIds.length !== 0) {
+                    const savedCurriculum = await getClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
+                    setCurriculum(savedCurriculum);
+                }
             } catch (err) {
                 setError('Failed to load session details');
                 console.error(err);
@@ -218,11 +222,7 @@ const TrainingSessionDetails = () => {
                             <Button
                                 type="button"
                                 variant='default'
-                                onClick={async () => {
-                                    if (window.confirm("Are you sure you want to generate today's lessons? This may take a few minutes.")) {
-                                        await handleGenerateCurriculum();
-                                    }
-                                }}
+                                onClick={() => SetIsAIDialogOpen(true)}
                                 disabled={isAIloading}
                             >
                                 Generate Today's Lessons
@@ -239,6 +239,13 @@ const TrainingSessionDetails = () => {
             ) : (
                 <p className="text-muted-foreground">No session details available.</p>
             )}
+            <ConfirmationDialog
+                title="Generate AI Lesson Plan"
+                message="You are about to generate a new lesson plan using AI. This process may take a few minutes to complete. The AI will analyze your training requirements and create a structured curriculum for today's session."
+                isOpen={isAIDialogOpen}
+                onConfirm={async () => await handleGenerateCurriculum()}
+                onCancel={() => SetIsAIDialogOpen(false)}
+            />
 
             {/* Attendance Taking layover */}
             {showAttendanceForm && (

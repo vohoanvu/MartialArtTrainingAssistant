@@ -7,6 +7,7 @@ namespace FighterManager.Server.Repository
     public interface IAttendanceRepository
     {
         Task<TrainingSession?> GetSessionWithDetailsAsync(int sessionId);
+        Task<AppUserEntity?> GetAppUserByFighterIdAsync(int fighterId);
         Task<Fighter?> GetFighterByNameAsync(string fighterName);
         Task<Fighter> AddFighterAsync(Fighter fighter);
         Task AddSessionFighterJointAsync(TrainingSessionFighterJoint joint);
@@ -29,6 +30,12 @@ namespace FighterManager.Server.Repository
                 .ThenInclude(j => j.Fighter!)
                 .Include(s => s.Instructor!)
                 .FirstOrDefaultAsync(s => s.Id == sessionId);
+        }
+
+        public async Task<AppUserEntity?> GetAppUserByFighterIdAsync(int fighterId)
+        {
+            return await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.FighterId == fighterId);
         }
 
         public async Task<Fighter?> GetFighterByNameAsync(string fighterName)

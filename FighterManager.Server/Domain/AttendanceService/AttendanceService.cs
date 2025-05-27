@@ -11,7 +11,7 @@ namespace FighterManager.Server.Domain.AttendanceService
         Task<TakeAttendanceResponse> ProcessAttendanceAsync(
             int sessionId, 
             List<AttendanceRecordDto> records,
-            string instructorId);
+            string instructorUserId);
     }
 
     public class AttendanceService : IAttendanceService
@@ -36,7 +36,7 @@ namespace FighterManager.Server.Domain.AttendanceService
         public async Task<TakeAttendanceResponse> ProcessAttendanceAsync(
             int sessionId, 
             List<AttendanceRecordDto> records,
-            string instructorId)
+            string instructorUserId)
         {
             try
             {
@@ -66,12 +66,21 @@ namespace FighterManager.Server.Domain.AttendanceService
                 }
 
                 var session = await _attendanceRepository.GetSessionWithDetailsAsync(sessionId);
-                if (session == null || session.InstructorId.ToString() != instructorId)
+                if (session == null)
                 {
-                    return new TakeAttendanceResponse 
-                    { 
-                        Success = false, 
-                        Message = "Session not found or unauthorized" 
+                    return new TakeAttendanceResponse
+                    {
+                        Success = false,
+                        Message = "Training Session not found"
+                    };
+                }
+                var instructorUser = await _attendanceRepository.GetAppUserByFighterIdAsync(session.InstructorId);
+                if (instructorUser?.Id != instructorUserId)
+                {
+                    return new TakeAttendanceResponse
+                    {
+                        Success = false,
+                        Message = "Unauthorized User to access this session"
                     };
                 }
 
@@ -126,6 +135,7 @@ namespace FighterManager.Server.Domain.AttendanceService
             fighter.Role = FighterRole.Student;
             fighter.Experience = TrainingExperience.LessThanTwoYears;
             fighter.MaxWorkoutDuration = 5;
+            fighter.IsWalkIn = true;
 
             return await _attendanceRepository.AddFighterAsync(fighter);
         }
