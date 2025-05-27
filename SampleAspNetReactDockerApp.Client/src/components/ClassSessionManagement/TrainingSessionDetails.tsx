@@ -9,8 +9,8 @@ import {
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
 import { FighterPairResult, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto } from '@/types/global';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAttendanceStore } from '@/store/attendanceStore';
+import { useParams } from 'react-router-dom';
+import AttendancePage from './AttendancePage';
 
 const TrainingSessionDetails = () => {
     const { sessionId } = useParams<{ sessionId: string }>();
@@ -27,8 +27,7 @@ const TrainingSessionDetails = () => {
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
     const [notes, setNotes] = useState<string>('');
-    const navigate = useNavigate();
-    const { setSessionDetailViewModel } = useAttendanceStore();
+    const [showAttendanceForm, setShowAttendanceForm] = useState(false);
 
     useEffect(() => {
         const fetchSessionDetails = async () => {
@@ -36,7 +35,6 @@ const TrainingSessionDetails = () => {
                 setLoading(true);
                 const details = await getTrainingSessionDetails(sessionIdNumber, { jwtToken, refreshToken, hydrate });
                 setSessionDetails(details);
-                setSessionDetailViewModel(sessionId!, details);
                 const savedCurriculum = await getClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
                 setCurriculum(savedCurriculum);
             } catch (err) {
@@ -208,8 +206,8 @@ const TrainingSessionDetails = () => {
                     ) : (
                         <div className="flex flex-wrap gap-2 mt-4">
                             <Button 
-                                type="button" 
-                                onClick={() => navigate(`/sessions/${sessionId}/attendance`)} 
+                                type="button"
+                                onClick={() => setShowAttendanceForm(true)} 
                                 variant='default'
                             >
                                 Take Attendance
@@ -232,7 +230,7 @@ const TrainingSessionDetails = () => {
                             {isAIloading && (
                                 <div className="mt-4 flex items-center space-x-2">
                                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                                    <p className="text-primary">The AI is design the curriculum for you. This may take a few minutes.</p>
+                                    <p className="text-primary">The AI is designing the curriculum for you. This may take a few minutes.</p>
                                 </div>
                             )}
                         </div>
@@ -240,6 +238,19 @@ const TrainingSessionDetails = () => {
                 </div>
             ) : (
                 <p className="text-muted-foreground">No session details available.</p>
+            )}
+
+            {/* Attendance Taking layover */}
+            {showAttendanceForm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+                    <div className="bg-background p-6 rounded-lg w-[95vw] max-w-[1500px] max-h-[90vh] overflow-y">
+                        <AttendancePage 
+                            trainingSessionId={sessionIdNumber}
+                            sessionDetailsViewModel={sessionDetails}
+                            onCancel={() => setShowAttendanceForm(false)}
+                        />
+                    </div>
+                </div>
             )}
 
 

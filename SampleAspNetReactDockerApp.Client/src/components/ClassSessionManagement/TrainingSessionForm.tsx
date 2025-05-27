@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import ConfirmationDialog from '@/components/ui/ConfirmationDialog';  // Ensure this component is imported correctly
+import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { CreateTrainingSessionRequest, UpdateTrainingSessionRequest } from '@/types/global';
 import { createTrainingSession, updateTrainingSessionDetails , getTrainingSessionDetails } from '@/services/api';
@@ -208,8 +208,8 @@ const TrainingSessionForm = () => {
             </form>
 
             <ConfirmationDialog
-                title="Are you sure you want to create a new session?"
-                message="You can update your session details later!"
+                title={`Are you sure you want to ${sessionId ? 'update' : 'create'} a new session?`}
+                message="You can always update your session details later!"
                 isOpen={isDialogOpen}
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}

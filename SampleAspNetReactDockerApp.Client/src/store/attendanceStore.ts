@@ -1,25 +1,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AttendanceRecordDto, SessionDetailViewModel } from '@/types/global';
+import { AttendanceRecordDto } from '@/types/global';
 
 interface AttendanceState {
     // Map of sessionId to attendance records
-    sessionRecords: Record<string, AttendanceRecordDto[]>;
-    // Map of sessionId to session details
-    sessionDetails: Record<string, SessionDetailViewModel>;
+    sessionRecords: Record<number, AttendanceRecordDto[]>;
     // Actions
-    setSessionRecords: (sessionId: string, records: AttendanceRecordDto[]) => void;
-    updateRecord: (sessionId: string, index: number, field: keyof AttendanceRecordDto, value: any) => void;
-    addEmptyRecords: (sessionId: string) => void;
-    clearSessionRecords: (sessionId: string) => void;
-    setSessionDetailViewModel: (sessionId: string, details: SessionDetailViewModel) => void;
+    setSessionRecords: (sessionId: number, records: AttendanceRecordDto[]) => void;
+    updateRecord: (sessionId: number, index: number, field: keyof AttendanceRecordDto, value: any) => void;
+    addEmptyRecords: (sessionId: number) => void;
+    clearSessionRecords: (sessionId: number) => void;
 }
 
 export const useAttendanceStore = create<AttendanceState>()(
     persist(
         (set) => ({
             sessionRecords: {},
-            sessionDetails: {},
 
             setSessionRecords: (sessionId, records) =>
                 set((state) => ({
@@ -66,21 +62,12 @@ export const useAttendanceStore = create<AttendanceState>()(
                     const { [sessionId]: _, ...remainingRecords } = state.sessionRecords;
                     return { sessionRecords: remainingRecords };
                 }),
-
-            setSessionDetailViewModel: (sessionId, details) =>
-                set((state) => ({
-                    sessionDetails: {
-                        ...state.sessionDetails,
-                        [sessionId]: details
-                    }
-                }))
         }),
         {
             name: 'attendance-storage', // unique name for localStorage
             partialize: (state) => ({
                 sessionRecords: state.sessionRecords,
-                sessionDetails: state.sessionDetails
-            }) // persist both sessionRecords and sessionDetails
+            }) // persist sessionRecords
         }
     )
 );

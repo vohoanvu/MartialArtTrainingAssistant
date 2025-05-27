@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
     createColumnHelper,
     flexRender,
@@ -10,10 +10,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
-import { AttendanceRecordDto } from '@/types/global';
+import { AttendanceRecordDto, SessionDetailViewModel } from '@/types/global';
 import { takeAttendance } from '@/services/api';
 import useAuthStore from '@/store/authStore';
 import { useAttendanceStore } from '@/store/attendanceStore';
+import ConfirmationDialog from '../ui/ConfirmationDialog';
 
 // Configuration constants
 const EDITABLE_EMPTY_ROWS_COUNT = 2; // Number of empty rows that can be edited at once
@@ -34,33 +35,43 @@ const BELT_COLOR_OPTIONS = [
     { value: "Black", label: 'Black' }
 ];
 
-const AttendancePage = () => {
-    const { sessionId } = useParams<{ sessionId: string }>();
+const FAKE_NAMES = [
+    "John Smith", "Emma Johnson", "Michael Brown", "Sarah Davis", "James Wilson",
+    "Olivia Taylor", "William Anderson", "Sophia Martinez", "David Thomas", "Isabella Lee"
+];
+
+interface AttendancePageProps {
+    trainingSessionId: number;
+    sessionDetailsViewModel : SessionDetailViewModel | null;
+    onCancel: () => void;
+}
+
+export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onCancel }: AttendancePageProps) => {
     const navigate = useNavigate();
     const jwtToken = useAuthStore((state) => state.accessToken);
     const refreshToken = useAuthStore((state) => state.refreshToken);
     const hydrate = useAuthStore((state) => state.hydrate);
+    const [isFinalizeDialogOpen, setIsFinalizeDialogOpen] = useState(false);
 
     const {
         sessionRecords,
         setSessionRecords,
         updateRecord,
         clearSessionRecords,
-        sessionDetails,
     } = useAttendanceStore();
 
     // Use session capacity for total rows
-    const DEFAULT_TOTAL_ROWS = sessionDetails[sessionId!]?.capacity ?? 10;
+    const DEFAULT_TOTAL_ROWS = sessionDetailsViewModel?.capacity ?? 10;
 
     // Initialize data with DEFAULT_TOTAL_ROWS empty records
     useEffect(() => {
-        if (!sessionRecords[sessionId!]) {
+        if (!sessionRecords[trainingSessionId!]) {
             const initialRecords = Array(DEFAULT_TOTAL_ROWS)
                 .fill(null)
                 .map(() => createEmptyRecord());
-            setSessionRecords(sessionId!, initialRecords);
+            setSessionRecords(trainingSessionId, initialRecords);
         }
-    }, [sessionId, setSessionRecords, DEFAULT_TOTAL_ROWS]);
+    }, [trainingSessionId, setSessionRecords, DEFAULT_TOTAL_ROWS]);
 
     // Function to create an empty record
     function createEmptyRecord(): AttendanceRecordDto {
@@ -74,6 +85,31 @@ const AttendancePage = () => {
         };
     }
 
+    // Function to generate a random birthdate (between 10 and 40 years ago)
+    const generateRandomBirthdate = () => {
+        const start = new Date();
+        start.setFullYear(start.getFullYear() - 40);
+        const end = new Date();
+        end.setFullYear(end.getFullYear() - 10);
+        const randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+        return randomDate;
+    };
+
+    // Function to generate fake attendance records
+    const generateFakeRecords = () => {
+        const records: AttendanceRecordDto[] = Array(DEFAULT_TOTAL_ROWS)
+            .fill(null)
+            .map((_, index) => ({
+                fighterName: FAKE_NAMES[index % FAKE_NAMES.length] || `Student ${index + 1}`,
+                birthdate: generateRandomBirthdate(),
+                weight: parseFloat((Math.random() * (100 - 50) + 50).toFixed(1)), // Weight between 50-100 kg
+                height: parseFloat((Math.random() * (200 - 150) + 150).toFixed(1)), // Height between 150-200 cm
+                beltColor: BELT_COLOR_OPTIONS[Math.floor(Math.random() * BELT_COLOR_OPTIONS.length)].value,
+                gender: GENDER_OPTIONS[Math.floor(Math.random() * GENDER_OPTIONS.length)].value
+            }));
+        setSessionRecords(trainingSessionId!, records);
+    };
+
     // Function to check if a row is complete
     const isRowComplete = (record: AttendanceRecordDto) => {
         return record.fighterName.trim() !== '' &&
@@ -81,7 +117,7 @@ const AttendancePage = () => {
             record.height > 0;
     };
 
-    // Find the indices of editable rows: all complete rows + up to 3 incomplete rows
+    // Find the indices of editable rows: all complete rows + up to 2 incomplete rows
     const getEditableRowIndices = (records: AttendanceRecordDto[]) => {
         const completeIndices = records
             .map((rec, idx) => (isRowComplete(rec) ? idx : null))
@@ -92,7 +128,7 @@ const AttendancePage = () => {
         return [...completeIndices, ...incompleteIndices.slice(0, EDITABLE_EMPTY_ROWS_COUNT)];
     };
 
-    const records = sessionRecords[sessionId!] || [];
+    const records = sessionRecords[trainingSessionId!] || [];
     const editableRowIndices = getEditableRowIndices(records);
 
     const columns = [
@@ -105,7 +141,7 @@ const AttendancePage = () => {
                     <Input
                         value={localValue}
                         onChange={e => setLocalValue(e.target.value)}
-                        onBlur={() => updateRecord(sessionId!, row.index, 'fighterName', localValue)}
+                        onBlur={() => updateRecord(trainingSessionId, row.index, 'fighterName', localValue)}
                         placeholder="Enter name"
                         className="w-full"
                         disabled={!isEditable}
@@ -125,7 +161,7 @@ const AttendancePage = () => {
                         type="date"
                         value={localValue}
                         onChange={(e) => setLocalValue(e.target.value)}
-                        onBlur={() => updateRecord(sessionId!, row.index, 'birthdate', new Date(localValue))}
+                        onBlur={() => updateRecord(trainingSessionId, row.index, 'birthdate', new Date(localValue))}
                         className="w-full"
                         disabled={!isEditable}
                     />
@@ -143,7 +179,7 @@ const AttendancePage = () => {
                             type="number"
                             value={localValue}
                             onChange={(e) => setLocalValue(e.target.value)}
-                            onBlur={() => updateRecord(sessionId!, row.index, 'weight', parseFloat(localValue))}
+                            onBlur={() => updateRecord(trainingSessionId, row.index, 'weight', parseFloat(localValue))}
                             placeholder="Enter weight"
                             className="w-full"
                             disabled={!isEditable}
@@ -166,7 +202,7 @@ const AttendancePage = () => {
                             type="number"
                             value={localValue}
                             onChange={(e) => setLocalValue(e.target.value)}
-                            onBlur={() => updateRecord(sessionId!, row.index, 'height', parseFloat(localValue))}
+                            onBlur={() => updateRecord(trainingSessionId, row.index, 'height', parseFloat(localValue))}
                             placeholder="Enter height"
                             className="w-full"
                             disabled={!isEditable}
@@ -185,7 +221,7 @@ const AttendancePage = () => {
                 return (
                     <Select
                         value={getValue()}
-                        onValueChange={(value) => updateRecord(sessionId!, row.index, 'beltColor', value)}
+                        onValueChange={(value) => updateRecord(trainingSessionId, row.index, 'beltColor', value)}
                         disabled={!isEditable}
                     >
                         <SelectTrigger>
@@ -209,7 +245,7 @@ const AttendancePage = () => {
                 return (
                     <Select
                         value={getValue()}
-                        onValueChange={(value) => updateRecord(sessionId!, row.index, 'gender', value)}
+                        onValueChange={(value) => updateRecord(trainingSessionId, row.index, 'gender', value)}
                         disabled={!isEditable}
                     >
                         <SelectTrigger>
@@ -229,7 +265,7 @@ const AttendancePage = () => {
     ];
 
     const table = useReactTable({
-        data: sessionRecords[sessionId!] || [],
+        data: sessionRecords[trainingSessionId!] || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
@@ -237,7 +273,7 @@ const AttendancePage = () => {
 
     const handleSubmit = async () => {
         try {
-            const records = sessionRecords[sessionId!] || [];
+            const records = sessionRecords[trainingSessionId!] || [];
             const validRecords = records.filter(record =>
                 record.fighterName.trim() !== '' &&
                 record.weight > 0 &&
@@ -250,14 +286,14 @@ const AttendancePage = () => {
             }
 
             const response = await takeAttendance(
-                Number(sessionId),
+                trainingSessionId,
                 { records: validRecords },
                 { jwtToken, refreshToken, hydrate }
             );
 
             if (response.success) {
-                clearSessionRecords(sessionId!);
-                navigate(`/sessions/${sessionId}`);
+                clearSessionRecords(trainingSessionId!);
+                navigate(`/sessions/${trainingSessionId}`);
             } else {
                 alert(response.message || 'Failed to record attendance');
             }
@@ -268,11 +304,11 @@ const AttendancePage = () => {
     };
 
     const handleClear = () => {
-        clearSessionRecords(sessionId!);
+        clearSessionRecords(trainingSessionId!);
         const initialRecords = Array(DEFAULT_TOTAL_ROWS)
             .fill(null)
             .map(() => createEmptyRecord());
-        setSessionRecords(sessionId!, initialRecords);
+        setSessionRecords(trainingSessionId!, initialRecords);
     };
 
     return (
@@ -282,7 +318,7 @@ const AttendancePage = () => {
                 <div className="space-x-4">
                     <Button
                         variant="outline"
-                        onClick={() => navigate(`/session-details/${sessionId}`)}
+                        onClick={onCancel}
                     >
                         Go Back
                     </Button>
@@ -293,13 +329,29 @@ const AttendancePage = () => {
                         Clear
                     </Button>
                     <Button
-                        onClick={handleSubmit}
+                        variant="secondary"
+                        onClick={generateFakeRecords}
+                    >
+                        Fake Students Attendance
+                    </Button>
+                    <Button
+                        onClick={() => setIsFinalizeDialogOpen(true)}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                         Finalize Attendance
                     </Button>
                 </div>
             </div>
+            <ConfirmationDialog
+                title="Finalize Attendance"
+                message="Are you sure you want to finalize today class' attendance? This cannot be undone."
+                isOpen={isFinalizeDialogOpen}
+                onConfirm={() => {
+                    handleSubmit();
+                    setIsFinalizeDialogOpen(false);
+                }}
+                onCancel={() => setIsFinalizeDialogOpen(false)}
+            />
 
             <div className="bg-card rounded-lg shadow-sm border">
                 <div className="overflow-x-auto">
