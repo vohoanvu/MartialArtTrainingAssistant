@@ -134,11 +134,12 @@ namespace FighterManager.Server
 
             builder.Services.AddDbContext<MyDatabaseContext>();
 
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-                options.DefaultChallengeScheme = "Google";
-            })
+            // builder.Services.AddAuthentication(options =>
+            // {
+            //     options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+            //     options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme; 
+            // })
+            builder.Services.AddAuthentication()
             .AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = false;
@@ -227,6 +228,19 @@ namespace FighterManager.Server
 
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
+                // .AddEndpointFilter(async (context, next) =>
+                // {
+                //     if (context.HttpContext.Request.Path.Value.EndsWith("/refresh"))
+                //     {
+                //         if (!context.HttpContext.User.Identity.IsAuthenticated)
+                //         {
+                //             context.HttpContext.Response.StatusCode = 401;
+                //             await context.HttpContext.Response.WriteAsJsonAsync(new { error = "Unauthorized: Invalid or missing session" });
+                //             return new EmptyResult();
+                //         }
+                //     }
+                //     return await next(context);
+                // });
 
             app.UseHttpsRedirection();
             app.UseAuthorization();
