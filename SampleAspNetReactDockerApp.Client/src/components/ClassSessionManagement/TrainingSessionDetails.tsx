@@ -50,7 +50,7 @@ const TrainingSessionDetails = () => {
         };
 
         fetchSessionDetails();
-    }, [hydrate, jwtToken, refreshToken, sessionIdNumber]);
+    }, [hydrate, jwtToken, refreshToken, sessionIdNumber, showAttendanceForm]);
 
     const handleCheckIn = async () => {
         if (!user?.fighterInfo) {

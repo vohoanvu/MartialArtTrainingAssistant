@@ -6,6 +6,14 @@ import { CreateTrainingSessionRequest, UpdateTrainingSessionRequest } from '@/ty
 import { createTrainingSession, updateTrainingSessionDetails , getTrainingSessionDetails } from '@/services/api';
 import useAuthStore from '@/store/authStore';
 
+export type TargetLevel = 'Kids' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+const TARGET_LEVEL_OPTIONS: TargetLevel[] = [
+    'Kids',
+    'Beginner',
+    'Intermediate',
+    'Advanced',
+    'Expert'
+];
 
 const TrainingSessionForm = () => {
     const { sessionId  } = useParams<{ sessionId?: string }>();
@@ -21,6 +29,7 @@ const TrainingSessionForm = () => {
     const [duration, setDuration] = useState('');
     const [description, setDescription] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [targetLevel, setTargetLevel] = useState<TargetLevel>('Beginner');
 
     useEffect(() => {
         if (sessionIdNumber) {
@@ -32,6 +41,7 @@ const TrainingSessionForm = () => {
                     setCapacity(details.capacity.toString());
                     setDuration(parseHoursToMinutesString(details.duration));
                     setDescription(details.description ?? '');
+                    setTargetLevel(details.targetLevel as TargetLevel);
                 } catch (error) {
                     console.error("Failed to load session details:", error);
                 }
@@ -63,6 +73,7 @@ const TrainingSessionForm = () => {
                 capacity: parseInt(capacity, 10),
                 duration: parseMinutesToHoursFloat(duration),
                 status: 'Active',
+                targetLevel: targetLevel,
             };
             try {
                 await createTrainingSession(newSession, jwtToken!);
@@ -78,6 +89,7 @@ const TrainingSessionForm = () => {
                 capacity: parseInt(capacity, 10),
                 duration: parseMinutesToHoursFloat(duration),
                 status: 'Active',
+                targetLevel: targetLevel,
             };
             try {
                 await updateTrainingSessionDetails(sessionIdNumber, updatedSession, { jwtToken, refreshToken, hydrate });
@@ -187,6 +199,26 @@ const TrainingSessionForm = () => {
                         <option value="Cancelled">Cancelled</option>
                     </select>
                 </div> */}
+
+                {/* Target Level field */}
+                <div>
+                    <label htmlFor="targetLevel" className="block text-sm font-medium">
+                        Target Level
+                    </label>
+                    <select
+                        id="targetLevel"
+                        value={targetLevel}
+                        onChange={(e) => setTargetLevel(e.target.value as TargetLevel)}
+                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
+                        required
+                    >
+                        {TARGET_LEVEL_OPTIONS.map((level) => (
+                            <option key={level} value={level}>
+                                {level}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
                 {/* Description field */}
                 <div>

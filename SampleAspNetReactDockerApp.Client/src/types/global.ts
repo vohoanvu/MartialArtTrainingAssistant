@@ -83,6 +83,7 @@ export type TrainingSessionResponse = {
     capacity: number;
     /** Format: int32 */
     duration: number;
+    targetLevel: string;
     status: string;
     /** Format: int32 */
     instructorId: number;
@@ -98,6 +99,7 @@ export interface SessionDetailViewModel {
     capacity: number;
     duration: number;
     status: string;
+    targetLevel: string;
     instructor: FighterViewModel;
     students: FighterViewModel[];
     instructorId: number;
@@ -110,6 +112,7 @@ export interface CreateTrainingSessionRequest {
     capacity: number;
     duration: number;
     status: string;
+    targetLevel: string;
 }
 
 export interface UpdateTrainingSessionRequest {
@@ -120,6 +123,7 @@ export interface UpdateTrainingSessionRequest {
     status?: string;
     instructorId?: number;
     studentIds?: number[];
+    targetLevel?: string;
 }
 
 export interface CreateTrainingSessionResponse {

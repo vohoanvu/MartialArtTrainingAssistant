@@ -62,6 +62,7 @@ namespace FighterManager.Server.Controllers
 
             input.InstructorId = appUser!.Fighter!.Id;
             var trainingSession = _objectMapper.Map<TrainingSessionDtoBase, TrainingSession>(input);
+            trainingSession.Status = Enum.TryParse<SessionStatus>(input.Status, out var status) ? status : SessionStatus.Active;
             await _unitOfWork.Repository<TrainingSession>().AddAsync(trainingSession);
             await _unitOfWork.SaveChangesAsync();
 

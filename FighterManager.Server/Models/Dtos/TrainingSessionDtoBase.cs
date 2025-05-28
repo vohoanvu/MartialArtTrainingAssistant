@@ -16,6 +16,8 @@ namespace FighterManager.Server.Models.Dtos
 
         public string? Status { get; set; } // Assuming SessionStatus is an enum, use string for flexibility
 
+        public string TargetLevel { get; set; }
+
         public int? InstructorId { get; set; }
 
         public List<int>? StudentIds { get; set; } = []; // List of Fighter IDs

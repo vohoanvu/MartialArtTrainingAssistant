@@ -40,15 +40,18 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration ?? default))
             .ForMember(dest => dest.InstructorId, opt => opt.MapFrom(src => src.InstructorId ?? default))
             .ForMember(dest => dest.SessionNotes, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.TargetLevel, opt => opt.MapFrom(src => Enum.Parse<TargetLevel>(src.TargetLevel) ))
             .ReverseMap()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<TrainingSession, GetSessionDetailResponse>()
             .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students!.Select(s => s.FighterId).ToList()))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes));
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes))
+            .ForMember(dest => dest.TargetLevel, opt => opt.MapFrom(src => src.TargetLevel.ToString()));
         CreateMap<TrainingSession, TrainingSessionDtoBase>()
             .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students!.Select(s => s.FighterId).ToList()))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes));
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes))
+            .ForMember(dest => dest.TargetLevel, opt => opt.MapFrom(src => src.TargetLevel.ToString()));
 
         CreateMap<TrainingSessionFighterJoint, ViewFighterDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Fighter!.Id))
