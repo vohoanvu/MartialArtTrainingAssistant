@@ -31,23 +31,27 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ReverseMap();
 
         CreateMap<TrainingSessionDtoBase, TrainingSession>()
-            .ForMember(x => x.Status, y => y.MapFrom(z => string.IsNullOrEmpty(z.Status) ? SessionStatus.Active : Enum.Parse<SessionStatus>(z.Status) ))
-            .ForMember(dest => dest.TrainingDate, opt => opt.MapFrom(src => 
-                src.TrainingDate.HasValue ? DateTime.SpecifyKind(src.TrainingDate.Value, DateTimeKind.Utc) 
+            .ForMember(x => x.Status, y => y.MapFrom(z => string.IsNullOrEmpty(z.Status) ? SessionStatus.Active : Enum.Parse<SessionStatus>(z.Status)))
+            .ForMember(dest => dest.TrainingDate, opt => opt.MapFrom(src =>
+                src.TrainingDate.HasValue ? DateTime.SpecifyKind(src.TrainingDate.Value, DateTimeKind.Utc)
                 : (DateTime?)null)
             )
             .ForMember(dest => dest.Capacity, opt => opt.MapFrom(src => src.Capacity ?? default))
             .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration ?? default))
             .ForMember(dest => dest.InstructorId, opt => opt.MapFrom(src => src.InstructorId ?? default))
+            .ForMember(dest => dest.SessionNotes, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.TargetLevel, opt => opt.MapFrom(src => Enum.Parse<TargetLevel>(src.TargetLevel) ))
             .ReverseMap()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<TrainingSession, GetSessionDetailResponse>()
-            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes));
+            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students!.Select(s => s.FighterId).ToList()))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes))
+            .ForMember(dest => dest.TargetLevel, opt => opt.MapFrom(src => src.TargetLevel.ToString()));
         CreateMap<TrainingSession, TrainingSessionDtoBase>()
-            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students.Select(s => s.FighterId).ToList()))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes));
+            .ForMember(dest => dest.StudentIds, opt => opt.MapFrom(src => src.Students!.Select(s => s.FighterId).ToList()))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SessionNotes))
+            .ForMember(dest => dest.TargetLevel, opt => opt.MapFrom(src => src.TargetLevel.ToString()));
 
         CreateMap<TrainingSessionFighterJoint, ViewFighterDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Fighter!.Id))
@@ -60,5 +64,18 @@ public class CodeJitsuAutoMapperProfile : Profile
             .ForMember(dest => dest.MaxWorkoutDuration, opt => opt.MapFrom(src => src.Fighter!.MaxWorkoutDuration))
             .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.Fighter!.Experience.ToString()))
             .ForMember(dest => dest.BMI, opt => opt.MapFrom(src => src.Fighter!.BMI));
+
+        CreateMap<AttendanceRecordDto, Fighter>()
+            .ForMember(dest => dest.BMI, opt => opt.MapFrom(src =>
+                Math.Round(src.Weight / (src.Height * src.Height), 2))) // Round BMI to 2 decimal places
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src =>
+                FighterRole.Student))
+            .ForMember(dest => dest.Experience, opt => opt.MapFrom(src =>
+                TrainingExperience.LessThanTwoYears))
+            .ForMember(dest => dest.MaxWorkoutDuration, opt => opt.MapFrom(src => 5))
+            .ForMember(dest => dest.BelkRank, opt => opt.MapFrom(src => Enum.Parse<BeltColor>(src.BeltColor)))
+            .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => Enum.Parse<Gender>(src.Gender) ))
+            .ForMember(dest => dest.FighterName, opt => opt.MapFrom(src => 
+                src.FighterName.Trim()));
     }
 }

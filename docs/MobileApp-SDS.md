@@ -5,7 +5,7 @@
 **Version:** 1.0  
 **Date:** May 16, 2025  
 **Author:** Vo Hoan Vu (Solo Developer)  
-**Prepared for:** Internal Development and Stakeholders  
+**Prepared for:** Internal Development and Stakeholders
 
 ---
 

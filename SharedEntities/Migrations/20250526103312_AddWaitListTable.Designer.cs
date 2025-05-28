@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SharedEntities.Data;
@@ -11,9 +12,11 @@ using SharedEntities.Data;
 namespace SharedEntities.Migrations
 {
     [DbContext(typeof(MyDatabaseContext))]
-    partial class MyDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250526103312_AddWaitListTable")]
+    partial class AddWaitListTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -238,7 +241,7 @@ namespace SharedEntities.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2025, 5, 27, 11, 25, 36, 86, DateTimeKind.Utc).AddTicks(3830));
+                        .HasDefaultValue(new DateTime(2025, 5, 26, 10, 33, 11, 486, DateTimeKind.Utc).AddTicks(5760));
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -282,7 +285,7 @@ namespace SharedEntities.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2025, 5, 27, 11, 25, 36, 86, DateTimeKind.Utc).AddTicks(4510));
+                        .HasDefaultValue(new DateTime(2025, 5, 26, 10, 33, 11, 486, DateTimeKind.Utc).AddTicks(6320));
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
@@ -435,9 +438,6 @@ namespace SharedEntities.Migrations
 
                     b.Property<double>("Height")
                         .HasColumnType("double precision");
-
-                    b.Property<bool>("IsWalkIn")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("MaxWorkoutDuration")
                         .HasColumnType("integer");

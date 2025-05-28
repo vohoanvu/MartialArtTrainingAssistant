@@ -28,6 +28,7 @@ namespace SharedEntities.Models
         public TrainingExperience Experience { get; set; }
 
         public BeltColor BelkRank { get; set; }
+        public bool IsWalkIn { get; set; } = false;
 
 
         public virtual List<TrainingSessionFighterJoint>? TrainingSessions { get; set; }

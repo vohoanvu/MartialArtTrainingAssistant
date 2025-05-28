@@ -12,7 +12,7 @@ public class AppUserEntity : IdentityUser
     /// Date and time the user was created.
     /// </summary>
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
-    
+
     /// <summary>
     /// Date and time the user was last updated.
     /// </summary>
@@ -24,4 +24,14 @@ public class AppUserEntity : IdentityUser
     public int FighterId { get; set; }
     [ForeignKey("FighterId")]
     public virtual Fighter? Fighter { get; set; }
+}
+
+
+public class Waitlist
+{
+    public int Id { get; set; }
+    public string Email { get; set; }
+    public string? Role { get; set; }
+    public string? Region { get; set; }
+    public DateTime JoinedAt { get; set; }
 }

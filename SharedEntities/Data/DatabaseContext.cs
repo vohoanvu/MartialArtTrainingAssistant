@@ -51,6 +51,8 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
     public virtual DbSet<CurriculumScenario> CurriculumScenarios { get; set; }
 
+    public virtual DbSet<Waitlist> Waitlists { get; set; }
+
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

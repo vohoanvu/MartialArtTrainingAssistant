@@ -18,6 +18,8 @@ import {
     Fighter,
     AnalysisResultDto,
     CurriculumDto,
+    TakeAttendanceRequest,
+    TakeAttendanceResponse,
 } from "@/types/global.ts";
 import axios from 'axios';
 
@@ -655,15 +657,28 @@ export async function joinWailList({ email, role, region }:
                 region,
             }),
         });
-
+        console.log("Join wailitst Response: ", response);
         if (response.ok) {
-            return await response.json();
+            return await response.status;
         } else {
-            const errorText = await response.text();
-            throw new Error(`Failed to join waitlist: ${errorText}`);
+            return response;
         }
     } catch (error) {
         console.error("Error joining waitlist:", error);
         throw error;
     }
 }
+
+
+export const takeWalkInAttendance = async (
+    sessionId: number,
+    request: TakeAttendanceRequest
+): Promise<TakeAttendanceResponse> => {
+    const response = await fetch(`/api/trainingsession/${sessionId}/attendance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+    });
+
+    return response.json();
+};

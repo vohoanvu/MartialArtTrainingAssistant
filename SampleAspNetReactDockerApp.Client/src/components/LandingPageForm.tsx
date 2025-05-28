@@ -50,7 +50,7 @@ const LandingPageForm = () => {
         <div className="flex flex-col items-center justify-center max-h-screen">
             <h1 className="text-4xl font-bold mb-4">Train like a warrior</h1>
             <div className="container mx-auto max-w-md p-8 shadow-lg rounded-lg">
-                <h1 className="text-3xl font-bold text-primary mb-6">Login</h1>
+                <h1 className="text-3xl font-bold text-primary mb-6">Login to try out the beta features!</h1>
                 <form
                     className="space-y-4"
                     onSubmit={async (e) => {
@@ -136,11 +136,11 @@ const LandingPageForm = () => {
             <div className="flex flex-col items-center mt-8 space-y-4">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold">For Students</h2>
-                    <p>Access training materials, track progress, and join sessions to get paired up with your ideal partner.</p>
+                    <p>Access training materials and AI-driven feedback, join class sessions to get paired up with your ideal partner.</p>
                 </div>
                 <div className="text-center">
                     <h2 className="text-2xl font-bold">For Instructors</h2>
-                    <p>Create and manage training sessions, track student progress, provide feedback, and access to AI Curriculum assistant.</p>
+                    <p>Create and manage training sessions, review Students training footage to provide feedback, and access to AI Assistant that organizes your class sessions.</p>
                 </div>
             </div>
         </div>
