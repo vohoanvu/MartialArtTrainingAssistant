@@ -1,4 +1,6 @@
 import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ConfirmationDialogProps {
     title: string;
@@ -8,23 +10,39 @@ interface ConfirmationDialogProps {
     onCancel: () => void;
 }
 
-const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ title, message, isOpen, onConfirm, onCancel }) => {
+const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ 
+    title, 
+    message, 
+    isOpen, 
+    onConfirm, 
+    onCancel 
+}) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
-                <h2 className="text-xl font-bold mb-4">{title}</h2>
-                <p className="mb-6">{message}</p>
-                <div className="flex justify-end space-x-4">
-                    <button onClick={onCancel} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <Card className="w-[400px] shadow-lg">
+                <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">{message}</p>
+                </CardContent>
+                <CardFooter className="flex justify-end space-x-2">
+                    <Button
+                        variant="outline"
+                        onClick={onCancel}
+                    >
                         Cancel
-                    </button>
-                    <button onClick={onConfirm} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                    </Button>
+                    <Button
+                        variant="default"
+                        onClick={onConfirm}
+                    >
                         Confirm
-                    </button>
-                </div>
-            </div>
+                    </Button>
+                </CardFooter>
+            </Card>
         </div>
     );
 };

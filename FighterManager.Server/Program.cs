@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Serilog.Events;
 using FighterManager.Server.Controllers;
+using FighterManager.Server.Repository;
+using FighterManager.Server.Domain.AttendanceService;
 
 namespace FighterManager.Server
 {
@@ -33,6 +35,8 @@ namespace FighterManager.Server
             builder.Services.AddScoped<FighterRegistrationService>();
             builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddScoped<IIdentityResponseEnhancer, IdentityResponseEnhancer>();
+            builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+            builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -130,11 +134,12 @@ namespace FighterManager.Server
 
             builder.Services.AddDbContext<MyDatabaseContext>();
 
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-                options.DefaultChallengeScheme = "Google";
-            })
+            // builder.Services.AddAuthentication(options =>
+            // {
+            //     options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+            //     options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme; 
+            // })
+            builder.Services.AddAuthentication()
             .AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = false;
@@ -223,6 +228,19 @@ namespace FighterManager.Server
 
             app.MapGroup("/api/auth/v1")
                 .MapIdentityApi<AppUserEntity>();
+                // .AddEndpointFilter(async (context, next) =>
+                // {
+                //     if (context.HttpContext.Request.Path.Value.EndsWith("/refresh"))
+                //     {
+                //         if (!context.HttpContext.User.Identity.IsAuthenticated)
+                //         {
+                //             context.HttpContext.Response.StatusCode = 401;
+                //             await context.HttpContext.Response.WriteAsJsonAsync(new { error = "Unauthorized: Invalid or missing session" });
+                //             return new EmptyResult();
+                //         }
+                //     }
+                //     return await next(context);
+                // });
 
             app.UseHttpsRedirection();
             app.UseAuthorization();
