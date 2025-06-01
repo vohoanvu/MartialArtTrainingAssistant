@@ -38,8 +38,11 @@ namespace FighterManager.Server.Controllers
                 .FirstOrDefaultAsync();
             if (session == null)
                 return NotFound();
+
+            var getSessionDetailsResponse = _objectMapper.Map<TrainingSession, GetSessionDetailResponse>(session);
+            getSessionDetailsResponse.IsCurriculumGenerated = session.RawCurriculumJson != null && session.RawCurriculumJson.Length > 0;
         
-            return Ok(_objectMapper.Map<TrainingSession, GetSessionDetailResponse>(session));
+            return Ok(getSessionDetailsResponse);
         }
 
         [HttpPost]
@@ -72,7 +75,8 @@ namespace FighterManager.Server.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<GetSessionDetailResponse>> UpdateSessionAsync(int id, UpdateSessionDetailsRequest input)
         {
-            if (input.Status != null && !Enum.IsDefined(typeof(SessionStatus), input.Status))
+            if (input.Status != null && !Enum.IsDefined(typeof(SessionStatus), input.Status) ||
+                input.TargetLevel != null && !Enum.IsDefined(typeof(TargetLevel), input.TargetLevel))
             {
                 return BadRequest(new { Message = "Invalid Enum values" });
             }

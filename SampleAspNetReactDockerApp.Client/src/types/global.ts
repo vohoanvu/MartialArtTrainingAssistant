@@ -104,6 +104,7 @@ export interface SessionDetailViewModel {
     students: FighterViewModel[];
     instructorId: number;
     studentIds: number[];
+    isCurriculumGenerated: boolean;
 }
 
 export interface CreateTrainingSessionRequest {
