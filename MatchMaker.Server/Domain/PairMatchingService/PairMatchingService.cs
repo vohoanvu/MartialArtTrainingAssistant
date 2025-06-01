@@ -2,43 +2,33 @@
 
 namespace MatchMaker.Server.Domain.PairMatchingService
 {
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class PairMatchingService
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
         private readonly List<Fighter> _fighters;
         private readonly Fighter _instructor = null;
         private readonly int? _howManyDifferentPairs;
         private int _pairCounter = 0;
         private readonly HashSet<Tuple<int, int>> _pairHistory = new();
-
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public PairMatchingService(List<Fighter> students, Fighter instructor)
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             _fighters = students;
             _instructor = instructor;
         }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public PairMatchingService(List<Fighter> students, Fighter instructor, int howManyDifferentPairs)
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             _fighters = students;
             _instructor = instructor;
             _howManyDifferentPairs = howManyDifferentPairs;
         }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public List<Tuple<Fighter, Fighter>> GenerateNonUniquePairs()
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             List<Fighter> remainingFighters = new List<Fighter>(_fighters);
             List<Tuple<Fighter, Fighter>> pairs = new List<Tuple<Fighter, Fighter>>();
 
             if (_fighters.Count % 2 != 0)
             {
-                // If there is an odd number of fighters in the list, pair up the instructor with one of them.
                 Tuple<Fighter, Fighter> instructorPair = PairUpOddFighter(_instructor);
                 pairs.Add(instructorPair);
                 remainingFighters.Remove(instructorPair.Item2);
@@ -46,7 +36,6 @@ namespace MatchMaker.Server.Domain.PairMatchingService
 
             while (remainingFighters.Count > 0)
             {
-                // Find the closest matching pair among the remaining fighters and add it to the list of pairs.
                 Tuple<Fighter, Fighter> pair = FindNextMatchingPairWithoutHistory(remainingFighters);
                 if (pair != null)
                 {
@@ -63,9 +52,7 @@ namespace MatchMaker.Server.Domain.PairMatchingService
             return pairs;
         }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public IEnumerable<List<Tuple<Fighter, Fighter>>> GenerateFighterPairsWithUniquePairs()
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             while (_howManyDifferentPairs != null || _pairCounter < _howManyDifferentPairs)
             {
@@ -82,9 +69,7 @@ namespace MatchMaker.Server.Domain.PairMatchingService
             }
         }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public List<Tuple<Fighter, Fighter>> GenerateNextFighterPairs()
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             List<Fighter> remainingFighters = new List<Fighter>(_fighters);
             List<Tuple<Fighter, Fighter>> pairs = new List<Tuple<Fighter, Fighter>>();
@@ -116,9 +101,7 @@ namespace MatchMaker.Server.Domain.PairMatchingService
             return pairs;
         }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public Tuple<Fighter, Fighter> FindNextMatchingPair(List<Fighter> remainingFighters)
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             double closestDifference = double.MaxValue;
             Tuple<Fighter, Fighter> bestPair = null;
