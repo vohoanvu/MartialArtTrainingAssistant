@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import ConfirmationDialog from '@/components/ui/ConfirmationDialog';  // Ensure this component is imported correctly
+import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { CreateTrainingSessionRequest, UpdateTrainingSessionRequest } from '@/types/global';
 import { createTrainingSession, updateTrainingSessionDetails , getTrainingSessionDetails } from '@/services/api';
 import useAuthStore from '@/store/authStore';
 
+export type TargetLevel = 'Kids' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+const TARGET_LEVEL_OPTIONS: TargetLevel[] = [
+    'Kids',
+    'Beginner',
+    'Intermediate',
+    'Advanced',
+    'Expert'
+];
 
 const TrainingSessionForm = () => {
     const { sessionId  } = useParams<{ sessionId?: string }>();
@@ -21,6 +29,7 @@ const TrainingSessionForm = () => {
     const [duration, setDuration] = useState('');
     const [description, setDescription] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [targetLevel, setTargetLevel] = useState<TargetLevel>('Beginner');
 
     useEffect(() => {
         if (sessionIdNumber) {
@@ -32,6 +41,7 @@ const TrainingSessionForm = () => {
                     setCapacity(details.capacity.toString());
                     setDuration(parseHoursToMinutesString(details.duration));
                     setDescription(details.description ?? '');
+                    setTargetLevel(details.targetLevel as TargetLevel);
                 } catch (error) {
                     console.error("Failed to load session details:", error);
                 }
@@ -63,6 +73,7 @@ const TrainingSessionForm = () => {
                 capacity: parseInt(capacity, 10),
                 duration: parseMinutesToHoursFloat(duration),
                 status: 'Active',
+                targetLevel: targetLevel,
             };
             try {
                 await createTrainingSession(newSession, jwtToken!);
@@ -78,6 +89,7 @@ const TrainingSessionForm = () => {
                 capacity: parseInt(capacity, 10),
                 duration: parseMinutesToHoursFloat(duration),
                 status: 'Active',
+                targetLevel: targetLevel,
             };
             try {
                 await updateTrainingSessionDetails(sessionIdNumber, updatedSession, { jwtToken, refreshToken, hydrate });
@@ -188,6 +200,26 @@ const TrainingSessionForm = () => {
                     </select>
                 </div> */}
 
+                {/* Target Level field */}
+                <div>
+                    <label htmlFor="targetLevel" className="block text-sm font-medium">
+                        Target Level
+                    </label>
+                    <select
+                        id="targetLevel"
+                        value={targetLevel}
+                        onChange={(e) => setTargetLevel(e.target.value as TargetLevel)}
+                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
+                        required
+                    >
+                        {TARGET_LEVEL_OPTIONS.map((level) => (
+                            <option key={level} value={level}>
+                                {level}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 {/* Description field */}
                 <div>
                     <label htmlFor="description" className="block text-sm font-medium">
@@ -208,8 +240,8 @@ const TrainingSessionForm = () => {
             </form>
 
             <ConfirmationDialog
-                title="Are you sure you want to create a new session?"
-                message="You can update your session details later!"
+                title={`Are you sure you want to ${sessionId ? 'update' : 'create'} a new session?`}
+                message="You can always update your session details later!"
                 isOpen={isDialogOpen}
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}

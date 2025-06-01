@@ -157,26 +157,34 @@ const useAuthStore = create<AuthStore>()(
                 window.location.href = "/home";
             },
             hydrate: async () => {
-                const { accessToken, refreshToken } = get();
+                const { accessToken, refreshToken, setLoginStatus, setTokens, getUserInfo } = get();
                 if (!refreshToken || !accessToken) {
-                    get().setLoginStatus("unauthenticated");
-                    window.location.href = "/login";
+                    setLoginStatus('unauthenticated');
+                    window.location.href = '/login';
                     return;
                 }
-                const response = await fetch("/api/auth/v1/refresh", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ accessToken, refreshToken }),
-                });
-                console.log("POST /api/auth/v1/refresh...", response.ok);
-                if (response.ok) {
-                    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await response.json();
-                    get().setTokens(newAccessToken, newRefreshToken);
-                    get().setLoginStatus("authenticated");
-                    await get().getUserInfo();
-                } else {
-                    get().setLoginStatus("unauthenticated");
-                    window.location.href = "/login";
+                try {
+                    const response = await fetch('/api/auth/v1/refresh', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ accessToken, refreshToken }),
+                        credentials: 'include', // Include cookies (e.g., Identity cookie)
+                    });
+                    console.log('POST /api/auth/v1/refresh...', response.status, response.ok);
+                    if (response.ok) {
+                        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await response.json();
+                        setTokens(newAccessToken, newRefreshToken);
+                        setLoginStatus('authenticated');
+                        await getUserInfo();
+                    } else {
+                        console.error('Refresh failed:', response.status, await response.text());
+                        setLoginStatus('unauthenticated');
+                        window.location.href = '/login';
+                    }
+                } catch (error) {
+                    console.error('Refresh error:', error);
+                    setLoginStatus('unauthenticated');
+                    window.location.href = '/login';
                 }
             },
             register: async (email, password) => {

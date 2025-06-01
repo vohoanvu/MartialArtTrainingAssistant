@@ -1,6 +1,6 @@
 # Software Requirements Specification
 
-## Martial Art Training Assistant SaaS
+## CodeJitsu: a BJJ Martial Art Training Assistant SaaS
 
 **Version:** 1.0\
 **Date:** May 13, 2025\
@@ -13,18 +13,18 @@
 
 ### 1.1 Purpose
 
-This Software Requirements Specification (SRS) document outlines the functional and non-functional requirements for the Martial Art Training Assistant, a Software-as-a-Service (SaaS) platform designed to enhance Brazilian Jiu-Jitsu (BJJ) training. The platform targets BJJ instructors and students, offering AI-driven video analysis, class management, and curriculum recommendations to streamline training processes and improve skill development.
+This Software Requirements Specification (SRS) document outlines the functional and non-functional requirements for the CodeJitsu BJJ Training Assistant, a Software-as-a-Service (SaaS) platform designed to enhance Brazilian Jiu-Jitsu (BJJ) training. The platform targets BJJ instructors and students, offering AI-driven video analysis, class management, and curriculum recommendations to streamline training processes and improve skill development.
 
 The document reflects the current state of the project, including completed features and the prioritized feature for the Minimum Viable Product (MVP) launch, aimed at generating quick cash flow through a Freemium model.
 
 ### 1.2 Scope
 
-The Martial Art Training Assistant provides:
+The CodeJitsu platform provides:
 
 - **User Authentication:** Secure sign-up and login for instructors and students.
-- **Class Session Management:** Tools for instructors to create sessions and pair students, and for students to check in.
-- **Video Upload and Analysis:** Students upload sparring videos for AI analysis using Google Vertex AI Gemini Vision, with results stored in a relational database.
-- **Video Analysis Editor:** Instructors refine AI-generated analysis data, saving edits for improved training feedback.
+- **Class Session Management:** Tools for instructors to create sessions, take walk-in attendance and pair students, and for students to check in.
+- **Video Upload and Analysis:** Students upload sparring videos for AI analysis using Google Vertex AI Gemini Vision, with results extracted and stored in a relational database.
+- **Video Analysis Editor:** Instructors refine AI-generated analysis data, saving edits for improved BJJ training feedback.
 - **Single-Session Curriculum Recommendation (MVP):** AI-driven suggestions for class drills based on student weaknesses, ensuring compatibility with all attendees.
 
 The MVP focuses on delivering value to instructors through video analysis and class planning, with a Freemium model to attract users and generate revenue.
@@ -57,7 +57,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 ### 2.2 Product Functions
 
 - **User Authentication:** Secure registration and login for instructors and students.
-- **Class Session Management:** Instructors create and manage sessions; students check in; automatic student pairing based on size and skill.
+- **Class Session Management:** Instructors create and manage sessions; Instructor taking walk-in attendance, students check in; automatic student pairing based on size and skill.
 - **Video Upload and Analysis:** Students upload videos to GCS or share YouTube URLs for AI analysis, generating techniques, strengths, and improvement areas.
 - **Video Analysis Editor:** Instructors refine AI analysis, saving edits to PostgreSQL for feedback and model improvement.
 - **Single-Session Curriculum Recommendation:** Generates class drill plans based on aggregated student weaknesses, tailored to the class’s skill level.
@@ -66,7 +66,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 ### 2.3 User Classes and Characteristics
 
 1. **Instructors (Primary Paying Users):**
-   - BJJ coaches with varying expertise (white to black belt).
+   - BJJ coaches with varying expertise (black belts).
    - Need tools to analyze student videos, provide feedback, and plan classes efficiently.
    - Target market: Small to medium BJJ schools in the US, Europe, and Asia.
 2. **Students:**
@@ -86,7 +86,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 ### 2.5 Design and Implementation Constraints
 
 - **Budget:** Limited due to solo developer’s financial situation; prioritize low-cost cloud services.
-- **Timeline:** MVP launch within 4 weeks to generate cash flow.
+- **Timeline:** MVP launch ASAP to generate cash flow.
 - **Scalability:** Must handle up to 100 concurrent users initially, with plans for growth.
 - **Security:** Encrypt video storage and comply with GDPR/CCPA for user data.
 
@@ -116,12 +116,15 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 - **FR2.2:** Students shall check into an active session created by an instructor.
 - **FR2.3:** System shall pair students for partner-based exercises based on size (height, weight) and skill level (belt rank).
 - **FR2.4:** Instructors shall view session details, including checked-in students and pairings.
+- **FR2.5:** In case of no registered students available, the Students-Import feature can help Instructors to take walk-in students attendance by filling out Attendance table form/editor, which would be persisted in db as "walk-in" Fighter records.
 
 ### 3.3 Student Sparring Video Upload
 
 - **FR3.1:** Students shall upload sparring videos to Google Cloud Storage or share YouTube URLs.
 - **FR3.2:** System shall process videos using Vertex AI Gemini Vision to generate analysis (techniques, strengths, improvements).
 - **FR3.3:** Analysis results shall be stored in PostgreSQL with JSONB for techniques and text for strengths/improvements.
+- **FR3.4:** Personalized lessons distributor: if a student upload a video and requested Instructor review, the AI Assistant could distribute your approved/edited Analysis results to each students via email.
+- **FR3.5:** Instructor shall upload their students sparring or competion footage, and the Gemini-based AI system should analyse the video and provide analysis for BOTH fighters present in the video (as opposed to self-uploaded video analysis where the AI should only focus on the video's author).
 
 ### 3.4 Video Analysis Editor
 
@@ -129,23 +132,24 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 - **FR4.2:** Instructors shall edit analysis data, including techniques (type, scenario), strengths, and improvements.
 - **FR4.3:** Instructors shall specify video segments (start/end timestamps) for feedback.
 - **FR4.4:** Edited data shall be saved to PostgreSQL, linked to the original analysis.
-- **FR4.5:** System shall retrieve edited data for display and future model improvement.
+- **FR4.5:** System shall retrieve edited data for display and future model fine-tuning.
 
 ### 3.5 Single-Session Curriculum Recommendation
 
-- **FR5.1:** System shall generate a curriculum for a single class session based on checked-in students’ video analysis data.
-- **FR5.2:** Curriculum shall include 5-7 drills addressing common weaknesses (e.g., takedown defense, guard retention).
-- **FR5.3:** Drills shall be tailored to the class’s average skill level (based on belt ranks).
-- **FR5.4:** Instructors shall view the curriculum with drill names, descriptions, and related weakness categories.
+- **FR5.1:** System shall generate a curriculum for a single class session based on checked-in students’ data (age,height,weight,belk-rank,gender), or based on the analyzed weaknesses from uploaded videos, if such students have used video analysis feature.
+- **FR5.2:** Curriculum shall include 5-7 drills addressing common weaknesses (e.g., takedown defense, guard retention for BJJ).
+- **FR5.3:** Drills shall be tailored to the class’s average skill level (based on belt ranks, and current class' target level).
+- **FR5.4:** Instructors shall view the today lesson's curriculum with drill names, descriptions, and related weakness categories, in an intuitive UI.
 - **FR5.5:** System shall allow instructors to provide feedback on the curriculum for future improvements.
+- **FR5.6:** For each recommend drill/exercise, the system should provide a Time tracker to manage each students pair sparring.
 
-### 3.6 Students List Import
-- **FR6.1:** Instructors shall import a list of students from an Excel spreadsheet.
-- **FR6.2:** The system shall validate the spreadsheet format and map data to student profiles.
-- **FR6.3:** Imported students shall be added to the database with default roles and profiles.
+### 3.6 Students Attendance for Walk-In
+- **FR6.1:** Instructors shall import a list of students via the 'Take Attendance' interface.
+- **FR6.2:** The system shall validate the in-cell table editor format and map data to student Fighter profiles.
+- **FR6.3:** Imported students shall be added to the database with default roles and Fighter profiles.
 
 ### 3.7 SSO Registration and Authentication
-- **FR7.1:** Users shall register and log in using Google and Facebook SSO.
+- **FR7.1:** Users shall register and log in using Google SSO.
 - **FR7.2:** The system shall integrate with OAuth 2.0 for secure authentication.
 - **FR7.3:** User profiles shall be created or linked based on SSO data.
 
@@ -228,7 +232,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 ### 6.2 Database Schema (Key Tables)
 
 - **users:** Stores user data (Id, Email, PasswordHash, Role, FighterId, ...). Links to **fighter**.
-- **fighter:** Stores fighter profile (Id, FighterName, Height, Weight, BMI, Gender, Role, Birthdate, Experience, BeltRank, MaxWorkoutDuration).
+- **fighter:** Stores fighter profile (Id, FighterName, Height, Weight, BMI, Gender, Role, Birthdate, Experience, BeltRank, MaxWorkoutDuratio, IsWalkIn).
 - **training_session:** Stores class sessions (Id, TrainingDate, Capacity, Duration, Status, TargetLevel, InstructorId, MartialArt, SessionNotes, RawCurriculumJson, EditedCurriculumJson).
 - **training_session_fighter_joint:** Links students to sessions (Id, TrainingSessionId, FighterId).
 - **training_session_technique_joint:** Links techniques/drills to sessions (Id, SessionId, TechniqueId, DrillId, DurationMinutes).
@@ -267,7 +271,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 
 - **Week 1-2:** Implement Single-Session Curriculum Recommendation.
 - **Week 3:** Add Freemium limits and payment integration (Stripe).
-- **Week 4:** Launch MVP, targeting 50 instructors with 50% discount ($7.50/month).
+- **Week 4:** Launch MVP, targeting 50 instructors with 50% discount ($10/month).
 - **Weeks 4-7:** Complete backend development and testing for MVP features. Develop and launch the mobile application for instructors and students
 
 ### 7.3 Future Features (Post-MVP)
@@ -275,6 +279,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 - Long-Term Curriculum Recommendation (personalized, 3-6 months).
 - Partner-Matching for students based on training goals.
 - Paying students can access the Instructor's feedbacks on training lessons in mobile app.
+- Instructors should be able to create and manages class session within their own company/Dojo workspace
 
 ---
 

@@ -7,16 +7,18 @@ using FighterManager.Server.Models.Dtos;
 using System.Net;
 using System.Security.Claims;
 using SharedEntities.Models;
+using FighterManager.Server.Domain.AttendanceService;
 
 namespace FighterManager.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class TrainingSessionController(IUnitOfWork unitOfWork, IMapper objectMapper) : ControllerBase
+    public class TrainingSessionController(IUnitOfWork unitOfWork, IMapper objectMapper, IAttendanceService attendanceService) : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _objectMapper = objectMapper;
+        private readonly IAttendanceService _attendanceService = attendanceService;
 
         [HttpGet]
         public async Task<ActionResult<List<TrainingSessionDtoBase>>> GetSessionsAsync()
@@ -60,6 +62,7 @@ namespace FighterManager.Server.Controllers
 
             input.InstructorId = appUser!.Fighter!.Id;
             var trainingSession = _objectMapper.Map<TrainingSessionDtoBase, TrainingSession>(input);
+            trainingSession.Status = Enum.TryParse<SessionStatus>(input.Status, out var status) ? status : SessionStatus.Active;
             await _unitOfWork.Repository<TrainingSession>().AddAsync(trainingSession);
             await _unitOfWork.SaveChangesAsync();
 
@@ -89,7 +92,7 @@ namespace FighterManager.Server.Controllers
                 .FirstOrDefaultAsync();
             if (updatedSession != null)
             {
-                 var sessionDetailResponse = _objectMapper.Map<GetSessionDetailResponse>(updatedSession);
+                var sessionDetailResponse = _objectMapper.Map<GetSessionDetailResponse>(updatedSession);
 
                 return Ok(sessionDetailResponse);
             }
@@ -116,6 +119,37 @@ namespace FighterManager.Server.Controllers
             catch (ErrorResponseException ex)
             {
                 return StatusCode((int)ex.StatusCode, new { ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/attendance")]
+        [ProducesResponseType(typeof(TakeAttendanceResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<TakeAttendanceResponse>> TakeAttendance(
+            int id, 
+            TakeAttendanceRequest request)
+        {
+            try
+            {
+                var instructorUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(instructorUserId))
+                    return Unauthorized();
+
+                var response = await _attendanceService.ProcessAttendanceAsync(
+                    id, 
+                    request.Records,
+                    instructorUserId);
+
+                if (!response.Success)
+                    return BadRequest(new { response.Message });
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = ex.Message });
             }
         }
     }
