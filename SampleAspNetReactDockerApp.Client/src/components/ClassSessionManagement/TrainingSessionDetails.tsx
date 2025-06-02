@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import {
     getTrainingSessionDetails,
     updateTrainingSessionDetails,
-    GenerateFighterPairs,
     generateClassCurriculum,
     getClassCurriculum,
+    SuggestFighterPairs,
 } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
@@ -73,7 +73,7 @@ const TrainingSessionDetails = () => {
 
     const handlePairUp = async () => {
         if (!user?.fighterInfo) {
-            setError('Failed to retrieve fighter information');
+            setError('Failed to retrieve Instructor information');
             return;
         }
 
@@ -82,7 +82,7 @@ const TrainingSessionDetails = () => {
                 studentFighterIds: sessionDetails?.studentIds ?? [],
                 instructorFighterId: user.fighterInfo.id
             };
-            const fighterPairResult = await GenerateFighterPairs(generatePairRequest, { jwtToken, hydrate: () => { } });
+            const fighterPairResult = await SuggestFighterPairs(generatePairRequest, sessionIdNumber, { jwtToken, hydrate });
             alert('Fighter Pair successfully generated');
             setFighterPairResult(fighterPairResult);
         } catch (err) {

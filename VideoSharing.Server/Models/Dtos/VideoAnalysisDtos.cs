@@ -189,4 +189,11 @@ namespace VideoSharing.Server.Models.Dtos
         /// </summary>
         public string? ErrorMessage { get; set; }
     }
+
+    public class MatchMakerDto
+    {
+        public required List<int> StudentFighterIds { get; set; }
+
+        public required int InstructorFighterId { get; set; }
+    }
 }

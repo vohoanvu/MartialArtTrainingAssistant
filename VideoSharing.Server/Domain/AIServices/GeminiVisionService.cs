@@ -258,7 +258,6 @@ namespace VideoSharing.Server.Domain.GeminiService
                     Pairs = [],
                     PairingRationale = "No students provided to pair."
                 };
-                // Serialize the object to keep RawFighterPairsJson consistent
                 response.RawFighterPairsJson = JsonSerializer.Serialize(response.SuggestedPairings, _jsonSerializerOptions);
                 response.IsSuccessfullyParsed = true;
                 return response;
@@ -274,7 +273,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                     UnpairedStudent = new UnpairedFighterInfo
                     {
                         StudentId = singleFighter.Id,
-                        StudentName = singleFighter.FighterName, // Assuming FighterName property exists
+                        StudentName = singleFighter.FighterName,
                         Reason = "Only one student in the class."
                     },
                     PairingRationale = "Only one student available."
