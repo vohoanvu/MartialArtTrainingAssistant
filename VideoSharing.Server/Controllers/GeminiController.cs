@@ -213,6 +213,48 @@ namespace VideoSharing.Server.Controllers
             }
         }
 
+        [HttpPost("matchmaker/{sessionId}")]
+        [Authorize]
+        public async Task<IActionResult> SuggestStudentPairs(int sessionId, [FromBody] MatchMakerDto request)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var databaseContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
+            if (request.StudentFighterIds == null || request.StudentFighterIds.Count == 0)
+            {
+                return BadRequest("StudentFighterIds cannot be null or empty.");
+            }
+
+            var studentFighters = await databaseContext.Fighters
+                .Where(f => request.StudentFighterIds.Contains(f.Id))
+                .ToListAsync();
+            if (studentFighters.Count == 0)
+            {
+                return BadRequest("No valid students found for the given IDs.");
+            }
+            var instructor = await databaseContext.Fighters
+                .FirstOrDefaultAsync(f => f.Id == request.InstructorFighterId);
+            if (instructor == null)
+            {
+                return BadRequest("No valid instructor found for the given ID.");
+            }
+
+            var trainingSession = await databaseContext.TrainingSessions
+                .Include(ts => ts.Students)
+                .FirstOrDefaultAsync(ts => ts.Id == sessionId);
+            if (trainingSession == null)
+            {
+                return NotFound("Training session not found.");
+            }
+
+            var pairMatchingAIResponse = await _geminiService.SuggestFighterPairs(studentFighters, trainingSession);
+            if (pairMatchingAIResponse == null)
+            {
+                return StatusCode(500, "Failed to generate pairs.");
+            }
+
+            return Ok(pairMatchingAIResponse);
+        }
+
         private static string? ValidateStructuredJson(string apiResponseJson)
         {
             if (string.IsNullOrWhiteSpace(apiResponseJson))

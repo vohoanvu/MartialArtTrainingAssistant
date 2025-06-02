@@ -34,13 +34,13 @@ data:
                 proxy_set_header X-Forwarded-Proto $scheme;
             }
 
-            location ~* ^/pair/api/(.*) {
-                proxy_pass http://match-maker:7082/api/$1;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-            }
+            # location ~* ^/pair/api/(.*) {
+            #     proxy_pass http://match-maker:7082/api/$1;
+            #     proxy_set_header Host $host;
+            #     proxy_set_header X-Real-IP $remote_addr;
+            #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            #     proxy_set_header X-Forwarded-Proto $scheme;
+            # }
 
             location /swagger {
                 proxy_pass http://fighter-manager:7080/swagger;
@@ -58,13 +58,13 @@ data:
                 proxy_set_header X-Forwarded-Proto $scheme;
             }
 
-            location /pair/swagger {
-                proxy_pass http://match-maker:7082/swagger;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-            }
+            # location /pair/swagger {
+            #     proxy_pass http://match-maker:7082/swagger;
+            #     proxy_set_header Host $host;
+            #     proxy_set_header X-Real-IP $remote_addr;
+            #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            #     proxy_set_header X-Forwarded-Proto $scheme;
+            # }
 
             # location /assets/ {
             #     root /usr/share/nginx/html; # Or alias /usr/share/nginx/html/assets;

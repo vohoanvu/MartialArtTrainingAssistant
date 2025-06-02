@@ -83,6 +83,10 @@ export default function ClassSession(): ReactElement {
             accessorKey: 'status' as keyof TrainingSessionResponse,
         },
         {
+            header: 'Level',
+            accessorKey: 'targetLevel' as keyof TrainingSessionResponse,
+        },
+        {
             header: 'Actions',
             cell: ({ row }) => <ActionCell sessionId={row.original.id} />
         }
