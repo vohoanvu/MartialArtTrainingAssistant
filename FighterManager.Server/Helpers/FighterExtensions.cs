@@ -43,6 +43,11 @@ namespace FighterManager.Server.Helpers
                 destination.Duration = source.Duration.Value;
             }
 
+            if (!string.IsNullOrEmpty(source.TargetLevel))
+            {
+                destination.TargetLevel = Enum.Parse<TargetLevel>(source.TargetLevel);
+            }
+
             if (!string.IsNullOrEmpty(source.Status))
             {
                 destination.Status = Enum.Parse<SessionStatus>(source.Status);

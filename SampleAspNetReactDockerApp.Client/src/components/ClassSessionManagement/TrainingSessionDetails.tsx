@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import {
     getTrainingSessionDetails,
     updateTrainingSessionDetails,
-    GenerateFighterPairs,
     generateClassCurriculum,
     getClassCurriculum,
+    SuggestFighterPairs,
 } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
@@ -37,7 +37,7 @@ const TrainingSessionDetails = () => {
                 setLoading(true);
                 const details = await getTrainingSessionDetails(sessionIdNumber, { jwtToken, refreshToken, hydrate });
                 setSessionDetails(details);
-                if (details && details.studentIds.length !== 0) {
+                if (details && details.isCurriculumGenerated) {
                     const savedCurriculum = await getClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
                     setCurriculum(savedCurriculum);
                 }
@@ -73,7 +73,7 @@ const TrainingSessionDetails = () => {
 
     const handlePairUp = async () => {
         if (!user?.fighterInfo) {
-            setError('Failed to retrieve fighter information');
+            setError('Failed to retrieve Instructor information');
             return;
         }
 
@@ -82,7 +82,7 @@ const TrainingSessionDetails = () => {
                 studentFighterIds: sessionDetails?.studentIds ?? [],
                 instructorFighterId: user.fighterInfo.id
             };
-            const fighterPairResult = await GenerateFighterPairs(generatePairRequest, { jwtToken, hydrate: () => { } });
+            const fighterPairResult = await SuggestFighterPairs(generatePairRequest, sessionIdNumber, { jwtToken, hydrate });
             alert('Fighter Pair successfully generated');
             setFighterPairResult(fighterPairResult);
         } catch (err) {
@@ -173,6 +173,7 @@ const TrainingSessionDetails = () => {
                     <p><strong>Capacity:</strong> {sessionDetails.capacity}</p>
                     <p><strong>Duration:</strong> {sessionDetails.duration} minutes</p>
                     <p><strong>Status:</strong> {sessionDetails.status}</p>
+                    <p><strong>Level:</strong> {sessionDetails.targetLevel}</p>
                     <p><strong>Description Notes:</strong> {sessionDetails.description}</p>
 
                     <div className="mt-4">

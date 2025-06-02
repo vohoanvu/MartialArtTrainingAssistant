@@ -9,18 +9,12 @@ namespace MatchMaker.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class MatchMakerController(MyDatabaseContext databaseContext) : ControllerBase
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
         private readonly MyDatabaseContext _databaseContext = databaseContext;
 
         [HttpPost]
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public async Task<IActionResult> GeneratePairs([FromBody] MatchMakerDto request)
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
             // Fetch all Students records from the database based on the provided StudentFighterIds
             var studentFighters = await _databaseContext.Fighters
@@ -64,20 +58,12 @@ namespace MatchMaker.Server.Controllers
         }
     }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class MatchMakerDto
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public required List<int> StudentFighterIds { get; set; }
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public required int InstructorFighterId { get; set; }
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public int? HowManyUniquePairs { get; set; }
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }

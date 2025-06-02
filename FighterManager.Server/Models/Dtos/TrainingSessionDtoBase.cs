@@ -28,6 +28,8 @@ namespace FighterManager.Server.Models.Dtos
         public required ViewFighterDto Instructor { get; set; }
 
         public List<ViewFighterDto> Students { get; set; } = [];
+
+        public bool IsCurriculumGenerated { get; set; } = false;
     }
 
     public class UpdateSessionDetailsRequest : TrainingSessionDtoBase 

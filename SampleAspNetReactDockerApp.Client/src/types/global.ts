@@ -104,6 +104,7 @@ export interface SessionDetailViewModel {
     students: FighterViewModel[];
     instructorId: number;
     studentIds: number[];
+    isCurriculumGenerated: boolean;
 }
 
 export interface CreateTrainingSessionRequest {
@@ -191,6 +192,37 @@ export interface FighterPair {
 }
 
 export type FighterPairResult = FighterPair[];
+
+// Client-side representation of the C# FighterPair model
+// (from MatchMakerResponseContent.Pairs)
+interface ApiFighterPair {
+    fighter1Id: number;
+    fighter1Name: string;
+    fighter2Id: number;
+    fighter2Name: string;
+}
+
+// Client-side representation of the C# UnpairedFighterInfo model
+interface ApiUnpairedFighterInfo {
+    studentId: number;
+    studentName: string;
+    reason: string;
+}
+
+// Client-side representation of the C# MatchMakerResponseContent model
+interface ApiMatchMakerResponseContent {
+    pairs: ApiFighterPair[];
+    unpairedStudent?: ApiUnpairedFighterInfo | null;
+    pairingRationale?: string | null;
+}
+
+// This is the overall structure of the JSON object returned by your API endpoint
+export interface ApiMatchMakerResponse {
+    suggestedPairings?: ApiMatchMakerResponseContent | null;
+    rawFighterPairsJson: string;
+    isSuccessfullyParsed: boolean;
+    errorMessage?: string | null;
+}
 
 export interface GetBMIResponse {
     bmi: string,

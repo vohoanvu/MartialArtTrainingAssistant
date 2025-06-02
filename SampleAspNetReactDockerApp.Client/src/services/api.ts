@@ -20,6 +20,7 @@ import {
     CurriculumDto,
     TakeAttendanceRequest,
     TakeAttendanceResponse,
+    ApiMatchMakerResponse,
 } from "@/types/global.ts";
 import axios from 'axios';
 
@@ -239,6 +240,66 @@ export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest,
     } else {
         const errorText = await response.text();
         throw new Error(`Error generating fighter pairs: ${errorText}`);
+    }
+}
+
+export async function SuggestFighterPairs(matchMakerRequest: MatchMakerRequest, sessionId: number, {
+    jwtToken,
+    currentTry = 0,
+    hydrate
+}): Promise<FighterPairResult> {
+    console.log(`Generating Fighter Pairs for session ${sessionId}...`);
+
+    const response = await fetch(`/vid/api/video/matchmaker/${sessionId}`, { // Ensure this path matches your API route
+        method: 'POST', // Changed to POST to match controller
+        body: JSON.stringify(matchMakerRequest),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+
+    if (response.ok) {
+        const apiResponse = await response.json() as ApiMatchMakerResponse;
+
+        if (apiResponse.isSuccessfullyParsed && apiResponse.suggestedPairings && apiResponse.suggestedPairings.pairs) {
+            console.log("Successfully generated and parsed pairs!");
+
+            // Log unpaired student if present
+            if (apiResponse.suggestedPairings.unpairedStudent) {
+                console.warn(`Unpaired student: ${apiResponse.suggestedPairings.unpairedStudent.studentName} (ID: ${apiResponse.suggestedPairings.unpairedStudent.studentId}). Reason: ${apiResponse.suggestedPairings.unpairedStudent.reason}`);
+            }
+            if (apiResponse.suggestedPairings.pairingRationale) {
+                console.info(`Pairing Rationale: ${apiResponse.suggestedPairings.pairingRationale}`);
+            }
+
+            // Transform ApiFighterPair[] to FighterPairResult (FighterPair[])
+            const clientPairs: FighterPairResult = apiResponse.suggestedPairings.pairs.map(apiPair => ({
+                fighter1: apiPair.fighter1Name,
+                fighter2: apiPair.fighter2Name,
+            }));
+            return clientPairs;
+        } else {
+            // Handle cases where parsing on the server failed or the structure is not as expected
+            const errorMessage = apiResponse.errorMessage || "Server indicated success, but pairing data is missing or parsing failed on server.";
+            console.error(`Error in pairing response structure: ${errorMessage}`);
+            console.debug("Raw API Response for debugging:", apiResponse.rawFighterPairsJson);
+            throw new Error(errorMessage);
+        }
+    } else if (response.status === 401 && currentTry === 0) {
+        console.log("Unauthorized, attempting to hydrate and retry...");
+        await hydrate();
+        // Corrected recursive call to use the same function name and pass correct props
+        return await suggestFighterPairs({ matchMakerRequest, sessionId, jwtToken, currentTry: 1, hydrate });
+    } else {
+        let errorText = "An unknown error occurred.";
+        try {
+            errorText = await response.text();
+        } catch (e) {
+            // ignore if reading text fails
+        }
+        console.error(`Error generating fighter pairs. Status: ${response.status}, Message: ${errorText}`);
+        throw new Error(`Error generating fighter pairs (${response.status}): ${errorText}`);
     }
 }
 
@@ -642,9 +703,8 @@ export async function getClassCurriculum({
     }
 }
 
-export async function joinWailList({ email, role, region }: 
-{ email: string; role?: string; region?: string }) 
-{
+export async function joinWailList({ email, role, region }:
+    { email: string; role?: string; region?: string }) {
     try {
         const response = await fetch('/api/fighter/join-waitlist', {
             method: 'POST',

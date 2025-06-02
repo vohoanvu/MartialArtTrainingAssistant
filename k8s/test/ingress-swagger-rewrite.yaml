@@ -29,10 +29,10 @@ spec:
                 name: video-sharing
                 port:
                   number: 7081
-          - path: /pair/swagger/(.*) # match-maker expects /swagger
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: match-maker
-                port:
-                  number: 7082
+          # - path: /pair/swagger/(.*)
+          #   pathType: ImplementationSpecific
+          #   backend:
+          #     service:
+          #       name: match-maker
+          #       port:
+          #         number: 7082
