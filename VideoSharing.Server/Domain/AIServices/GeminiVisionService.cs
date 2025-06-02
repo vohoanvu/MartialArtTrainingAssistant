@@ -189,9 +189,6 @@ namespace VideoSharing.Server.Domain.GeminiService
         public async Task<GeminiChatResponse> SuggestClassCurriculum(List<string>? weaknesses, List<Fighter>? students, TrainingSession classSession)
         {
             var curriculumPrompt = BuildCurriculumPrompt(weaknesses, students, classSession);
-            // Use a different model for text generation if appropriate, or a different configuration
-            // For now, assuming _model can handle both or is a text model.
-            // If _model is vision-specific, you'll need another model ID for chat.
 
             var request = new GenerateContentRequest
             {
