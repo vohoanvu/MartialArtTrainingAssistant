@@ -8,7 +8,7 @@ import {
 } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
-import { FighterPairResult, MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto } from '@/types/global';
+import { MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto, ApiMatchMakerResponse } from '@/types/global';
 import { useParams } from 'react-router-dom';
 import AttendancePage from './AttendancePage';
 import ConfirmationDialog from '../ui/ConfirmationDialog';
@@ -24,7 +24,8 @@ const TrainingSessionDetails = () => {
     const refreshToken = useAuthStore((state) => state.refreshToken);
     const user = useAuthStore((state) => state.user);
     const hydrate = useAuthStore((state) => state.hydrate);
-    const [fighterPairResult, setFighterPairResult] = useState<FighterPairResult>();
+    //const [fighterPairResult, setFighterPairResult] = useState<FighterPairResult>();
+    const [matchMakeResponse, setMatchMakerResponse] = useState<ApiMatchMakerResponse>();
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
     const [notes, setNotes] = useState<string>('');
@@ -82,9 +83,10 @@ const TrainingSessionDetails = () => {
                 studentFighterIds: sessionDetails?.studentIds ?? [],
                 instructorFighterId: user.fighterInfo.id
             };
-            const fighterPairResult = await SuggestFighterPairs(generatePairRequest, sessionIdNumber, { jwtToken, hydrate });
+            const matchMakeResponse = await SuggestFighterPairs(generatePairRequest, sessionIdNumber, { jwtToken, hydrate });
             alert('Fighter Pair successfully generated');
-            setFighterPairResult(fighterPairResult);
+            //setFighterPairResult(matchMakeResponse);
+            setMatchMakerResponse(matchMakeResponse);
         } catch (err) {
             setError('Failed to generate pairs');
             console.error(err);
@@ -189,18 +191,40 @@ const TrainingSessionDetails = () => {
                         )}
                     </div>
 
-                    {fighterPairResult && fighterPairResult.length > 0 && (
+                    {matchMakeResponse?.suggestedPairings && matchMakeResponse.suggestedPairings.pairs.length > 0 && (
                         <div className="mt-6">
                             <h2 className="text-2xl font-bold">Fighter Pairs</h2>
                             <ul className="mt-4 space-y-2">
-                                {fighterPairResult.map((pair, index) => (
+                                {matchMakeResponse.suggestedPairings.pairs.map((pair, index) => (
                                     <li key={index} className="p-4 border border-border rounded-lg shadow-sm bg-background">
                                         <p>
-                                            <strong>{pair.fighter1}</strong> VS <strong>{pair.fighter2}</strong>
+                                            <strong>{pair.fighter1_name}</strong> VS <strong>{pair.fighter1_name}</strong>
                                         </p>
                                     </li>
                                 ))}
                             </ul>
+                            {
+                                matchMakeResponse.suggestedPairings.unpaired_student ? (
+                                    <div className="mt-2 p-4 bg-background border border-border rounded-md shadow-md">
+                                        <span className="text-1xl font-bold mb-4 text-foreground">Unpaired Students</span>
+                                        <div className="bg-muted p-4 rounded-md overflow-auto">
+                                            <span className="font-semibold">{matchMakeResponse.suggestedPairings.unpaired_student.studentId} : {matchMakeResponse.suggestedPairings.unpaired_student.studentName}</span>
+                                            <pre className="text-sm text-foreground whitespace-pre-wrap">
+                                                {matchMakeResponse.suggestedPairings.unpaired_student.reason}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="mt-2 p-4 bg-background border border-border rounded-md shadow-md">
+                                        <span className="text-1xl font-bold mb-4 text-foreground">Rationale</span>
+                                        <div className="bg-muted p-4 rounded-md overflow-auto">
+                                            <pre className="text-sm text-foreground whitespace-pre-wrap">
+                                                {matchMakeResponse.suggestedPairings.pairing_rationale}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                )
+                            }
                         </div>
                     )}
 
@@ -217,7 +241,10 @@ const TrainingSessionDetails = () => {
                             >
                                 Take Attendance
                             </Button>
-                            <Button type="button" variant='outline' onClick={handlePairUp}>
+                            <Button type="button" variant='outline' 
+                                onClick={() => {
+                                    window.confirm('Are you sure you want to pair up fighters? This will generate pairs based on the current roster.') && handlePairUp();
+                                }}>
                                 PAIR UP
                             </Button>
                             <Button

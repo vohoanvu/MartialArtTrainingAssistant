@@ -196,10 +196,10 @@ export type FighterPairResult = FighterPair[];
 // Client-side representation of the C# FighterPair model
 // (from MatchMakerResponseContent.Pairs)
 interface ApiFighterPair {
-    fighter1Id: number;
-    fighter1Name: string;
-    fighter2Id: number;
-    fighter2Name: string;
+    fighter1_id: number;
+    fighter1_name: string;
+    fighter2_id: number;
+    fighter2_name: string;
 }
 
 // Client-side representation of the C# UnpairedFighterInfo model
@@ -212,8 +212,8 @@ interface ApiUnpairedFighterInfo {
 // Client-side representation of the C# MatchMakerResponseContent model
 interface ApiMatchMakerResponseContent {
     pairs: ApiFighterPair[];
-    unpairedStudent?: ApiUnpairedFighterInfo | null;
-    pairingRationale?: string | null;
+    unpaired_student?: ApiUnpairedFighterInfo | null;
+    pairing_rationale?: string | null;
 }
 
 // This is the overall structure of the JSON object returned by your API endpoint

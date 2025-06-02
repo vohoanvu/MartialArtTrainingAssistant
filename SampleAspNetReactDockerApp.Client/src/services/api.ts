@@ -247,7 +247,7 @@ export async function SuggestFighterPairs(matchMakerRequest: MatchMakerRequest, 
     jwtToken,
     currentTry = 0,
     hydrate
-}): Promise<FighterPairResult> {
+}): Promise<ApiMatchMakerResponse> {
     console.log(`Generating Fighter Pairs for session ${sessionId}...`);
 
     const response = await fetch(`/vid/api/video/matchmaker/${sessionId}`, { // Ensure this path matches your API route
@@ -262,65 +262,67 @@ export async function SuggestFighterPairs(matchMakerRequest: MatchMakerRequest, 
     if (response.ok) {
         const apiResponse = await response.json() as ApiMatchMakerResponse;
 
-        if (apiResponse.isSuccessfullyParsed && apiResponse.suggestedPairings && apiResponse.suggestedPairings.pairs) {
-            console.log("Successfully generated and parsed pairs!");
+        // Log details from the parsed response, but return the whole apiResponse
+        if (apiResponse.isSuccessfullyParsed && apiResponse.suggestedPairings) {
+            console.log("Successfully received and parsed API response for fighter pairs.");
 
-            // Log unpaired student if present
             if (apiResponse.suggestedPairings.unpairedStudent) {
                 console.warn(`Unpaired student: ${apiResponse.suggestedPairings.unpairedStudent.studentName} (ID: ${apiResponse.suggestedPairings.unpairedStudent.studentId}). Reason: ${apiResponse.suggestedPairings.unpairedStudent.reason}`);
             }
             if (apiResponse.suggestedPairings.pairingRationale) {
                 console.info(`Pairing Rationale: ${apiResponse.suggestedPairings.pairingRationale}`);
             }
-
-            // Transform ApiFighterPair[] to FighterPairResult (FighterPair[])
-            const clientPairs: FighterPairResult = apiResponse.suggestedPairings.pairs.map(apiPair => ({
-                fighter1: apiPair.fighter1Name,
-                fighter2: apiPair.fighter2Name,
-            }));
-            return clientPairs;
+            // Log the number of pairs found for quick verification
+            if (apiResponse.suggestedPairings.pairs) {
+                console.log(`Number of pairs suggested: ${apiResponse.suggestedPairings.pairs.length}`);
+            }
+        } else if (!apiResponse.isSuccessfullyParsed) {
+            // Server indicated success (HTTP 200), but our C# service layer had an issue (e.g., AI error, parsing error)
+            const errorMessage = apiResponse.errorMessage || "Server responded OK, but pairing data processing failed on server.";
+            console.error(`Error indicated in API response payload: ${errorMessage}`);
+            console.debug("Raw API Response JSON for debugging:", apiResponse.rawFighterPairsJson);
         } else {
-            // Handle cases where parsing on the server failed or the structure is not as expected
-            const errorMessage = apiResponse.errorMessage || "Server indicated success, but pairing data is missing or parsing failed on server.";
-            console.error(`Error in pairing response structure: ${errorMessage}`);
-            console.debug("Raw API Response for debugging:", apiResponse.rawFighterPairsJson);
-            throw new Error(errorMessage);
+            console.warn("API response parsed, but suggestedPairings might be missing. Check payload.");
         }
+        return apiResponse;
     } else if (response.status === 401 && currentTry === 0) {
         console.log("Unauthorized, attempting to hydrate and retry...");
         await hydrate();
-        // Corrected recursive call to use the same function name and pass correct props
         return await suggestFighterPairs({ matchMakerRequest, sessionId, jwtToken, currentTry: 1, hydrate });
     } else {
-        let errorText = "An unknown error occurred.";
+        let errorText = `Failed to generate fighter pairs. Status: ${response.status}`;
+        let rawErrorJson = "";
         try {
-            errorText = await response.text();
+            // Attempt to parse error response as JSON, as many APIs return structured errors
+            const errorResponseData = await response.json();
+            // If it's an object and has a message property (common pattern)
+            if (typeof errorResponseData === 'object' && errorResponseData !== null && 'message' in errorResponseData) {
+                errorText = String(errorResponseData.message);
+            } else if (typeof errorResponseData === 'object' && errorResponseData !== null && 'title' in errorResponseData) { // ASP.NET Core default problem details
+                errorText = String(errorResponseData.title);
+            } else {
+                rawErrorJson = JSON.stringify(errorResponseData);
+                errorText = await response.text(); // Fallback to raw text if not a known error structure
+            }
         } catch (e) {
-            // ignore if reading text fails
+            try {
+                errorText = await response.text(); // Fallback if .json() fails
+            } catch (readErr) {
+                // If reading text also fails, stick with the status.
+            }
         }
         console.error(`Error generating fighter pairs. Status: ${response.status}, Message: ${errorText}`);
-        throw new Error(`Error generating fighter pairs (${response.status}): ${errorText}`);
+        if (rawErrorJson) console.debug("Raw error JSON: ", rawErrorJson);
+
+        const errorApiResponse: ApiMatchMakerResponse = {
+            suggestedPairings: null,
+            rawFighterPairsJson: rawErrorJson || errorText,
+            isSuccessfullyParsed: false,
+            errorMessage: `HTTP Error ${response.status}: ${errorText}`
+        };
+        return errorApiResponse;
     }
 }
-
-export async function CalculateBMI(height: number, weight: number): Promise<GetBMIResponse> {
-    console.log("Calculating BMI from microservice A...");
-
-    try {
-        const response = await fetch('http://localhost:1111/calculate-bmi', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ height, weight }),
-        });
-
-        return await response.json();
-    } catch (error) {
-        throw new Error(`Failed to call Microservice A: ${error}`);
-    }
-}
-
 
 interface UploadVideoParams {
     file: File;
