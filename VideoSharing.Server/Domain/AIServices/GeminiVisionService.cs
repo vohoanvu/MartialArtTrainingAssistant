@@ -33,7 +33,8 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly PredictionServiceClient _predictionClient;
         private readonly string _projectId;
         private readonly string _location;
-        private readonly string _model;
+        private readonly string _model; //default to latest gemini pro model from appsettings for Vision analysis
+        private readonly string _textModel = "gemini-2.5-flash-preview-05-20";
 
         private readonly IGoogleCloudStorageService _storageService;
         private readonly ILogger<GeminiVisionService> _logger;
@@ -145,7 +146,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 },
                 SafetySettings =
                 {
-                    new SafetySetting { Category = HarmCategory.SexuallyExplicit, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone }, // Adjusted to BlockNone for potentially off
+                    new SafetySetting { Category = HarmCategory.SexuallyExplicit, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
                     new SafetySetting { Category = HarmCategory.HateSpeech, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
                     new SafetySetting { Category = HarmCategory.DangerousContent, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
                     new SafetySetting { Category = HarmCategory.Harassment, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone }
@@ -154,7 +155,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 {
                     Temperature = 0.4f,
                     TopP = 1.0f,
-                    MaxOutputTokens = 8192, // Increased from 2048, but ensure your model supports it. Gemini 1.0 Pro Vision has 2048, Gemini 1.5 Flash/Pro have much larger context windows. 65535 is very large.
+                    MaxOutputTokens = 65535, // Increased from 2048, 65535 is current Max.
                     ResponseMimeType = "application/json",
                 }
             };
@@ -191,11 +192,10 @@ namespace VideoSharing.Server.Domain.GeminiService
             // Use a different model for text generation if appropriate, or a different configuration
             // For now, assuming _model can handle both or is a text model.
             // If _model is vision-specific, you'll need another model ID for chat.
-            string chatModel = _model; // Or specify a text-specific model like "gemini-1.5-pro-001" or "gemini-1.0-pro"
 
             var request = new GenerateContentRequest
             {
-                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{chatModel}",
+                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{_textModel}",
                 Contents =
                 {
                     new Content
@@ -213,16 +213,16 @@ namespace VideoSharing.Server.Domain.GeminiService
                 },
                 GenerationConfig = new GenerationConfig
                 {
-                    Temperature = 0.7f, // Might want different temp for curriculum generation
+                    Temperature = 1.0f, // Higher temperature for more creative responses
                     TopP = 1.0f,
-                    MaxOutputTokens = 4096, // Ensure this is appropriate for curriculum length
+                    MaxOutputTokens = 16384, // Ensure this is appropriate for curriculum length
                     ResponseMimeType = "application/json",
                 }
             };
 
             try
             {
-                _logger.LogInformation("Sending GenerateContent request for class curriculum to model {Model} in project {ProjectId}", chatModel, _projectId);
+                _logger.LogInformation("Sending GenerateContent request for class curriculum to model {Model} in project {ProjectId}", _textModel, _projectId);
                 // _logger.LogDebug("Curriculum Prompt: {Prompt}", curriculumPrompt); // Log prompt at Debug level
 
                 GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
@@ -234,7 +234,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             catch (Google.GoogleApiException ex)
             {
                 _logger.LogError(ex, "Vertex AI API call failed for curriculum generation: project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
-                    _projectId, chatModel, ex.HttpStatusCode, ex.Error?.ToString());
+                    _projectId, _textModel, ex.HttpStatusCode, ex.Error?.ToString());
                 throw new InvalidOperationException($"Vertex AI API call failed for curriculum generation: {ex.Message}", ex);
             }
             catch (Exception ex)
@@ -244,8 +244,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             }
         }
 
-        /// <summary>
-        /// </summary>
+        /// <inheritdoc/>
         public async Task<MatchMakerResponse> SuggestFighterPairs(List<Fighter> fighters, TrainingSession classSession)
         {
             var response = new MatchMakerResponse();
@@ -258,7 +257,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                     Pairs = [],
                     PairingRationale = "No students provided to pair."
                 };
-                response.RawFighterPairsJson = JsonSerializer.Serialize(response.SuggestedPairings, _jsonSerializerOptions);
+                response.RawGenerateContentResponseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
                 response.IsSuccessfullyParsed = true;
                 return response;
             }
@@ -278,17 +277,16 @@ namespace VideoSharing.Server.Domain.GeminiService
                     },
                     PairingRationale = "Only one student available."
                 };
-                response.RawFighterPairsJson = JsonSerializer.Serialize(response.SuggestedPairings, _jsonSerializerOptions);
+                response.RawGenerateContentResponseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
                 response.IsSuccessfullyParsed = true;
                 return response;
             }
 
             var pairingPrompt = BuildFighterPairingPrompt(fighters, classSession);
-            string textModel = _model;
 
             var request = new GenerateContentRequest
             {
-                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{textModel}",
+                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{_textModel}",
                 Contents = { new Content { Role = "user", Parts = { new Part { Text = pairingPrompt } } } },
                 SafetySettings =
                 {
@@ -301,20 +299,22 @@ namespace VideoSharing.Server.Domain.GeminiService
                 {
                     Temperature = 0.2f,
                     TopP = 1.0f,
-                    MaxOutputTokens = 2048,
+                    MaxOutputTokens = 8192,
                     ResponseMimeType = "application/json", // Crucial: Ask AI for JSON output
                 }
             };
 
             try
             {
-                _logger.LogInformation("Sending GenerateContent request for fighter pairing to model {Model} in project {ProjectId}", textModel, _projectId);
+                _logger.LogInformation("Sending GenerateContent request for fighter pairing to model {Model} in project {ProjectId}", _textModel, _projectId);
+                _logger.LogInformation("User Prompt: {Prompt}", pairingPrompt);
                 GenerateContentResponse geminiResponse = await _predictionClient.GenerateContentAsync(request);
 
                 string resultJson = geminiResponse.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
-                                ?? string.Empty;
+                    ?? string.Empty;
+                _logger.LogInformation("Model Response: {response}", geminiResponse);
 
-                response.RawFighterPairsJson = resultJson;
+                response.RawGenerateContentResponseJson = geminiResponse.Candidates.FirstOrDefault()?.Content.ToString() ?? string.Empty;
 
                 if (string.IsNullOrWhiteSpace(resultJson))
                 {
@@ -352,7 +352,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             catch (Google.GoogleApiException ex)
             {
                 _logger.LogError(ex, "Vertex AI API call failed for fighter pairing: project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
-                    _projectId, textModel, ex.HttpStatusCode, ex.Error?.ToString());
+                    _projectId, _textModel, ex.HttpStatusCode, ex.Error?.ToString());
                 response.ErrorMessage = $"Vertex AI API call failed: {ex.Message}";
                 response.IsSuccessfullyParsed = false;
                 response.SuggestedPairings = new MatchMakerResponseContent { PairingRationale = response.ErrorMessage };
@@ -570,7 +570,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 }
             }
 
-            return $@"You are an expert {classSession.MartialArt.ToString()} matchmaker and instructor. Your task is to pair up students for training based on their compatibility, considering skill level, size, and age.
+            return $@"You are an expert {classSession.MartialArt.ToString()} instructor. Your task is to pair up students for training based on their compatibility, considering skill level, size, and age.
             {studentDetailsSb.ToString()}
 
             {instructorInfo}

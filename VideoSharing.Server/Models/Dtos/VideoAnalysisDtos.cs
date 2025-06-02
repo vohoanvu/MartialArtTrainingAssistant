@@ -110,6 +110,7 @@ namespace VideoSharing.Server.Models.Dtos
         public int? RelatedTechniqueId { get; set; }
     }
 
+
     public class FighterPair
     {
         /// <summary>
@@ -153,13 +154,13 @@ namespace VideoSharing.Server.Models.Dtos
     public class MatchMakerResponseContent
     {
         [JsonPropertyName("pairs")]
-        public List<FighterPair> Pairs { get; set; } = new List<FighterPair>();
+        public List<FighterPair> Pairs { get; set; } = [];
 
         [JsonPropertyName("unpaired_student")]
-        public UnpairedFighterInfo? UnpairedStudent { get; set; } // Nullable if not present
+        public UnpairedFighterInfo? UnpairedStudent { get; set; }
 
         [JsonPropertyName("pairing_rationale")]
-        public string? PairingRationale { get; set; } // Nullable if not present
+        public string? PairingRationale { get; set; }
     }
 
     /// <summary>
@@ -177,7 +178,7 @@ namespace VideoSharing.Server.Models.Dtos
         /// <summary>
         /// The raw JSON string received from the AI. Useful for debugging.
         /// </summary>
-        public string RawFighterPairsJson { get; set; } = string.Empty;
+        public string RawGenerateContentResponseJson { get; set; } = string.Empty;
 
         /// <summary>
         /// Indicates whether the raw JSON was successfully parsed into SuggestedPairings.

@@ -4,7 +4,7 @@ echo "Building..."
 dotnet build SharedEntities/SharedEntities.csproj
 dotnet build FighterManager.Server/FighterManager.Server.csproj
 dotnet build VideoSharing.Server/VideoSharing.Server.csproj
-dotnet build MatchMaker.Server/MatchMaker.Server.csproj
+# dotnet build MatchMaker.Server/MatchMaker.Server.csproj
 
 # echo "Running backend services in background..."
 # dotnet run --project FighterManager.Server/FighterManager.Server.csproj --launch-profile https &
