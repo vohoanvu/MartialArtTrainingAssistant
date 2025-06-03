@@ -181,6 +181,28 @@ export async function deleteTrainingSession(
     throw new Error("Failed to delete training session");
 }
 
+export async function removeStudentFromSession(
+    sessionId: number,
+    fighterId: number,
+    { currentTry = 0, jwtToken, refreshToken, hydrate }
+): Promise<void> {
+    const response = await fetch(`/api/trainingsession/${sessionId}/attendance/remove/${fighterId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+
+    if (response.ok) {
+        return;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await removeStudentFromSession(sessionId, fighterId, { currentTry: 1, jwtToken, refreshToken, hydrate });
+    }
+
+    throw new Error('Failed to remove student from session');
+}
+
 export async function getAllSharedVideos({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SharedVideo[]> {
     console.log("Fetching shared videos from Microservice D...");
     const response = await fetch("/vid/api/video/getall", {

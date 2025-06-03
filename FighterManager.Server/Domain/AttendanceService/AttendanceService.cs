@@ -140,7 +140,17 @@ namespace FighterManager.Server.Domain.AttendanceService
         {
             var existingFighter = await _attendanceRepository.GetFighterByNameAsync(record.FighterName);
             if (existingFighter != null)
-                return existingFighter;
+            {
+                //Updated duplicated fighter name in db
+                existingFighter.BelkRank = Enum.Parse<BeltColor>(record.BeltColor);
+                existingFighter.Experience = DetermineExperienceLevel(Enum.Parse<BeltColor>(record.BeltColor));
+                existingFighter.Gender = Enum.Parse<Gender>(record.Gender);
+                existingFighter.Weight = record.Weight;
+                existingFighter.Height = record.Height;
+                existingFighter.Birthdate = record.Birthdate;
+                existingFighter.IsWalkIn = true;
+                return await _attendanceRepository.UpdateFighterAsync(existingFighter);
+            }
 
             var fighter = _mapper.Map<Fighter>(record);
             fighter.Role = FighterRole.Student;

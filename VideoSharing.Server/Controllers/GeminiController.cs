@@ -240,7 +240,7 @@ namespace VideoSharing.Server.Controllers
             }
 
             var trainingSession = await databaseContext.TrainingSessions
-                .Include(ts => ts.Students)
+                .Include(ts => ts.Instructor)
                 .FirstOrDefaultAsync(ts => ts.Id == sessionId);
             if (trainingSession == null)
             {

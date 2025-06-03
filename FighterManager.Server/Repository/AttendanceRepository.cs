@@ -10,7 +10,9 @@ namespace FighterManager.Server.Repository
         Task<AppUserEntity?> GetAppUserByFighterIdAsync(int fighterId);
         Task<Fighter?> GetFighterByNameAsync(string fighterName);
         Task<Fighter> AddFighterAsync(Fighter fighter);
+        Task<Fighter> UpdateFighterAsync(Fighter fighter);
         Task AddSessionFighterJointAsync(TrainingSessionFighterJoint joint);
+        void RemoveSessionFighterJointAsync(TrainingSessionFighterJoint joint);
         Task<TrainingSessionFighterJoint?> GetSessionFighterJointAsync(int sessionId, int fighterId);
         Task SaveChangesAsync();
     }
@@ -63,9 +65,31 @@ namespace FighterManager.Server.Repository
             }
         }
 
+        public async Task<Fighter> UpdateFighterAsync(Fighter fighter)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Fighters.Update(fighter);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return fighter;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task AddSessionFighterJointAsync(TrainingSessionFighterJoint joint)
         {
             await _context.TrainingSessionFighterJoints.AddAsync(joint);
+        }
+
+        public void RemoveSessionFighterJointAsync(TrainingSessionFighterJoint joint)
+        {
+            _context.TrainingSessionFighterJoints.Remove(joint);
         }
 
         public async Task<TrainingSessionFighterJoint?> GetSessionFighterJointAsync(int sessionId, int fighterId)

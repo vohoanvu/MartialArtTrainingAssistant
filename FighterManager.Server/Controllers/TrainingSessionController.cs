@@ -8,6 +8,7 @@ using System.Net;
 using System.Security.Claims;
 using SharedEntities.Models;
 using FighterManager.Server.Domain.AttendanceService;
+using System.ComponentModel;
 
 namespace FighterManager.Server.Controllers
 {
@@ -55,7 +56,7 @@ namespace FighterManager.Server.Controllers
             }
 
             var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
+
             var appUser = await _unitOfWork.AppDbContext.Users
                 .Include(u => u.Fighter).FirstOrDefaultAsync(u => u.Id == authUserId);
 
@@ -86,7 +87,7 @@ namespace FighterManager.Server.Controllers
             if (existingSession == null)
                 return NotFound(new { Message = "Training session not found!" });
 
-            existingSession.Update(input,_unitOfWork.AppDbContext);
+            existingSession.Update(input, _unitOfWork.AppDbContext);
 
             _unitOfWork.Repository<TrainingSession>().Update(existingSession);
             await _unitOfWork.SaveChangesAsync();
@@ -153,7 +154,7 @@ namespace FighterManager.Server.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TakeAttendanceResponse>> TakeAttendance(
-            int id, 
+            int id,
             TakeAttendanceRequest request)
         {
             try
@@ -163,7 +164,7 @@ namespace FighterManager.Server.Controllers
                     return Unauthorized();
 
                 var response = await _attendanceService.ProcessAttendanceAsync(
-                    id, 
+                    id,
                     request.Records,
                     instructorUserId);
 
@@ -176,6 +177,35 @@ namespace FighterManager.Server.Controllers
             {
                 return StatusCode(500, new { Message = ex.Message });
             }
+        }
+
+
+        [HttpDelete("{id}/attendance/remove/{fighterId}")]
+        public async Task<IActionResult> RemoveStudentAttendanceAsync(int id, int fighterId)
+        {
+            if (fighterId <= 0)
+            {
+                return BadRequest("Invalid Fighter ID");
+            }
+
+            var session = await _unitOfWork.AppDbContext.TrainingSessions
+                .Include(ts => ts.Students)
+                .FirstOrDefaultAsync(ts => ts.Id == id);
+            if (session == null)
+            {
+                return NotFound("Training session not found");
+            }
+
+            var student = session.Students?.FirstOrDefault(s => s.FighterId == fighterId);
+            if (student == null)
+            {
+                return NotFound("Fighter not found in this session");
+            }
+
+            _unitOfWork.AppDbContext.TrainingSessionFighterJoints.Remove(student);
+            await _unitOfWork.AppDbContext.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 

@@ -5,6 +5,7 @@ import {
     generateClassCurriculum,
     getClassCurriculum,
     SuggestFighterPairs,
+    removeStudentFromSession,
 } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
@@ -13,6 +14,7 @@ import { useParams } from 'react-router-dom';
 import AttendancePage from './AttendancePage';
 import ConfirmationDialog from '../ui/ConfirmationDialog';
 import CurriculumSection from './CurriculumSection';
+import { Trash2 } from 'lucide-react';
 
 const TrainingSessionDetails = () => {
     const { sessionId } = useParams<{ sessionId: string }>();
@@ -32,6 +34,7 @@ const TrainingSessionDetails = () => {
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
     const [showAttendanceForm, setShowAttendanceForm] = useState(false);
     const [isAIDialogOpen, SetIsAIDialogOpen] = useState(false);
+    const [isRemoving, setIsRemoving] = useState<number | null>(null);
 
     const pairingData = matchMakeResponse?.suggestedPairings ?? suggestedPairingsContent;
 
@@ -76,6 +79,29 @@ const TrainingSessionDetails = () => {
         } catch (err) {
             setError('Failed to check in');
             console.error(err);
+        }
+    };
+
+    const handleRemoveStudent = async (studentId: number) => {
+        try {
+            setIsRemoving(studentId);
+            await removeStudentFromSession(
+                sessionIdNumber,
+                studentId,
+                { jwtToken, refreshToken, hydrate }
+            );
+            
+            // Update the session details to refresh the roster
+            const updatedDetails = await getTrainingSessionDetails(
+                sessionIdNumber,
+                { jwtToken, refreshToken, hydrate }
+            );
+            setSessionDetails(updatedDetails);
+        } catch (err) {
+            setError('Failed to remove student from session');
+            console.error(err);
+        } finally {
+            setIsRemoving(null);
         }
     };
 
@@ -142,7 +168,23 @@ const TrainingSessionDetails = () => {
                         {sessionDetails && sessionDetails.students.length > 0 ? (
                             <ul className="list-disc pl-5 mt-2">
                                 {sessionDetails.students.map((student) => (
-                                    <li key={student.id}>{student.fighterName}</li>
+                                    <li key={student.id}>
+                                        <span>{student.fighterName}</span>
+                                        {user && user.fighterInfo?.role !== 0 && (
+                                            <button
+                                                onClick={() => handleRemoveStudent(student.id)}
+                                                disabled={isRemoving === student.id}
+                                                className="p-1 hover:bg-destructive/20 rounded-full transition-colors"
+                                                title="Remove student from session"
+                                            >
+                                                {isRemoving === student.id ? (
+                                                    <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                                                ) : (
+                                                    <Trash2 className="h-4 w-4 text-destructive hover:text-destructive/80" />
+                                                )}
+                                            </button>
+                                        )}
+                                    </li>
                                 ))}
                             </ul>
                         ) : (
