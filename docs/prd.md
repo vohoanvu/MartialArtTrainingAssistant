@@ -138,6 +138,12 @@ The core functionalities include secure user registration and authentication (em
     -   Mechanism for instructors to rate or comment on the usefulness/relevance of the suggested curriculum.
     -   This feedback is intended for future improvement of the AI recommendation engine.
 
+#### 2.5.4 Live Video Instructional Searching
+-   **Feature:** AI agent that performs a live web search for related Instructional Video contents.
+-   **Details:**
+    -   AI agent that search the web for live Video Instructional data on how to execute the corresponding BJJ Techniques and Drills.
+    -   For each Drills/Techniques, a embedded video player should be watchable by the class attendance, in full-screen mode.
+
 ### 2.6 Freemium Model & Payment Integration
 
 #### 2.6.1 Free Tier

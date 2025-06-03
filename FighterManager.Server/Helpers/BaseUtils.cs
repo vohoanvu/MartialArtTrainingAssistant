@@ -3,6 +3,15 @@ using System.Text.Json.Serialization;
 
 namespace FighterManager.Server.Helpers
 {
+    public static class UnitConverter
+    {
+        public static double PoundsToKilograms(double pounds) => pounds * 0.45359237;
+        public static double FeetToCentimeters(double feet) => feet * 30.48;
+
+        public static double KilogramsToPounds(double kilograms) => kilograms / 0.45359237;
+        public static double CentimetersToFeet(double centimeters) => centimeters / 30.48;
+    }
+
     public class Response<T>
     {
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;

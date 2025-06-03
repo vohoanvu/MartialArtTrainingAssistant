@@ -32,6 +32,13 @@ namespace SharedEntities.Models
         public string? RawCurriculumJson { get; set; }
 
         public string? EditedCurriculumJson { get; set; }
+
+        public string? RawFighterPairsJson { get; set; }
+
+        public string? EditedFighterPairsJson { get; set; }
+
+        // public bool IsHelpful { get; set; }
+        // public string? HelpfulComment { get; set; }
     }
 
     public class TrainingSessionTechniqueJoint

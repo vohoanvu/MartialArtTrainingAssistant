@@ -50,7 +50,7 @@ const LandingPageForm = () => {
         <div className="flex flex-col items-center justify-center max-h-screen">
             <h1 className="text-4xl font-bold mb-4">Train like a warrior</h1>
             <div className="container mx-auto max-w-md p-8 shadow-lg rounded-lg">
-                <h1 className="text-3xl font-bold text-primary mb-6">Login to try out the beta features!</h1>
+                <h1 className="text-3xl font-bold text-primary mb-6">Login</h1>
                 <form
                     className="space-y-4"
                     onSubmit={async (e) => {

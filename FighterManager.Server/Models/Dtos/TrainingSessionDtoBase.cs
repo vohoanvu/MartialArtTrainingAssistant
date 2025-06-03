@@ -30,6 +30,8 @@ namespace FighterManager.Server.Models.Dtos
         public List<ViewFighterDto> Students { get; set; } = [];
 
         public bool IsCurriculumGenerated { get; set; } = false;
+
+        public string? RawFighterPairsJson { get; set; }
     }
 
     public class UpdateSessionDetailsRequest : TrainingSessionDtoBase 
