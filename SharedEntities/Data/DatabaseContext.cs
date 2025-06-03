@@ -96,6 +96,12 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
         builder.Entity<TrainingSession>()
             .HasIndex(ts => ts.EditedCurriculumJson)
             .HasMethod("GIN");
+        builder.Entity<TrainingSession>()
+            .HasIndex(ts => ts.RawFighterPairsJson)
+            .HasMethod("GIN");
+        builder.Entity<TrainingSession>()
+            .HasIndex(ts => ts.RawFighterPairsJson)
+            .HasMethod("GIN");
 
         // Ensure JSONB columns are mapped correctly
         builder.Entity<AiAnalysisResult>()
@@ -105,11 +111,19 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
         builder.Entity<VideoSegmentFeedback>()
             .Property(a => a.AnalysisJson)
             .HasColumnType("jsonb");
+
         builder.Entity<TrainingSession>()
             .Property(ts => ts.RawCurriculumJson)
             .HasColumnType("jsonb");
         builder.Entity<TrainingSession>()
             .Property(ts => ts.EditedCurriculumJson)
+            .HasColumnType("jsonb");
+
+        builder.Entity<TrainingSession>()
+            .Property(ts => ts.RawFighterPairsJson)
+            .HasColumnType("jsonb");
+        builder.Entity<TrainingSession>()
+            .Property(ts => ts.EditedFighterPairsJson)
             .HasColumnType("jsonb");
     }
 }

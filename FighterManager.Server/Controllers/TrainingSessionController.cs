@@ -25,7 +25,7 @@ namespace FighterManager.Server.Controllers
         {
             var allSessions = await _unitOfWork.AppDbContext.TrainingSessions
                 .Include(ts => ts.Students!).ToListAsync();
-            
+
             return Ok(_objectMapper.Map<List<TrainingSession>, List<TrainingSessionDtoBase>>(allSessions));
         }
 
@@ -41,7 +41,8 @@ namespace FighterManager.Server.Controllers
 
             var getSessionDetailsResponse = _objectMapper.Map<TrainingSession, GetSessionDetailResponse>(session);
             getSessionDetailsResponse.IsCurriculumGenerated = session.RawCurriculumJson != null && session.RawCurriculumJson.Length > 0;
-        
+            getSessionDetailsResponse.RawFighterPairsJson = session.RawFighterPairsJson;
+
             return Ok(getSessionDetailsResponse);
         }
 
@@ -105,7 +106,7 @@ namespace FighterManager.Server.Controllers
                 .SetMessage("Cannot fetch the newly updated Session with related properties.");
         }
 
-        [HttpDelete("{id}")]
+        [HttpPatch("{id}/close")]
         public async Task<ActionResult> CloseSessionAsync(int id)
         {
             try

@@ -8,7 +8,7 @@ import {
 } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import useAuthStore from '@/store/authStore';
-import { MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto, ApiMatchMakerResponse } from '@/types/global';
+import { MatchMakerRequest, SessionDetailViewModel, UpdateTrainingSessionRequest, CurriculumDto, ApiMatchMakerResponse, ApiMatchMakerResponseContent } from '@/types/global';
 import { useParams } from 'react-router-dom';
 import AttendancePage from './AttendancePage';
 import ConfirmationDialog from '../ui/ConfirmationDialog';
@@ -28,9 +28,12 @@ const TrainingSessionDetails = () => {
     const hydrate = useAuthStore((state) => state.hydrate);
     //const [fighterPairResult, setFighterPairResult] = useState<FighterPairResult>();
     const [matchMakeResponse, setMatchMakerResponse] = useState<ApiMatchMakerResponse>();
+    const [suggestedPairingsContent, setSuggestedPairingsContent] = useState<ApiMatchMakerResponseContent | null>(null);
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
     const [showAttendanceForm, setShowAttendanceForm] = useState(false);
     const [isAIDialogOpen, SetIsAIDialogOpen] = useState(false);
+
+    const pairingData = matchMakeResponse?.suggestedPairings ?? suggestedPairingsContent;
 
     useEffect(() => {
         const fetchSessionDetails = async () => {
@@ -38,6 +41,10 @@ const TrainingSessionDetails = () => {
                 setLoading(true);
                 const details = await getTrainingSessionDetails(sessionIdNumber, { jwtToken, refreshToken, hydrate });
                 setSessionDetails(details);
+                if (details && details.rawFighterPairsJson) {
+                    const parsedFighterPairs = JSON.parse(details.rawFighterPairsJson) as ApiMatchMakerResponseContent;
+                    setSuggestedPairingsContent(parsedFighterPairs);
+                }
                 if (details && details.isCurriculumGenerated) {
                     const savedCurriculum = await getClassCurriculum({sessionId: sessionIdNumber, jwtToken, refreshToken, hydrate});
                     setCurriculum(savedCurriculum);
@@ -143,41 +150,8 @@ const TrainingSessionDetails = () => {
                         )}
                     </div>
 
-                    {matchMakeResponse?.suggestedPairings && matchMakeResponse.suggestedPairings.pairs.length > 0 && (
-                        <div className="mt-6">
-                            <h2 className="text-2xl font-bold">Fighter Pairs</h2>
-                            <ul className="mt-4 space-y-2">
-                                {matchMakeResponse.suggestedPairings.pairs.map((pair, index) => (
-                                    <li key={index} className="p-4 border border-border rounded-lg shadow-sm bg-background">
-                                        <p>
-                                            <strong>{pair.fighter1_name}</strong> VS <strong>{pair.fighter1_name}</strong>
-                                        </p>
-                                    </li>
-                                ))}
-                            </ul>
-                            {
-                                matchMakeResponse.suggestedPairings.unpaired_student ? (
-                                    <div className="mt-2 p-4 bg-background border border-border rounded-md shadow-md">
-                                        <span className="text-1xl font-bold mb-4 text-foreground">Unpaired Students</span>
-                                        <div className="bg-muted p-4 rounded-md overflow-auto">
-                                            <span className="font-semibold">{matchMakeResponse.suggestedPairings.unpaired_student.studentId} : {matchMakeResponse.suggestedPairings.unpaired_student.studentName}</span>
-                                            <pre className="text-sm text-foreground whitespace-pre-wrap">
-                                                {matchMakeResponse.suggestedPairings.unpaired_student.reason}
-                                            </pre>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="mt-2 p-4 bg-background border border-border rounded-md shadow-md">
-                                        <span className="text-1xl font-bold mb-4 text-foreground">Rationale</span>
-                                        <div className="bg-muted p-4 rounded-md overflow-auto">
-                                            <pre className="text-sm text-foreground whitespace-pre-wrap">
-                                                {matchMakeResponse.suggestedPairings.pairing_rationale}
-                                            </pre>
-                                        </div>
-                                    </div>
-                                )
-                            }
-                        </div>
+                    {pairingData && pairingData.pairs.length > 0 && (
+                        <FighterPairs pairingData={pairingData} />
                     )}
 
                     {user && user.fighterInfo?.role === 0 ? (
@@ -264,3 +238,48 @@ const TrainingSessionDetails = () => {
 };
 
 export default TrainingSessionDetails;
+
+
+
+
+interface FighterPairsProps {
+    pairingData: ApiMatchMakerResponseContent;
+}
+const FighterPairs = ({ pairingData }: FighterPairsProps) => {
+    return (
+        <div className="mt-6">
+            <h2 className="text-2xl font-bold">Fighter Pairs</h2>
+            <ul className="mt-4 space-y-2">
+                {pairingData.pairs.map((pair, index) => (
+                    <li key={index} className="p-4 border border-border rounded-lg shadow-sm bg-background">
+                        <p>
+                            <strong>{pair.fighter1_name}</strong> VS <strong>{pair.fighter2_name}</strong>
+                        </p>
+                    </li>
+                ))}
+            </ul>
+            {pairingData.unpaired_student ? (
+                <div className="mt-2 p-4 bg-background border border-border rounded-md shadow-md">
+                    <span className="text-xl font-bold mb-4 text-foreground">Unpaired Students</span>
+                    <div className="bg-muted p-4 rounded-md overflow-auto">
+                        <span className="font-semibold">
+                            {pairingData.unpaired_student.studentId} : {pairingData.unpaired_student.studentName}
+                        </span>
+                        <pre className="text-sm text-foreground whitespace-pre-wrap">
+                            {pairingData.unpaired_student.reason}
+                        </pre>
+                    </div>
+                </div>
+            ) : (
+                <div className="mt-2 p-4 bg-background border border-border rounded-md shadow-md">
+                    <span className="text-xl font-bold mb-4 text-foreground">Rationale</span>
+                    <div className="bg-muted p-4 rounded-md overflow-auto">
+                        <pre className="text-sm text-foreground whitespace-pre-wrap">
+                            {pairingData.pairing_rationale}
+                        </pre>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};

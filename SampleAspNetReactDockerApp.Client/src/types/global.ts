@@ -105,6 +105,7 @@ export interface SessionDetailViewModel {
     instructorId: number;
     studentIds: number[];
     isCurriculumGenerated: boolean;
+    rawFighterPairsJson?: string;
 }
 
 export interface CreateTrainingSessionRequest {
@@ -210,7 +211,7 @@ interface ApiUnpairedFighterInfo {
 }
 
 // Client-side representation of the C# MatchMakerResponseContent model
-interface ApiMatchMakerResponseContent {
+export interface ApiMatchMakerResponseContent {
     pairs: ApiFighterPair[];
     unpaired_student?: ApiUnpairedFighterInfo | null;
     pairing_rationale?: string | null;

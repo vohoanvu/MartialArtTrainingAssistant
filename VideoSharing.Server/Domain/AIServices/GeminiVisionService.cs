@@ -40,10 +40,9 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly ILogger<GeminiVisionService> _logger;
         //private readonly IServiceProvider _serviceProvider;
         // (Optional but recommended) Add a static field for JsonSerializerOptions for consistent deserialization
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNameCaseInsensitive = true // Handles cases where JSON might not strictly match C# casing,
-            // though JsonPropertyName attributes are more explicit and preferred.
         };
 
         public GeminiVisionService(IGoogleCloudStorageService storageService, ILogger<GeminiVisionService> logger)
@@ -528,7 +527,7 @@ namespace VideoSharing.Server.Domain.GeminiService
         private static string BuildFighterPairingPrompt(List<Fighter> fighters, TrainingSession classSession)
         {
             var studentDetailsSb = new StringBuilder();
-            studentDetailsSb.AppendLine("Students available for pairing (ID, Name, Belt, Weight, Height, Birthdate):");
+            studentDetailsSb.AppendLine("Students available for pairing (ID, Name, Belt, Weight, Height, Birthdate, Experience):");
             if (fighters == null || !fighters.Any())
             {
                 studentDetailsSb.AppendLine("No students provided.");
@@ -537,7 +536,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             {
                 foreach (var student in fighters)
                 {
-                    studentDetailsSb.AppendLine($"- ID: {student.Id}, Name: {student.FighterName}, Belt: {student.BelkRank}, Weight: {student.Weight} lbs, Height: {student.Height:F1} ft, Birtdate: {student.Birthdate}");
+                    studentDetailsSb.AppendLine($"- ID: {student.Id}, Name: {student.FighterName}, Belt: {student.BelkRank.ToString()}, Weight: {student.Weight} lbs, Height: {student.Height:F1} ft, Birtdate: {student.Birthdate.ToString("d")}, Experience: {student.Experience.ToString()}");
                 }
             }
 
@@ -545,7 +544,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             if (classSession.Instructor != null)
             {
                 var ins = classSession.Instructor;
-                instructorInfo = $"The Class Instructor is: ID: {ins.Id}, Name: {ins.FighterName}, Belt: {ins.BelkRank}, Weight: {ins.Weight} lbs, Height: {ins.Height:F1} ft, Birtdate: {ins.Birthdate}.";
+                instructorInfo = $"The Class Instructor is: ID: {ins.Id}, Name: {ins.FighterName}, Belt: {ins.BelkRank}, Weight: {ins.Weight} lbs, Height: {ins.Height:F1} ft, Birtdate: {ins.Birthdate.ToString("d")}.";
             }
             else
             {
@@ -573,10 +572,11 @@ namespace VideoSharing.Server.Domain.GeminiService
             {instructorInfo}
 
             Instructions:
-            1. Pair students to create the most compatible training partnerships. Aim for pairs with similar skill levels (Belt Rank) and compatible physical attributes (Weight, Height, Age) for safe and productive training.
+            1. Pair students to create the most compatible training partnerships. Aim for pairs with similar skill levels (Belt Rank, Experience) and compatible physical attributes (Weight, Height, Age) for safe and productive training.
             2. {oddNumberRule}
             3. If no students are provided or only one student is present, reflect this appropriately in your response.
             4. Ensure every student from the input list is accounted for in the output JSON, either in a pair or as an unpaired student. Use the provided numeric IDs for each fighter in the JSON output.
+            5. Watch out for inconsistent unit metric and weird fighter's details, such as unusually high or low values for weight, height, or age, and ensure they are reasonable.
 
             Return your pairings as a JSON object with the following format:
             {{
@@ -587,7 +587,6 @@ namespace VideoSharing.Server.Domain.GeminiService
                 ""fighter2_id"": 456,
                 ""fighter2_name"": ""Student Name Two""
                 }}
-                // ... more pairs, including student-instructor pair if applicable
             ],
             ""unpaired_student"": {{ // Include this object ONLY if a student is left unpaired (e.g., odd number and no instructor)
                 ""student_id"": 789,

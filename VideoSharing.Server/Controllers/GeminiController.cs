@@ -225,13 +225,14 @@ namespace VideoSharing.Server.Controllers
             }
 
             var studentFighters = await databaseContext.Fighters
+                .AsNoTracking()
                 .Where(f => request.StudentFighterIds.Contains(f.Id))
                 .ToListAsync();
             if (studentFighters.Count == 0)
             {
                 return BadRequest("No valid students found for the given IDs.");
             }
-            var instructor = await databaseContext.Fighters
+            var instructor = await databaseContext.Fighters.AsNoTracking()
                 .FirstOrDefaultAsync(f => f.Id == request.InstructorFighterId);
             if (instructor == null)
             {
@@ -250,6 +251,13 @@ namespace VideoSharing.Server.Controllers
             if (pairMatchingAIResponse == null)
             {
                 return StatusCode(500, "Failed to generate pairs.");
+            }
+
+            if (pairMatchingAIResponse.IsSuccessfullyParsed && pairMatchingAIResponse.SuggestedPairings?.Pairs.Count != 0)
+            {
+                trainingSession.RawFighterPairsJson = JsonSerializer.Serialize(pairMatchingAIResponse.SuggestedPairings);
+                databaseContext.TrainingSessions.Update(trainingSession);
+                await databaseContext.SaveChangesAsync();
             }
 
             return Ok(pairMatchingAIResponse);
