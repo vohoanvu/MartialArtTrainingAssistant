@@ -34,7 +34,7 @@ namespace FighterManager.Server.Domain.AttendanceService
         }
 
         public async Task<TakeAttendanceResponse> ProcessAttendanceAsync(
-            int sessionId, 
+            int sessionId,
             List<AttendanceRecordDto> records,
             string instructorUserId)
         {
@@ -44,10 +44,10 @@ namespace FighterManager.Server.Domain.AttendanceService
                 // 1. Validate input records, session and instructor
                 if (!records.Any())
                 {
-                    return new TakeAttendanceResponse 
-                    { 
-                        Success = false, 
-                        Message = "No attendance records provided" 
+                    return new TakeAttendanceResponse
+                    {
+                        Success = false,
+                        Message = "No attendance records provided"
                     };
                 }
 
@@ -55,13 +55,13 @@ namespace FighterManager.Server.Domain.AttendanceService
                     .GroupBy(r => r.FighterName.ToLower())
                     .Where(g => g.Count() > 1)
                     .Select(g => g.Key);
-            
+
                 if (duplicateNames.Any())
                 {
-                    return new TakeAttendanceResponse 
-                    { 
-                        Success = false, 
-                        Message = $"Duplicate fighter names found: {string.Join(", ", duplicateNames)}" 
+                    return new TakeAttendanceResponse
+                    {
+                        Success = false,
+                        Message = $"Duplicate fighter names found: {string.Join(", ", duplicateNames)}"
                     };
                 }
 
@@ -140,15 +140,38 @@ namespace FighterManager.Server.Domain.AttendanceService
         {
             var existingFighter = await _attendanceRepository.GetFighterByNameAsync(record.FighterName);
             if (existingFighter != null)
-                return existingFighter;
+            {
+                //Updated duplicated fighter name in db
+                existingFighter.BelkRank = Enum.Parse<BeltColor>(record.BeltColor);
+                existingFighter.Experience = DetermineExperienceLevel(Enum.Parse<BeltColor>(record.BeltColor));
+                existingFighter.Gender = Enum.Parse<Gender>(record.Gender);
+                existingFighter.Weight = record.Weight;
+                existingFighter.Height = record.Height;
+                existingFighter.Birthdate = record.Birthdate;
+                existingFighter.IsWalkIn = true;
+                return await _attendanceRepository.UpdateFighterAsync(existingFighter);
+            }
 
             var fighter = _mapper.Map<Fighter>(record);
             fighter.Role = FighterRole.Student;
-            fighter.Experience = TrainingExperience.LessThanTwoYears;
+            fighter.Experience = DetermineExperienceLevel(Enum.Parse<BeltColor>(record.BeltColor));
             fighter.MaxWorkoutDuration = 5;
             fighter.IsWalkIn = true;
 
             return await _attendanceRepository.AddFighterAsync(fighter);
+        }
+        
+        private static TrainingExperience DetermineExperienceLevel(BeltColor beltColor)
+        {
+            return beltColor switch
+            {
+                BeltColor.White => TrainingExperience.LessThanTwoYears,
+                BeltColor.Blue => TrainingExperience.FromTwoToFiveYears,
+                BeltColor.Purple => TrainingExperience.FromTwoToFiveYears,
+                BeltColor.Brown => TrainingExperience.MoreThanFiveYears,
+                BeltColor.Black => TrainingExperience.MoreThanFiveYears,
+                _ => TrainingExperience.LessThanTwoYears
+            };
         }
     }
 }

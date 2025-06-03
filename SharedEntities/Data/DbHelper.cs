@@ -29,9 +29,9 @@ namespace SharedEntities.Data
                     var studentFighter = new Fighter
                     {
                         FighterName = "Test Student 0",
-                        Height = 5.4,
-                        Weight = 132,
-                        BMI = 132 / (5.4 * 5.4),
+                        Height = 165,
+                        Weight = 60,
+                        BMI = 60 / (165/100 * (165/100)),
                         Gender = Gender.Male,
                         Birthdate = new DateTime(1996, 3, 19, 0, 0, 0, DateTimeKind.Utc),
                         MaxWorkoutDuration = 5,
@@ -58,9 +58,9 @@ namespace SharedEntities.Data
                     var instructorFighter = new Fighter
                     {
                         FighterName = "Test Instructor 0",
-                        Height = 5.8,
-                        Weight = 156,
-                        BMI = 156 / (5.8 * 5.8), // Corrected BMI calculation
+                        Height = 177,
+                        Weight = 71,
+                        BMI = 71 / (177/100 * (177/100)),
                         Gender = Gender.Male,
                         Birthdate = new DateTime(1988, 3, 19, 0, 0, 0, DateTimeKind.Utc),
                         MaxWorkoutDuration = 30,
@@ -91,9 +91,9 @@ namespace SharedEntities.Data
                             new Fighter
                             {
                                 FighterName = "Test Student 1",
-                                Height = 4.8,
-                                Weight = 110,
-                                BMI = 110 / (4.8 * 4.8),
+                                Height = 147,
+                                Weight = 50,
+                                BMI = 50 / (147/100 * (147/100)),
                                 Gender = Gender.Female,
                                 Birthdate = new DateTime(2000, 7, 15, 0, 0, 0, DateTimeKind.Utc),
                                 MaxWorkoutDuration = 4,
@@ -115,9 +115,9 @@ namespace SharedEntities.Data
                             new Fighter
                             {
                                 FighterName = "Test Student 2",
-                                Height = 5.6,
-                                Weight = 165,
-                                BMI = 165 / (5.6 * 5.6),
+                                Height = 171,
+                                Weight = 75,
+                                BMI = 75 / (171/100 * (171/100)),
                                 Gender = Gender.Male,
                                 Birthdate = new DateTime(1995, 11, 22, 0, 0, 0, DateTimeKind.Utc),
                                 MaxWorkoutDuration = 10,
@@ -139,9 +139,9 @@ namespace SharedEntities.Data
                             new Fighter
                             {
                                 FighterName = "Test Student 3",
-                                Height = 6.0,
-                                Weight = 200,
-                                BMI = 200 / (6.0 * 6.0),
+                                Height = 183,
+                                Weight = 91,
+                                BMI = 91 / (183/100 * (183/100)),
                                 Gender = Gender.Female,
                                 Birthdate = new DateTime(1990, 4, 10, 0, 0, 0, DateTimeKind.Utc),
                                 MaxWorkoutDuration = 20,
@@ -163,9 +163,9 @@ namespace SharedEntities.Data
                             new Fighter
                             {
                                 FighterName = "Test Student 4",
-                                Height = 5.9,
-                                Weight = 175,
-                                BMI = 175 / (5.9 * 5.9),
+                                Height = 180,
+                                Weight = 79,
+                                BMI = 79 / (180/100 * (180/100)),
                                 Gender = Gender.Male,
                                 Birthdate = new DateTime(1998, 9, 5, 0, 0, 0, DateTimeKind.Utc),
                                 MaxWorkoutDuration = 6,
@@ -187,9 +187,9 @@ namespace SharedEntities.Data
                             new Fighter
                             {
                                 FighterName = "Test Student 5",
-                                Height = 5.2,
-                                Weight = 125,
-                                BMI = 125 / (5.2 * 5.2),
+                                Height = 158,
+                                Weight = 57,
+                                BMI = 57 / (158/100 * (158/100)),
                                 Gender = Gender.Female,
                                 Birthdate = new DateTime(1997, 2, 28, 0, 0, 0, DateTimeKind.Utc),
                                 MaxWorkoutDuration = 8,

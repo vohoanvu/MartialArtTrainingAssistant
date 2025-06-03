@@ -33,16 +33,16 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly PredictionServiceClient _predictionClient;
         private readonly string _projectId;
         private readonly string _location;
-        private readonly string _model;
+        private readonly string _model; //default to latest gemini pro model from appsettings for Vision analysis
+        private readonly string _textModel = "gemini-2.5-flash-preview-05-20";
 
         private readonly IGoogleCloudStorageService _storageService;
         private readonly ILogger<GeminiVisionService> _logger;
         //private readonly IServiceProvider _serviceProvider;
         // (Optional but recommended) Add a static field for JsonSerializerOptions for consistent deserialization
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNameCaseInsensitive = true // Handles cases where JSON might not strictly match C# casing,
-            // though JsonPropertyName attributes are more explicit and preferred.
         };
 
         public GeminiVisionService(IGoogleCloudStorageService storageService, ILogger<GeminiVisionService> logger)
@@ -145,7 +145,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 },
                 SafetySettings =
                 {
-                    new SafetySetting { Category = HarmCategory.SexuallyExplicit, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone }, // Adjusted to BlockNone for potentially off
+                    new SafetySetting { Category = HarmCategory.SexuallyExplicit, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
                     new SafetySetting { Category = HarmCategory.HateSpeech, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
                     new SafetySetting { Category = HarmCategory.DangerousContent, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
                     new SafetySetting { Category = HarmCategory.Harassment, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone }
@@ -154,7 +154,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 {
                     Temperature = 0.4f,
                     TopP = 1.0f,
-                    MaxOutputTokens = 8192, // Increased from 2048, but ensure your model supports it. Gemini 1.0 Pro Vision has 2048, Gemini 1.5 Flash/Pro have much larger context windows. 65535 is very large.
+                    MaxOutputTokens = 65535, // Increased from 2048, 65535 is current Max.
                     ResponseMimeType = "application/json",
                 }
             };
@@ -188,14 +188,10 @@ namespace VideoSharing.Server.Domain.GeminiService
         public async Task<GeminiChatResponse> SuggestClassCurriculum(List<string>? weaknesses, List<Fighter>? students, TrainingSession classSession)
         {
             var curriculumPrompt = BuildCurriculumPrompt(weaknesses, students, classSession);
-            // Use a different model for text generation if appropriate, or a different configuration
-            // For now, assuming _model can handle both or is a text model.
-            // If _model is vision-specific, you'll need another model ID for chat.
-            string chatModel = _model; // Or specify a text-specific model like "gemini-1.5-pro-001" or "gemini-1.0-pro"
 
             var request = new GenerateContentRequest
             {
-                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{chatModel}",
+                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{_textModel}",
                 Contents =
                 {
                     new Content
@@ -213,16 +209,16 @@ namespace VideoSharing.Server.Domain.GeminiService
                 },
                 GenerationConfig = new GenerationConfig
                 {
-                    Temperature = 0.7f, // Might want different temp for curriculum generation
+                    Temperature = 1.0f, // Higher temperature for more creative responses
                     TopP = 1.0f,
-                    MaxOutputTokens = 4096, // Ensure this is appropriate for curriculum length
+                    MaxOutputTokens = 16384, // Ensure this is appropriate for curriculum length
                     ResponseMimeType = "application/json",
                 }
             };
 
             try
             {
-                _logger.LogInformation("Sending GenerateContent request for class curriculum to model {Model} in project {ProjectId}", chatModel, _projectId);
+                _logger.LogInformation("Sending GenerateContent request for class curriculum to model {Model} in project {ProjectId}", _textModel, _projectId);
                 // _logger.LogDebug("Curriculum Prompt: {Prompt}", curriculumPrompt); // Log prompt at Debug level
 
                 GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
@@ -234,7 +230,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             catch (Google.GoogleApiException ex)
             {
                 _logger.LogError(ex, "Vertex AI API call failed for curriculum generation: project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
-                    _projectId, chatModel, ex.HttpStatusCode, ex.Error?.ToString());
+                    _projectId, _textModel, ex.HttpStatusCode, ex.Error?.ToString());
                 throw new InvalidOperationException($"Vertex AI API call failed for curriculum generation: {ex.Message}", ex);
             }
             catch (Exception ex)
@@ -244,8 +240,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             }
         }
 
-        /// <summary>
-        /// </summary>
+        /// <inheritdoc/>
         public async Task<MatchMakerResponse> SuggestFighterPairs(List<Fighter> fighters, TrainingSession classSession)
         {
             var response = new MatchMakerResponse();
@@ -258,7 +253,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                     Pairs = [],
                     PairingRationale = "No students provided to pair."
                 };
-                response.RawFighterPairsJson = JsonSerializer.Serialize(response.SuggestedPairings, _jsonSerializerOptions);
+                response.RawGenerateContentResponseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
                 response.IsSuccessfullyParsed = true;
                 return response;
             }
@@ -278,17 +273,16 @@ namespace VideoSharing.Server.Domain.GeminiService
                     },
                     PairingRationale = "Only one student available."
                 };
-                response.RawFighterPairsJson = JsonSerializer.Serialize(response.SuggestedPairings, _jsonSerializerOptions);
+                response.RawGenerateContentResponseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
                 response.IsSuccessfullyParsed = true;
                 return response;
             }
 
             var pairingPrompt = BuildFighterPairingPrompt(fighters, classSession);
-            string textModel = _model;
 
             var request = new GenerateContentRequest
             {
-                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{textModel}",
+                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{_textModel}",
                 Contents = { new Content { Role = "user", Parts = { new Part { Text = pairingPrompt } } } },
                 SafetySettings =
                 {
@@ -301,20 +295,22 @@ namespace VideoSharing.Server.Domain.GeminiService
                 {
                     Temperature = 0.2f,
                     TopP = 1.0f,
-                    MaxOutputTokens = 2048,
+                    MaxOutputTokens = 8192,
                     ResponseMimeType = "application/json", // Crucial: Ask AI for JSON output
                 }
             };
 
             try
             {
-                _logger.LogInformation("Sending GenerateContent request for fighter pairing to model {Model} in project {ProjectId}", textModel, _projectId);
+                _logger.LogInformation("Sending GenerateContent request for fighter pairing to model {Model} in project {ProjectId}", _textModel, _projectId);
+                _logger.LogInformation("User Prompt: {Prompt}", pairingPrompt);
                 GenerateContentResponse geminiResponse = await _predictionClient.GenerateContentAsync(request);
 
                 string resultJson = geminiResponse.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
-                                ?? string.Empty;
+                    ?? string.Empty;
+                _logger.LogInformation("Model Response: {response}", geminiResponse);
 
-                response.RawFighterPairsJson = resultJson;
+                response.RawGenerateContentResponseJson = geminiResponse.Candidates.FirstOrDefault()?.Content.ToString() ?? string.Empty;
 
                 if (string.IsNullOrWhiteSpace(resultJson))
                 {
@@ -352,7 +348,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             catch (Google.GoogleApiException ex)
             {
                 _logger.LogError(ex, "Vertex AI API call failed for fighter pairing: project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
-                    _projectId, textModel, ex.HttpStatusCode, ex.Error?.ToString());
+                    _projectId, _textModel, ex.HttpStatusCode, ex.Error?.ToString());
                 response.ErrorMessage = $"Vertex AI API call failed: {ex.Message}";
                 response.IsSuccessfullyParsed = false;
                 response.SuggestedPairings = new MatchMakerResponseContent { PairingRationale = response.ErrorMessage };
@@ -531,8 +527,8 @@ namespace VideoSharing.Server.Domain.GeminiService
         private static string BuildFighterPairingPrompt(List<Fighter> fighters, TrainingSession classSession)
         {
             var studentDetailsSb = new StringBuilder();
-            studentDetailsSb.AppendLine("Students available for pairing (ID, Name, Belt, Weight, Height, Birthdate):");
-            if (fighters == null || !fighters.Any())
+            studentDetailsSb.AppendLine("Students available for pairing (ID, Name, Belt, Weight, Height, Birthdate, Experience):");
+            if (fighters == null || fighters.Count == 0)
             {
                 studentDetailsSb.AppendLine("No students provided.");
             }
@@ -540,7 +536,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             {
                 foreach (var student in fighters)
                 {
-                    studentDetailsSb.AppendLine($"- ID: {student.Id}, Name: {student.FighterName}, Belt: {student.BelkRank}, Weight: {student.Weight} lbs, Height: {student.Height:F1} ft, Birtdate: {student.Birthdate}");
+                    studentDetailsSb.AppendLine($"- ID: {student.Id}, Name: {student.FighterName}, Belt: {student.BelkRank.ToString()}, Weight: {student.Weight:F1} kg, Height: {student.Height:F0} cm, Birtdate: {student.Birthdate.ToString("d")}, Experience: {student.Experience.ToString()}");
                 }
             }
 
@@ -548,7 +544,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             if (classSession.Instructor != null)
             {
                 var ins = classSession.Instructor;
-                instructorInfo = $"The Class Instructor is: ID: {ins.Id}, Name: {ins.FighterName}, Belt: {ins.BelkRank}, Weight: {ins.Weight} lbs, Height: {ins.Height:F1} ft, Birtdate: {ins.Birthdate}.";
+                instructorInfo = $"The Class Instructor is: ID: {ins.Id}, Name: {ins.FighterName}, Belt: {ins.BelkRank},Weight: {ins.Weight:F1} kg, Height: {ins.Height:F0} cm, Birtdate: {ins.Birthdate:d}.";
             }
             else
             {
@@ -570,16 +566,17 @@ namespace VideoSharing.Server.Domain.GeminiService
                 }
             }
 
-            return $@"You are an expert {classSession.MartialArt.ToString()} matchmaker and instructor. Your task is to pair up students for training based on their compatibility, considering skill level, size, and age.
+            return $@"You are an expert {classSession.MartialArt.ToString()} instructor. Your task is to pair up students for training based on their compatibility, considering skill level, size, and age.
             {studentDetailsSb.ToString()}
 
             {instructorInfo}
 
             Instructions:
-            1. Pair students to create the most compatible training partnerships. Aim for pairs with similar skill levels (Belt Rank) and compatible physical attributes (Weight, Height, Age) for safe and productive training.
+            1. Pair students to create the most compatible training partnerships. Aim for pairs with similar skill levels (Belt Rank, Experience) and compatible physical attributes (Weight, Height, Age) for safe and productive training.
             2. {oddNumberRule}
             3. If no students are provided or only one student is present, reflect this appropriately in your response.
             4. Ensure every student from the input list is accounted for in the output JSON, either in a pair or as an unpaired student. Use the provided numeric IDs for each fighter in the JSON output.
+            5. Watch out for inconsistent unit metric and weird fighter's details, such as unusually high or low values for weight, height, or age, and ensure they are reasonable.
 
             Return your pairings as a JSON object with the following format:
             {{
@@ -590,7 +587,6 @@ namespace VideoSharing.Server.Domain.GeminiService
                 ""fighter2_id"": 456,
                 ""fighter2_name"": ""Student Name Two""
                 }}
-                // ... more pairs, including student-instructor pair if applicable
             ],
             ""unpaired_student"": {{ // Include this object ONLY if a student is left unpaired (e.g., odd number and no instructor)
                 ""student_id"": 789,

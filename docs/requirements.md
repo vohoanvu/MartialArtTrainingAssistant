@@ -62,10 +62,11 @@ The system will be accessible via a web application (primarily for instructors t
     - Aggregated data of checked-in students (age, height, weight, belt rank, gender).
     - Analyzed weaknesses from uploaded videos if students have used the video analysis feature.
 - **FR5.2 Drill Suggestion:** The curriculum shall include 5-7 drills designed to address common weaknesses identified (e.g., takedown defense, guard retention for BJJ).
-- **FR5.3 Skill-Level Tailoring:** Drills shall be tailored to the class’s average skill level (derived from belt ranks) and the session's defined target level.
+- **FR5.3 Skill-Level Tailoring:** Drills shall be tailored to the class’s average skill level (derived from belt ranks) or the session's defined target level.
 - **FR5.4 Curriculum Display:** Instructors shall be able to view the generated curriculum in an intuitive user interface, showing drill names, detailed descriptions, and the weakness categories each drill addresses.
-- **FR5.5 Instructor Feedback on Curriculum:** The system shall allow instructors to provide feedback on the generated curriculum to aid future improvements of the recommendation engine.
+- **FR5.5 Instructor Feedback on Curriculum:** The system shall allow instructors to provide feedback on the generated curriculum to aid future improvements of the recommendation engine. (Post-MVP)
 - **FR5.6 Drill Time Tracking:** For each recommended drill or exercise, the system shall provide a time tracker to help instructors manage student pair sparring and drill durations.
+- **FR5.7 Live Video Instructional Searching:** For each AI-generated Drilling or Techniques lesson, there should be another AI agent that search the web for live Video Instructional data related to Techniques and Drills. These videos url should be returned as playable urls to be embedded within the Curriculum section.
 
 ### FR8: Freemium Model & Payments
 - **FR8.1 Free Tier Access:**
