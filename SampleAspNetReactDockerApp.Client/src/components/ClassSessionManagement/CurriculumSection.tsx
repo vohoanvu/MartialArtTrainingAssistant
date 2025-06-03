@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+//import { Button } from '@/components/ui/button';
 import { CurriculumDto } from '@/types/global';
 import DrillTimer from './DrillTimer';
 import { useState } from 'react';
@@ -8,7 +8,7 @@ interface CurriculumSectionProps {
     onFeedback: (helpful: boolean) => void;
 }
 
-const CurriculumSection = ({ curriculum, onFeedback }: CurriculumSectionProps) => {
+const CurriculumSection = ({ curriculum }: CurriculumSectionProps) => {
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
 
     const toggleAccordion = (id: string) => {
@@ -181,7 +181,7 @@ const CurriculumSection = ({ curriculum, onFeedback }: CurriculumSectionProps) =
             </section>
 
             {/* Feedback Section */}
-            <section id="feedback" className="mb-6">
+            {/* <section id="feedback" className="mb-6">
                 <div className="bg-accent p-4 rounded-lg shadow">
                     <h3 className="text-2xl font-semibold">Feedback</h3>
                     <p className="text-lg mt-2">Was this helpful?</p>
@@ -207,7 +207,7 @@ const CurriculumSection = ({ curriculum, onFeedback }: CurriculumSectionProps) =
                         Submit Feedback
                     </Button>
                 </div>
-            </section>
+            </section> */}
         </div>
     );
 };

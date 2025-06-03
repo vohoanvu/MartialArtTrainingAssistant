@@ -6,9 +6,9 @@ dotnet build FighterManager.Server/FighterManager.Server.csproj
 dotnet build VideoSharing.Server/VideoSharing.Server.csproj
 # dotnet build MatchMaker.Server/MatchMaker.Server.csproj
 
-# echo "Running backend services in background..."
-# dotnet run --project FighterManager.Server/FighterManager.Server.csproj --launch-profile https &
-# dotnet run --project VideoSharing.Server/VideoSharing.Server.csproj --launch-profile https &
+echo "Running backend services in background..."
+dotnet run --project FighterManager.Server/FighterManager.Server.csproj --launch-profile https &
+dotnet run --project VideoSharing.Server/VideoSharing.Server.csproj --launch-profile https --watch
 # dotnet run --project MatchMaker.Server/MatchMaker.Server.csproj --launch-profile https &
 
 # echo "All services started. Access at:"

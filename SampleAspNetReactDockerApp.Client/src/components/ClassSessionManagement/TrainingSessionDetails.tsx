@@ -218,7 +218,7 @@ const TrainingSessionDetails = () => {
                             {isLessonloading && (
                                 <div className="mt-4 flex items-center space-x-2">
                                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                                    <p className="text-primary">The AI is designing the curriculum for you. This may take a few minutes.</p>
+                                    <p className="text-primary">The AI is designing the curriculum for you. This may take a few minutes...</p>
                                 </div>
                             )}
                         </div>
