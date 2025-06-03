@@ -151,24 +151,86 @@ const TrainingSessionDetails = () => {
     if (error) return <p className="text-center text-lg text-destructive">{error}</p>;
 
     return (
-        <div className="container mx-auto max-w-4xl p-8 shadow-lg rounded-lg bg-card text-card-foreground transition-colors duration-300">
-            <h1 className="text-3xl font-bold mb-6 text-center">Session Details</h1>
-            {sessionDetails?.instructor ? (
-                <div className="border border-border p-4 rounded-lg mb-6 bg-accent transition-colors">
-                    <p><strong>Instructor Name:</strong> {sessionDetails.instructor.fighterName}</p>
-                    <p><strong>Training Date:</strong> {sessionDetails.trainingDate}</p>
-                    <p><strong>Capacity:</strong> {sessionDetails.capacity}</p>
-                    <p><strong>Duration:</strong> {sessionDetails.duration} minutes</p>
-                    <p><strong>Status:</strong> {sessionDetails.status}</p>
-                    <p><strong>Level:</strong> {sessionDetails.targetLevel}</p>
-                    <p><strong>Description Notes:</strong> {sessionDetails.description}</p>
+        <div className="container mx-auto max-w-6xl p-8 shadow-lg rounded-lg bg-card text-card-foreground transition-colors duration-300">
+            <h1 className="text-3xl font-bold mb-6 text-center">Class Session Details</h1>
+            <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1">
+                    {sessionDetails?.instructor ? (
+                        <div className="border border-border p-4 rounded-lg mb-6 bg-accent transition-colors">
+                            <p><strong>Instructor Name:</strong> {sessionDetails.instructor.fighterName}</p>
+                            <p><strong>Training Date:</strong> {sessionDetails.trainingDate}</p>
+                            <p><strong>Capacity:</strong> {sessionDetails.capacity}</p>
+                            <p><strong>Duration:</strong> {sessionDetails.duration} minutes</p>
+                            <p><strong>Status:</strong> {sessionDetails.status}</p>
+                            <p><strong>Level:</strong> {sessionDetails.targetLevel}</p>
+                            <p><strong>Description Notes:</strong> {sessionDetails.description}</p>
 
-                    <div className="mt-4">
-                        <h2 className="text-2xl font-bold">Students Roster</h2>
+                            {user && user.fighterInfo?.role === 0 ? (
+                                <Button type="button" onClick={handleCheckIn} className="mt-4">
+                                    Check-In
+                                </Button>
+                            ) : (
+                                <div className="flex flex-wrap gap-2 mt-4">
+                                    <Button
+                                        type="button"
+                                        onClick={() => setShowAttendanceForm(true)}
+                                        variant='default'
+                                    >
+                                        Take Attendance
+                                    </Button>
+                                    <Button type="button" variant='outline'
+                                        onClick={() => {
+                                            window.confirm('Are you sure you want to pair up fighters? This will generate pairs based on the current roster.') && handlePairUp();
+                                        }}
+                                        disabled={isPairingLoading}
+                                    >
+                                        PAIR UP
+                                    </Button>
+                                    {isPairingLoading && (
+                                        <div className="flex items-center space-x-2">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent-foreground"></div> {/* Use a different color if needed, e.g., border-secondary */}
+                                            <p className="text-accent-foreground">AI is matching fighters...</p>
+                                        </div>
+                                    )}
+                                    <Button
+                                        type="button"
+                                        variant='default'
+                                        onClick={() => SetIsAIDialogOpen(true)}
+                                        disabled={isLessonloading}
+                                    >
+                                        Generate Today's Lessons
+                                    </Button>
+                                    {isLessonloading && (
+                                        <div className="mt-4 flex items-center space-x-2">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                                            <p className="text-primary">The AI is designing the curriculum for you. This may take a few minutes...</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-muted-foreground">No session details available.</p>
+                    )}
+                    <ConfirmationDialog
+                        title="Generate AI Lesson Plan"
+                        message="You are about to generate a new lesson plan using AI. This process may take a few minutes to complete. The AI will analyze your training requirements and create a structured curriculum for today's session."
+                        isOpen={isAIDialogOpen}
+                        onConfirm={async () => {
+                            await handleGenerateCurriculum();
+                            SetIsAIDialogOpen(false);
+                        }}
+                        onCancel={() => SetIsAIDialogOpen(false)}
+                    />
+                </div>
+
+                <div className="flex-1 md:max-w-xs">
+                    <div className="border border-border p-4 rounded-lg bg-accent transition-colors">
+                        <h2 className="text-1xl font-bold">Students Roster</h2>
                         {sessionDetails && sessionDetails.students.length > 0 ? (
                             <ul className="list-disc pl-5 mt-2">
                                 {sessionDetails.students.map((student) => (
-                                    <li key={student.id}>
+                                    <li key={student.id} className="flex items-center justify-between">
                                         <span>{student.fighterName}</span>
                                         {user && user.fighterInfo?.role !== 0 && (
                                             <button
@@ -191,68 +253,12 @@ const TrainingSessionDetails = () => {
                             <p className="text-muted-foreground">No students enrolled in this session.</p>
                         )}
                     </div>
-
-                    {pairingData && pairingData.pairs.length > 0 && (
-                        <FighterPairs pairingData={pairingData} />
-                    )}
-
-                    {user && user.fighterInfo?.role === 0 ? (
-                        <Button type="button" onClick={handleCheckIn} className="mt-4">
-                            Check-In
-                        </Button>
-                    ) : (
-                        <div className="flex flex-wrap gap-2 mt-4">
-                            <Button 
-                                type="button"
-                                onClick={() => setShowAttendanceForm(true)} 
-                                variant='default'
-                            >
-                                Take Attendance
-                            </Button>
-                            <Button type="button" variant='outline' 
-                                onClick={() => {
-                                    window.confirm('Are you sure you want to pair up fighters? This will generate pairs based on the current roster.') && handlePairUp();
-                                }}
-                                disabled={isPairingLoading}
-                            >
-                                PAIR UP
-                            </Button>
-                            {isPairingLoading && (
-                                <div className="flex items-center space-x-2">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent-foreground"></div> {/* Use a different color if needed, e.g., border-secondary */}
-                                    <p className="text-accent-foreground">AI is matching fighters...</p>
-                                </div>
-                            )} 
-                            <Button
-                                type="button"
-                                variant='default'
-                                onClick={() => SetIsAIDialogOpen(true)}
-                                disabled={isLessonloading}
-                            >
-                                Generate Today's Lessons
-                            </Button>
-                            {isLessonloading && (
-                                <div className="mt-4 flex items-center space-x-2">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                                    <p className="text-primary">The AI is designing the curriculum for you. This may take a few minutes...</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
-            ) : (
-                <p className="text-muted-foreground">No session details available.</p>
+            </div>
+
+            {pairingData && pairingData.pairs.length > 0 && (
+                <FighterPairs pairingData={pairingData} />
             )}
-            <ConfirmationDialog
-                title="Generate AI Lesson Plan"
-                message="You are about to generate a new lesson plan using AI. This process may take a few minutes to complete. The AI will analyze your training requirements and create a structured curriculum for today's session."
-                isOpen={isAIDialogOpen}
-                onConfirm={async () => {
-                    await handleGenerateCurriculum();
-                    SetIsAIDialogOpen(false);
-                }}
-                onCancel={() => SetIsAIDialogOpen(false)}
-            />
 
             {/* Attendance Taking layover */}
             {showAttendanceForm && (

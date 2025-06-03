@@ -28,7 +28,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
     const [analysisResult, setAnalysisResult] = useState<any>(null);
 
     const uploadType = fighterRole === 0 ? 'sparring' : 'demonstration';
-    const title = fighterRole === 0 ? 'Upload Sparring Video' : 'Upload Demonstration Video';
+    const title = fighterRole === 0 ? 'Upload your training video for AI analysis' : 'Upload your students video for AI analysis';
 
     const martialArtOptions = Object.values(MartialArt);
 
@@ -143,14 +143,14 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                 </div>
                 <div>
                     <label htmlFor="studentIdentifier" className="block text-sm font-medium text-foreground">
-                        Specify which fighter are you in the video?
+                        Specify which fighter in the video you want the AI to analyze!
                     </label>
                     <Input
                         type="text"
                         id="studentIdentifier"
                         value={studentIdentifier}
                         onChange={(e) => setStudentIdentifier(e.target.value)}
-                        placeholder="For example: 'I am the Fighter in Blue GI, the opponent is in Black GI'"
+                        placeholder="For example: 'the Fighter in Blue GI, the player is in Black GI'"
                         className="mt-1"
                         disabled={isLoading}
                     />
@@ -181,7 +181,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                     disabled={!file || isLoading}
                     className="w-full"
                 >
-                    {isLoading ? 'Uploading...' : `Upload ${uploadType === 'sparring' ? 'Sparring' : 'Demonstration'} Video`}
+                    {isLoading ? 'Uploading...' : `Upload Video`}
                 </Button>
             </form>
             {isLoading && (

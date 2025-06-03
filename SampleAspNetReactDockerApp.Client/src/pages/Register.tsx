@@ -1,8 +1,9 @@
-﻿// Register.tsx
-import {useState} from "react";
-import {useNavigate} from "react-router-dom";
+﻿import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useAuthStore, { RegisterFighterBody } from "@/store/authStore.ts";
-import {Button} from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
 
 interface ValidationError {
@@ -25,22 +26,19 @@ enum TrainingExperience {
 
 export default function Register() {
     const navigate = useNavigate();
-    // Assuming the existence of a 'register' method in useAuthStore similar to 'login'
-    const register = useAuthStore((state) => state.register);
-    console.log('testing...', typeof register);
     const registerFighter = useAuthStore((state) => state.registerFighter);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [validationError, setValidationError] = useState<ValidationError | null>();
 
-    const [role, setRole] = useState("Student");
+    const [role, setRole] = useState("Instructor");
     const [name, setName] = useState("");
     const [height, setHeight] = useState('0');
     const [weight, setWeight] = useState('0');
     const [bmi, setBmi] = useState('0');
     const [gender, setGender] = useState("Male");
-    const [birthdate, setBirthdate] = useState<string>(''); // This is a string because it is a date input
+    const [birthdate, setBirthdate] = useState<string>('');
     const [sparringDuration, setSparringDuration] = useState('5');
     const [experience, setExperience] = useState(TrainingExperience.LessThanTwoYears);
     const [beltRank, setBeltRank] = useState("White");
@@ -77,7 +75,7 @@ export default function Register() {
                 const success = await registerFighter(fighterRegistrationPayload);
                 if (success.successful) {
                     alert("Registration successful!");
-                    navigate("/login"); // Redirect to login page or another page as desired    
+                    navigate("/home");
                 } else {
                     const errorResponse = JSON.parse(success.response ?? "{}");
                     if (errorResponse && typeof errorResponse === 'object') {
@@ -87,7 +85,7 @@ export default function Register() {
                 }
             } catch (error) {
                 console.error("Registration failed: ", error);
-                setValidationError({type: 'error', title: error as string, status: 500, errors: {}});
+                setValidationError({ type: 'error', title: error as string, status: 500, errors: {} });
             }
 
             setIsDialogOpen(false);
@@ -101,7 +99,6 @@ export default function Register() {
     };
 
     const calculateBmi = () => {
-        // Using the inputs as metric values
         const heightInMeters = parseFloat(height) / 100;
         const weightInKg = parseFloat(weight);
         if (heightInMeters > 0 && weightInKg > 0) {
@@ -110,21 +107,16 @@ export default function Register() {
         }
     };
 
-    // Apply imperial conversion: FT to CM and LBS to KG
     const applyImperialConversion = () => {
         const convertedHeight = ftImperial ? (parseFloat(ftImperial) * 30.48).toFixed(1) : height;
         const convertedWeight = lbsImperial ? (parseFloat(lbsImperial) * 0.45359237).toFixed(1) : weight;
-
-        // Update the metric fields with the conversion result
         setHeight(convertedHeight);
         setWeight(convertedWeight);
-        // Reset imperial inputs (optional)
         setFtImperial('');
         setLbsImperial('');
-        // Recalculate BMI based on updated metric inputs
         const heightInMeters = parseFloat(convertedHeight) / 100;
         const weightInKg = parseFloat(convertedWeight);
-        if(heightInMeters > 0 && weightInKg > 0) {
+        if (heightInMeters > 0 && weightInKg > 0) {
             const bmiValue = weightInKg / (heightInMeters * heightInMeters);
             setBmi(bmiValue.toFixed(2));
         }
@@ -133,60 +125,49 @@ export default function Register() {
     return (
         <div className="container mx-auto max-w-4xl p-8 shadow-lg rounded-lg">
             <h1 className="text-3xl font-bold text-primary mb-6">Register</h1>
-            <form
-                className="space-y-4"
-                onSubmit={handleRegister}
-            >
+            <form className="space-y-4" onSubmit={handleRegister}>
                 {validationError &&
                     <>
-                        {
-                            Object.values(validationError.errors).flat().map((error, index) =>  
-                                {
-                                    const keyIndex = index;
-                                    return <p key={keyIndex} className="text-red-500 line-clamp-5">{error}</p>
-                                }
-                            )
-                        }
+                        {Object.values(validationError.errors).flat().map((error, index) =>
+                            <p key={index} className="text-red-500 line-clamp-5">{error}</p>
+                        )}
                         <p className="text-red-300 text-xl font-bold">Check console for details</p>
                     </>
                 }
 
-                { /* FighterRole field */ }
+                {/* FighterRole field */}
                 <div>
                     <label htmlFor="role" className="block text-sm font-medium">Select Role:</label>
-                    <select
-                        id="role"
-                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                    >
-                        <option value="Student">Student</option>
-                        <option value="Instructor">Instructor</option>
-                    </select>
+                    <Select value={role} onValueChange={setRole}>
+                        <SelectTrigger id="role">
+                            <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Student">Student</SelectItem>
+                            <SelectItem value="Instructor">Instructor</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
-                { /* Fighter Name field */ }
+                {/* Fighter Name field */}
                 <div>
                     <label htmlFor="name" className="block text-sm font-medium">Name:</label>
-                    <input
+                    <Input
                         type="text"
                         id="name"
-                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
                     />
                 </div>
 
-                { /* Height, Weight, BMI fields */ }
+                {/* Height, Weight, BMI fields */}
                 <div className="grid grid-cols-2 gap-4">
-                    { /* Height field */ }
                     <div>
                         <label htmlFor="height" className="block text-sm font-medium">Height:</label>
-                        <input
+                        <Input
                             type="text"
                             id="height"
-                            className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                             value={height}
                             onChange={(e) => setHeight(e.target.value)}
                             onBlur={calculateBmi}
@@ -196,30 +177,25 @@ export default function Register() {
                     <div className="flex items-center">
                         <span className="ml-2">in CM</span>
                     </div>
-
-                    { /* Weight field */ }
                     <div>
                         <label htmlFor="weight" className="block text-sm font-medium">Weight:</label>
-                        <input
+                        <Input
                             type="text"
                             id="weight"
-                            className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                             value={weight}
                             onChange={(e) => setWeight(e.target.value)}
                             onBlur={calculateBmi}
-                            required/>
+                            required
+                        />
                     </div>
                     <div className="flex items-center">
                         <span className="ml-2">in KG</span>
                     </div>
-
-                    { /* BMI field */ }
                     <div>
                         <label htmlFor="bmi" className="block text-sm font-medium">BMI:</label>
-                        <input
+                        <Input
                             type="text"
                             id="bmi"
-                            className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                             value={bmi}
                             readOnly
                         />
@@ -232,10 +208,9 @@ export default function Register() {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="imperialHeight" className="block text-sm font-medium">Height (FT):</label>
-                            <input
+                            <Input
                                 type="text"
                                 id="imperialHeight"
-                                className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                                 value={ftImperial}
                                 onChange={(e) => setFtImperial(e.target.value)}
                                 placeholder="e.g., 5.8"
@@ -246,10 +221,9 @@ export default function Register() {
                         </div>
                         <div>
                             <label htmlFor="imperialWeight" className="block text-sm font-medium">Weight (LBS):</label>
-                            <input
+                            <Input
                                 type="text"
                                 id="imperialWeight"
-                                className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                                 value={lbsImperial}
                                 onChange={(e) => setLbsImperial(e.target.value)}
                                 placeholder="e.g., 150"
@@ -269,35 +243,34 @@ export default function Register() {
                 {/* Gender field */}
                 <div>
                     <label htmlFor="gender" className="block text-sm font-medium">Gender:</label>
-                    <select
-                        id="gender"
-                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
-                        value={gender}
-                        onChange={(e) => setGender(e.target.value)}
-                    >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                    </select>
+                    <Select value={gender} onValueChange={setGender}>
+                        <SelectTrigger id="gender">
+                            <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 {/* Birthdate field */}
                 <div>
-                    <label htmlFor="birthdate">Birthdate:</label>
-                    <input
+                    <label htmlFor="birthdate" className="block text-sm font-medium">Birthdate:</label>
+                    <Input
                         type="date"
+                        id="birthdate"
                         value={birthdate}
                         onChange={(e) => setBirthdate(e.target.value)}
-                        className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     />
                 </div>
 
                 {/* Sparring Duration field */}
                 <div>
                     <label htmlFor="sparringDuration" className="block text-sm font-medium">How long can you spar without breaking? (minutes):</label>
-                    <input
+                    <Input
                         type="text"
                         id="sparringDuration"
-                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                         value={sparringDuration}
                         onChange={(e) => setSparringDuration(e.target.value)}
                         required
@@ -309,32 +282,35 @@ export default function Register() {
                     <label htmlFor="experience" className="block text-sm font-medium">Years of Training Experience:</label>
                     <div className="flex space-x-4">
                         <label>
-                            <input
+                            <Input
                                 type="radio"
                                 name="experience"
                                 value={TrainingExperience.LessThanTwoYears}
                                 checked={experience === TrainingExperience.LessThanTwoYears}
                                 onChange={(e) => setExperience(Number(e.target.value))}
+                                className="w-4 h-4"
                             />
                             <span className="ml-2">Less than 2 years</span>
                         </label>
                         <label>
-                            <input
+                            <Input
                                 type="radio"
                                 name="experience"
                                 value={TrainingExperience.FromTwoToFiveYears}
                                 checked={experience === TrainingExperience.FromTwoToFiveYears}
                                 onChange={(e) => setExperience(Number(e.target.value))}
+                                className="w-4 h-4"
                             />
                             <span className="ml-2">from 2 to 5 years</span>
                         </label>
                         <label>
-                            <input
+                            <Input
                                 type="radio"
                                 name="experience"
                                 value={TrainingExperience.MoreThanFiveYears}
                                 checked={experience === TrainingExperience.MoreThanFiveYears}
                                 onChange={(e) => setExperience(Number(e.target.value))}
+                                className="w-4 h-4"
                             />
                             <span className="ml-2">More than 5 years</span>
                         </label>
@@ -344,30 +320,27 @@ export default function Register() {
                 {/* Belt Rank field */}
                 <div>
                     <label htmlFor="beltRank" className="block text-sm font-medium">Brazilian Jiu-Jitsu Belt Rank:</label>
-                    <select
-                        id="beltRank"
-                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
-                        value={beltRank}
-                        onChange={(e) => setBeltRank(e.target.value)}
-                    >
-                        <option value="White">White</option>
-                        <option value="Blue">Blue</option>
-                        <option value="Purple">Purple</option>
-                        <option value="Brown">Brown</option>
-                        <option value="Black">Black</option>
-                    </select>
+                    <Select value={beltRank} onValueChange={setBeltRank}>
+                        <SelectTrigger id="beltRank">
+                            <SelectValue placeholder="Select belt rank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="White">White</SelectItem>
+                            <SelectItem value="Blue">Blue</SelectItem>
+                            <SelectItem value="Purple">Purple</SelectItem>
+                            <SelectItem value="Brown">Brown</SelectItem>
+                            <SelectItem value="Black">Black</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 {/* Email field */}
                 <div>
-                    <label htmlFor="email" className="block text-sm font-medium">
-                        Email
-                    </label>
-                    <input
+                    <label htmlFor="email" className="block text-sm font-medium">Email</label>
+                    <Input
                         type="email"
                         id="email"
                         name="email"
-                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                         value={email}
                         onChange={(e) => {
                             if (validationError !== null)
@@ -379,14 +352,11 @@ export default function Register() {
                 </div>
                 {/* Password field */}
                 <div>
-                    <label htmlFor="password" className="block text-sm font-medium">
-                        Password
-                    </label>
-                    <input
+                    <label htmlFor="password" className="block text-sm font-medium">Password</label>
+                    <Input
                         type="password"
                         id="password"
                         name="password"
-                        className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
                         value={password}
                         onChange={(e) => {
                             if (validationError !== null)
@@ -396,7 +366,6 @@ export default function Register() {
                         required
                     />
                 </div>
-
 
                 <Button type="submit" variant="outline" className="w-full">
                     Register
