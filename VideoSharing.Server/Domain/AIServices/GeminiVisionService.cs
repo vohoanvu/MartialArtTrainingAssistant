@@ -528,7 +528,7 @@ namespace VideoSharing.Server.Domain.GeminiService
         {
             var studentDetailsSb = new StringBuilder();
             studentDetailsSb.AppendLine("Students available for pairing (ID, Name, Belt, Weight, Height, Birthdate, Experience):");
-            if (fighters == null || !fighters.Any())
+            if (fighters == null || fighters.Count == 0)
             {
                 studentDetailsSb.AppendLine("No students provided.");
             }
@@ -536,7 +536,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             {
                 foreach (var student in fighters)
                 {
-                    studentDetailsSb.AppendLine($"- ID: {student.Id}, Name: {student.FighterName}, Belt: {student.BelkRank.ToString()}, Weight: {student.Weight} lbs, Height: {student.Height:F1} ft, Birtdate: {student.Birthdate.ToString("d")}, Experience: {student.Experience.ToString()}");
+                    studentDetailsSb.AppendLine($"- ID: {student.Id}, Name: {student.FighterName}, Belt: {student.BelkRank.ToString()}, Weight: {student.Weight:F1} kg, Height: {student.Height:F0} cm, Birtdate: {student.Birthdate.ToString("d")}, Experience: {student.Experience.ToString()}");
                 }
             }
 
@@ -544,7 +544,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             if (classSession.Instructor != null)
             {
                 var ins = classSession.Instructor;
-                instructorInfo = $"The Class Instructor is: ID: {ins.Id}, Name: {ins.FighterName}, Belt: {ins.BelkRank}, Weight: {ins.Weight} lbs, Height: {ins.Height:F1} ft, Birtdate: {ins.Birthdate.ToString("d")}.";
+                instructorInfo = $"The Class Instructor is: ID: {ins.Id}, Name: {ins.FighterName}, Belt: {ins.BelkRank},Weight: {ins.Weight:F1} kg, Height: {ins.Height:F0} cm, Birtdate: {ins.Birthdate:d}.";
             }
             else
             {

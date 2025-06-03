@@ -51,6 +51,8 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
     // const refreshToken = useAuthStore((state) => state.refreshToken);
     // const hydrate = useAuthStore((state) => state.hydrate);
     const [isFinalizeDialogOpen, setIsFinalizeDialogOpen] = useState(false);
+    const [lbsInput, setLbsInput] = useState('');
+    const [ftInput, setFtInput] = useState('');
 
     const {
         sessionRecords,
@@ -397,12 +399,45 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                 </div>
             </div>
 
-            <div className="mt-4 text-sm text-muted-foreground">
-                <p>* Data is automatically saved locally on blur for text fields</p>
-                <p>* Weight should be entered in kilograms (e.g., 70.5)</p>
-                <p>* Height should be entered in centimeters (e.g., 175.0)</p>
-                <p>* Up to {EDITABLE_EMPTY_ROWS_COUNT} empty rows are available for editing at a time</p>
-                <p>* Completed rows remain editable for updates</p>
+            <div className="flex justify-between mt-4">
+                <div className="text-sm text-muted-foreground">
+                    <p>* Data is automatically saved locally on blur for text fields</p>
+                    <p>* Weight should be entered in kilograms (e.g., 70.5)</p>
+                    <p>* Height should be entered in centimeters (e.g., 175.0)</p>
+                    <p>* Up to {EDITABLE_EMPTY_ROWS_COUNT} empty rows are available for editing at a time</p>
+                    <p>* Completed rows remain editable for updates</p>
+                </div>
+                <div className="text-sm text-muted-foreground text-right">
+                    <h3 className="font-semibold mb-1">Metric Conversion Tool</h3>
+                    <div className="flex flex-col space-y-2">
+                        <div className="flex items-center justify-end">
+                            <label className="mr-2">LBS:</label>
+                            <Input
+                                type="number"
+                                value={lbsInput}
+                                onChange={(e) => setLbsInput(e.target.value)}
+                                placeholder="lbs"
+                                className="w-20"
+                            />
+                            <span className="ml-2">
+                                ⇨ {lbsInput ? (parseFloat(lbsInput) * 0.45359237).toFixed(1) : "0"} KG
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-end">
+                            <label className="mr-2">FT:</label>
+                            <Input
+                                type="number"
+                                value={ftInput}
+                                onChange={(e) => setFtInput(e.target.value)}
+                                placeholder="ft"
+                                className="w-20"
+                            />
+                            <span className="ml-2">
+                                ⇨ {ftInput ? (parseFloat(ftInput) * 30.48).toFixed(0) : "0"} CM
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

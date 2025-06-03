@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SharedEntities.Models
 {
@@ -11,9 +10,9 @@ namespace SharedEntities.Models
 
         public required string FighterName { get; set; }
 
-        public required double Height { get; set; }      //in ft
+        public required double Height { get; set; }      //in centimeters
 
-        public required double Weight { get; set; }      //in lbs
+        public required double Weight { get; set; }      //in kilograms
 
         public required double BMI { get; set; }
 

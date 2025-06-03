@@ -45,6 +45,9 @@ export default function Register() {
     const [experience, setExperience] = useState(TrainingExperience.LessThanTwoYears);
     const [beltRank, setBeltRank] = useState("White");
 
+    const [ftImperial, setFtImperial] = useState('');
+    const [lbsImperial, setLbsImperial] = useState('');
+
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [pendingSubmit, setPendingSubmit] = useState<React.FormEvent<HTMLFormElement> | null>(null);
 
@@ -98,11 +101,32 @@ export default function Register() {
     };
 
     const calculateBmi = () => {
-        const heightInMeters = parseFloat(height) * 0.3048; // Convert height from feet to meters
-        const weightInKg = parseFloat(weight) * 0.453592; // Convert weight from pounds to kilograms
+        // Using the inputs as metric values
+        const heightInMeters = parseFloat(height) / 100;
+        const weightInKg = parseFloat(weight);
         if (heightInMeters > 0 && weightInKg > 0) {
-            const bmiValue = weightInKg / (heightInMeters * heightInMeters); // Calculate BMI
-            setBmi(bmiValue.toFixed(2)); // Format BMI to 2 decimal places and set it
+            const bmiValue = weightInKg / (heightInMeters * heightInMeters);
+            setBmi(bmiValue.toFixed(2));
+        }
+    };
+
+    // Apply imperial conversion: FT to CM and LBS to KG
+    const applyImperialConversion = () => {
+        const convertedHeight = ftImperial ? (parseFloat(ftImperial) * 30.48).toFixed(1) : height;
+        const convertedWeight = lbsImperial ? (parseFloat(lbsImperial) * 0.45359237).toFixed(1) : weight;
+
+        // Update the metric fields with the conversion result
+        setHeight(convertedHeight);
+        setWeight(convertedWeight);
+        // Reset imperial inputs (optional)
+        setFtImperial('');
+        setLbsImperial('');
+        // Recalculate BMI based on updated metric inputs
+        const heightInMeters = parseFloat(convertedHeight) / 100;
+        const weightInKg = parseFloat(convertedWeight);
+        if(heightInMeters > 0 && weightInKg > 0) {
+            const bmiValue = weightInKg / (heightInMeters * heightInMeters);
+            setBmi(bmiValue.toFixed(2));
         }
     };
 
@@ -170,7 +194,7 @@ export default function Register() {
                         />
                     </div>
                     <div className="flex items-center">
-                        <span className="ml-2">in ft</span>
+                        <span className="ml-2">in CM</span>
                     </div>
 
                     { /* Weight field */ }
@@ -186,7 +210,7 @@ export default function Register() {
                             required/>
                     </div>
                     <div className="flex items-center">
-                        <span className="ml-2">in lbs</span>
+                        <span className="ml-2">in KG</span>
                     </div>
 
                     { /* BMI field */ }
@@ -199,6 +223,46 @@ export default function Register() {
                             value={bmi}
                             readOnly
                         />
+                    </div>
+                </div>
+
+                {/* Imperial Conversion Tool */}
+                <div className="border border-dashed border-gray-300 rounded-lg p-4 mt-4">
+                    <h3 className="text-lg font-semibold mb-2">Imperial Conversion Tool</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="imperialHeight" className="block text-sm font-medium">Height (FT):</label>
+                            <input
+                                type="text"
+                                id="imperialHeight"
+                                className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
+                                value={ftImperial}
+                                onChange={(e) => setFtImperial(e.target.value)}
+                                placeholder="e.g., 5.8"
+                            />
+                        </div>
+                        <div className="flex items-center">
+                            <span className="ml-2">Converted to CM: {ftImperial ? (parseFloat(ftImperial) * 30.48).toFixed(1) : "0"}</span>
+                        </div>
+                        <div>
+                            <label htmlFor="imperialWeight" className="block text-sm font-medium">Weight (LBS):</label>
+                            <input
+                                type="text"
+                                id="imperialWeight"
+                                className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
+                                value={lbsImperial}
+                                onChange={(e) => setLbsImperial(e.target.value)}
+                                placeholder="e.g., 150"
+                            />
+                        </div>
+                        <div className="flex items-center">
+                            <span className="ml-2">Converted to KG: {lbsImperial ? (parseFloat(lbsImperial) * 0.45359237).toFixed(1) : "0"}</span>
+                        </div>
+                    </div>
+                    <div className="mt-2">
+                        <Button variant="secondary" onClick={applyImperialConversion} className="text-sm">
+                            Apply Conversion
+                        </Button>
                     </div>
                 </div>
 
