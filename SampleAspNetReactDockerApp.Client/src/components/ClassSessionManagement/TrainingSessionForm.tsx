@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { CreateTrainingSessionRequest, UpdateTrainingSessionRequest } from '@/types/global';
-import { createTrainingSession, updateTrainingSessionDetails , getTrainingSessionDetails } from '@/services/api';
+import { createTrainingSession, updateTrainingSessionDetails , getTrainingSessionDetails, deleteTrainingSession, closeTrainingSession } from '@/services/api';
 import useAuthStore from '@/store/authStore';
 
 export type TargetLevel = 'Kids' | 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
@@ -17,11 +17,12 @@ const TARGET_LEVEL_OPTIONS: TargetLevel[] = [
 
 const TrainingSessionForm = () => {
     const { sessionId  } = useParams<{ sessionId?: string }>();
-    const sessionIdNumber = sessionId ? Number(sessionId) : undefined
+    const sessionIdNumber = sessionId ? Number(sessionId) : null;
     const navigate = useNavigate();
     const jwtToken = useAuthStore((state) => state.accessToken);
     const refreshToken = useAuthStore((state) => state.refreshToken);
     const hydrate = useAuthStore((state) => state.hydrate);
+    const user = useAuthStore((state) => state.user);
 
     const [instructorName, setInstructorName] = useState('');
     const [trainingDate, setTrainingDate] = useState('');
@@ -30,6 +31,9 @@ const TrainingSessionForm = () => {
     const [description, setDescription] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [targetLevel, setTargetLevel] = useState<TargetLevel>('Beginner');
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         if (sessionIdNumber) {
@@ -103,6 +107,34 @@ const TrainingSessionForm = () => {
 
     const handleCancel = () => {
         setIsDialogOpen(false);
+    };
+
+    const handleCloseSession = async () => {
+        try {
+            setIsClosing(true);
+            await closeTrainingSession(sessionIdNumber!, { jwtToken, refreshToken, hydrate });
+            // Refresh the session details or navigate away
+            navigate('/class-session');
+        } catch (error) {
+            console.error('Failed to close session:', error);
+            // Handle error (show toast/alert)
+        } finally {
+            setIsClosing(false);
+        }
+    };
+
+    const handleDeleteSession = async () => {
+        try {
+            setIsDeleting(true);
+            await deleteTrainingSession(sessionIdNumber!, { jwtToken, refreshToken, hydrate });
+            navigate('/class-session');
+        } catch (error) {
+            console.error('Failed to delete session:', error);
+            // Handle error (show toast/alert)
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteDialogOpen(false);
+        }
     };
 
     return (
@@ -239,12 +271,55 @@ const TrainingSessionForm = () => {
                 </Button>
             </form>
 
+            {/* Add these buttons in the instructor section */}
+            {user && user.fighterInfo?.role !== 0 && (
+                <div className="flex gap-2 mt-4">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={handleCloseSession}
+                        disabled={isClosing}
+                    >
+                        {isClosing ? (
+                            <>
+                                <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-current"></div>
+                                Closing...
+                            </>
+                        ) : (
+                            'Close Session'
+                        )}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? (
+                            <>
+                                <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-current"></div>
+                                Deleting...
+                            </>
+                        ) : (
+                            'Delete Session'
+                        )}
+                    </Button>
+                </div>
+            )}
+
             <ConfirmationDialog
                 title={`Are you sure you want to ${sessionId ? 'update' : 'create'} a new session?`}
-                message="You can always update your session details later!"
+                message="You can always change your session details later!"
                 isOpen={isDialogOpen}
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}
+            />
+            <ConfirmationDialog
+                title="Delete Training Session"
+                message="Are you sure you want to delete this training session? This action cannot be undone."
+                isOpen={isDeleteDialogOpen}
+                onConfirm={handleDeleteSession}
+                onCancel={() => setIsDeleteDialogOpen(false)}
             />
         </div>
     );

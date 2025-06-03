@@ -127,6 +127,26 @@ namespace FighterManager.Server.Controllers
             }
         }
 
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteSessionAsync(int id)
+        {
+            try
+            {
+                var session = await _unitOfWork.Repository<TrainingSession>().GetByIdAsync(id);
+                if (session == null)
+                    return NotFound();
+
+                _unitOfWork.AppDbContext.TrainingSessions.Remove(session);
+                await _unitOfWork.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (ErrorResponseException ex)
+            {
+                return StatusCode((int)ex.StatusCode, new { ex.Message });
+            }
+        }
+
         [HttpPost("{id}/attendance")]
         [ProducesResponseType(typeof(TakeAttendanceResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

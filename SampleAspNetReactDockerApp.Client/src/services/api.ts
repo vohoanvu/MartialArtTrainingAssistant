@@ -92,6 +92,95 @@ export async function createTrainingSession(newSession: CreateTrainingSessionReq
     }
 }
 
+export async function getTrainingSessionDetails(sessionId: number, { currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SessionDetailViewModel> {
+    console.log("Trying to get training session details...");
+
+    const response = await fetch(`/api/trainingsession/${sessionId}`, {
+        method: "GET",
+        headers: {
+            'Content-Type': 'application/json',
+            //'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        console.log("Training session details fetched successfully!");
+        console.log("Inspecting response: ", data);
+        return data as SessionDetailViewModel;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        console.log("Refresh token and try again...", refreshToken);
+        return await getTrainingSessionDetails(sessionId, { currentTry: 1, jwtToken, refreshToken, hydrate });
+    }
+
+    throw new Error("Error fetching training session details");
+}
+
+export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, { currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SessionDetailViewModel> {
+    console.log("Updating training session details from Microservice A...", updateRequest);
+
+    const response = await fetch(`/api/trainingsession/${sessionId}`, {
+        method: "PUT",
+        body: JSON.stringify(updateRequest),
+        headers: {
+            'Content-Type': 'application/json',
+            //'Authorization': `Bearer ${jwtToken}`
+        }
+    });
+    if (response.ok) {
+        console.log("Training session details fetched successfully!");
+        return await response.json() as SessionDetailViewModel;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        console.log("Refresh token and try again...", refreshToken);
+        return await updateTrainingSessionDetails({ currentTry: 1, jwtToken, refreshToken, hydrate });
+    }
+
+    throw new Error("Error fetching training session details");
+}
+
+export async function closeTrainingSession(
+    sessionId: number,
+    { jwtToken, refreshToken, hydrate, currentTry = 0 }
+): Promise<void> {
+    const response = await fetch(`/api/trainingsession/${sessionId}/close`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+
+    if (response.ok) {
+        return;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await closeTrainingSession(sessionId, { jwtToken, refreshToken, hydrate, currentTry: 1 });
+    }
+
+    throw new Error("Failed to close training session");
+}
+
+export async function deleteTrainingSession(
+    sessionId: number,
+    { jwtToken, refreshToken, hydrate, currentTry = 0 }
+): Promise<void> {
+    const response = await fetch(`/api/trainingsession/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+
+    if (response.ok) {
+        return;
+    } else if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await deleteTrainingSession(sessionId, { jwtToken, refreshToken, hydrate, currentTry: 1 });
+    }
+
+    throw new Error("Failed to delete training session");
+}
+
 export async function getAllSharedVideos({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SharedVideo[]> {
     console.log("Fetching shared videos from Microservice D...");
     const response = await fetch("/vid/api/video/getall", {
@@ -166,53 +255,6 @@ export async function getAuthenticatedFighterInfo({ currentTry = 0, jwtToken, re
     }
 
     throw new Error("Error fetching Info details details");
-}
-
-export async function getTrainingSessionDetails(sessionId: number, { currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SessionDetailViewModel> {
-    console.log("Trying to get training session details...");
-
-    const response = await fetch(`/api/trainingsession/${sessionId}`, {
-        method: "GET",
-        headers: {
-            'Content-Type': 'application/json',
-            //'Authorization': `Bearer ${jwtToken}`
-        }
-    });
-    if (response.ok) {
-        const data = await response.json();
-        console.log("Training session details fetched successfully!");
-        console.log("Inspecting response: ", data);
-        return data as SessionDetailViewModel;
-    } else if (response.status === 401 && currentTry === 0) {
-        await hydrate();
-        console.log("Refresh token and try again...", refreshToken);
-        return await getTrainingSessionDetails(sessionId, { currentTry: 1, jwtToken, refreshToken, hydrate });
-    }
-
-    throw new Error("Error fetching training session details");
-}
-
-export async function updateTrainingSessionDetails(sessionId: number, updateRequest: UpdateTrainingSessionRequest, { currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<SessionDetailViewModel> {
-    console.log("Updating training session details from Microservice A...", updateRequest);
-
-    const response = await fetch(`/api/trainingsession/${sessionId}`, {
-        method: "PUT",
-        body: JSON.stringify(updateRequest),
-        headers: {
-            'Content-Type': 'application/json',
-            //'Authorization': `Bearer ${jwtToken}`
-        }
-    });
-    if (response.ok) {
-        console.log("Training session details fetched successfully!");
-        return await response.json() as SessionDetailViewModel;
-    } else if (response.status === 401 && currentTry === 0) {
-        await hydrate();
-        console.log("Refresh token and try again...", refreshToken);
-        return await updateTrainingSessionDetails({ currentTry: 1, jwtToken, refreshToken, hydrate });
-    }
-
-    throw new Error("Error fetching training session details");
 }
 
 export async function GenerateFighterPairs(matchMakerRequest: MatchMakerRequest, {
