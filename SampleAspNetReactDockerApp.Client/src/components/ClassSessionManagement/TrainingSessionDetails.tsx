@@ -217,8 +217,8 @@ const TrainingSessionDetails = () => {
                         message="You are about to generate a new lesson plan using AI. This process may take a few minutes to complete. The AI will analyze your training requirements and create a structured curriculum for today's session."
                         isOpen={isAIDialogOpen}
                         onConfirm={async () => {
-                            await handleGenerateCurriculum();
                             SetIsAIDialogOpen(false);
+                            await handleGenerateCurriculum();
                         }}
                         onCancel={() => SetIsAIDialogOpen(false)}
                     />
@@ -278,7 +278,11 @@ const TrainingSessionDetails = () => {
             {curriculum && (
                 <CurriculumSection 
                     curriculum={curriculum}
+                    trainingSessionId={sessionIdNumber}
                     onFeedback={handleFeedback}
+                    jwtToken={jwtToken}
+                    refreshToken={refreshToken}
+                    hydrate={hydrate}
                 />
             )}
         </div>
