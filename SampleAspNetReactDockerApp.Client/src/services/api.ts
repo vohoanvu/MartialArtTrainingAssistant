@@ -21,6 +21,7 @@ import {
     TakeAttendanceRequest,
     TakeAttendanceResponse,
     ApiMatchMakerResponse,
+    VideoSearchResult,
 } from "@/types/global.ts";
 import axios from 'axios';
 
@@ -807,4 +808,55 @@ export const takeWalkInAttendance = async (
     });
 
     return response.json();
+};
+
+
+export const xAIGrokSearch = async ({
+    techniqueName,
+    trainingSessionId,
+    jwtToken,
+    refreshToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    techniqueName: string;
+    trainingSessionId: number;
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => void;
+    currentTry?: number;
+}): Promise<string> => {
+    try {
+        const response = await fetch('/vid/api/grok/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwtToken}`,
+            },
+            body: JSON.stringify({
+                techniqueName,
+                trainingSessionId: trainingSessionId,
+            }),
+        });
+
+        if (response.ok) {
+            return await response.text();
+        } else if (response.status === 401 && currentTry === 0) {
+            await hydrate();
+            return await xAIGrokSearch({
+                techniqueName,
+                trainingSessionId,
+                jwtToken,
+                refreshToken,
+                hydrate,
+                currentTry: 1,
+            });
+        } else {
+            const errorText = await response.text();
+            throw new Error(`Grok search failed: ${errorText}`);
+        }
+    } catch (error) {
+        console.error("Error in xAIGrokSearch:", error);
+        throw error;
+    }
 };
