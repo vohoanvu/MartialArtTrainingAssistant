@@ -24,12 +24,16 @@ export default function Navbar(
         <div className={cn(className)}>
             <nav className="bg-background text-foreground p-4">
                 <div className="container mx-auto flex justify-between items-center">
-                    <div className="text-lg font-bold">
-                        <a href="/home" className="hover:text-primary">
-                            CodeJitsu
-                        </a>
-                    </div>
-                    <ul className="flex space-x-5 mt-4">
+                    <Link to="/" className="text-lg font-bold flex items-center space-x-2">
+                        <img src="/codejitsu-logo-2-round.png"alt="CodeJitsu Logo" className="h-12 w-12"/>
+                        <span className="text-primary">CodeJitsu</span>
+                    </Link>
+                    <ul className="flex space-x-4 md:space-x-5 items-center">
+                        <li>
+                            <Link to="/pricing" className="hover:text-primary">
+                                Pricing
+                            </Link>
+                        </li>
                         {authStatus === "authenticated" ?
                             (
                                 <>
@@ -47,7 +51,7 @@ export default function Navbar(
                                             </Button>
                                         </Link>
                                     </li>
-                                    <li>
+                                    <li className="hidden md:block">
                                         Welcome <strong>{authUser?.email}!</strong>
                                     </li>
                                     <li>
