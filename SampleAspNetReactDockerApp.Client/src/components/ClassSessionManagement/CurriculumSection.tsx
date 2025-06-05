@@ -1,21 +1,38 @@
-//import { Button } from '@/components/ui/button';
 import { CurriculumDto } from '@/types/global';
 import DrillTimer from './DrillTimer';
 import { useState } from 'react';
+import { xAIGrokSearch } from '@/services/api';
+import LiveSearchResults from './LiveSearchResults';
 
 interface CurriculumSectionProps {
     curriculum: CurriculumDto;
+    trainingSessionId: number;
     onFeedback: (helpful: boolean) => void;
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => void;
 }
 
-const CurriculumSection = ({ curriculum }: CurriculumSectionProps) => {
+const CurriculumSection = ({ curriculum, trainingSessionId, jwtToken, refreshToken, hydrate }: CurriculumSectionProps) => 
+{
     const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+    const [videoResults, setVideoResults] = useState<{ [key: string]: string }>({});
+    const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
 
     const toggleAccordion = (id: string) => {
-        setExpandedSections((prev) => ({
-            ...prev,
-            [id]: !prev[id]
-        }));
+        setExpandedSections((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const handleSearchVideos = async (id: string, techniqueName: string) => {
+        setLoading((prev) => ({ ...prev, [id]: true }));
+        try {
+            const response = await xAIGrokSearch({ techniqueName, trainingSessionId, jwtToken, refreshToken, hydrate });
+            setVideoResults((prev) => ({ ...prev, [id]: response }));
+        } catch (error) {
+            console.error('Search failed:', error);
+        } finally {
+            setLoading((prev) => ({ ...prev, [id]: false }));
+        }
     };
 
     function formatDescriptionWithNumberedList(text: string) {
@@ -29,8 +46,7 @@ const CurriculumSection = ({ curriculum }: CurriculumSectionProps) => {
                 .slice(firstNumberIndex)
                 .split(/\d+\.\s/)
                 .filter(Boolean)
-                .map(item => item.replace(/^\s*|\s*\.$/g, '').trim());
-
+                .map((item) => item.replace(/^\s*|\s*\.$/g, '').trim());
             return (
                 <div>
                     {beforeList && <span>{beforeList}</span>}
@@ -84,13 +100,12 @@ const CurriculumSection = ({ curriculum }: CurriculumSectionProps) => {
                     <div className="mt-2">
                         {curriculum.techniques.map((tech, index) => (
                             <div key={index} className="border-b border-blue-200 dark:border-blue-800 py-2">
-                                <button
-                                    className="w-full text-left text-lg font-bold text-blue-700 dark:text-blue-300 flex justify-between items-center focus:outline-none"
-                                    onClick={() => toggleAccordion(`tech-${index}`)}
-                                >
-                                    {tech.name}
-                                    <span>{expandedSections[`tech-${index}`] ? '▲' : '▼'}</span>
-                                </button>
+                                <div className="flex items-center justify-between">
+                                    <span className="w-full text-left text-lg font-bold text-blue-700 dark:text-blue-300 focus:outline-none">{tech.name}</span>
+                                    <button type="button" onClick={() => toggleAccordion(`tech-${index}`)} className="p-3 text-blue-700 dark:text-blue-300 focus:outline-none">
+                                        <span>{expandedSections[`tech-${index}`] ? '▲' : '▼'}</span>
+                                    </button>
+                                </div>
                                 <div className={`mt-2 ${expandedSections[`tech-${index}`] ? 'block' : 'hidden'}`}>
                                     {formatDescriptionWithNumberedList(tech.description)}
                                     <p className="relative group">
@@ -100,7 +115,25 @@ const CurriculumSection = ({ curriculum }: CurriculumSectionProps) => {
                                             {tech.tips}
                                         </span>
                                     </p>
+                                    {videoResults[`tech-${index}`] && (
+                                        <div className="mt-2 prose dark:prose-invert">
+                                            <LiveSearchResults jsonContent={videoResults[`tech-${index}`]} />
+                                        </div>
+                                    )}
                                 </div>
+                                <button
+                                    className="mt-2 bg-blue-500 text-white px-3 py-1 rounded flex items-center"
+                                    onClick={() => handleSearchVideos(`tech-${index}`, tech.name)}
+                                    disabled={loading[`tech-${index}`]}
+                                >
+                                    {loading[`tech-${index}`] ? 'Searching...' : 'Search Videos'}
+                                </button>
+                                {loading[`tech-${index}`] && (
+                                    <div className="mt-2 flex items-center space-x-2">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                                        <p className="text-blue-500">Searching the web for relevant videos and resources...</p>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -114,23 +147,27 @@ const CurriculumSection = ({ curriculum }: CurriculumSectionProps) => {
                     <div className="mt-2">
                         {curriculum.drills.map((drill, index) => (
                             <div key={index} className="border-b border-green-200 dark:border-green-800 py-2">
-                                <button
-                                    className="w-full text-left text-lg font-bold text-green-700 dark:text-green-300 flex justify-between items-center focus:outline-none"
-                                    onClick={() => toggleAccordion(`drill-${index}`)}
-                                >
-                                    {drill.name}
-                                    <span>{expandedSections[`drill-${index}`] ? '▲' : '▼'}</span>
-                                </button>
+                                <div className="flex items-center justify-between">
+                                    <span className="w-full text-left text-lg font-bold text-green-700 dark:text-green-300 focus:outline-none">{drill.name}</span>
+                                    <button
+                                        className="p-3 text-green-700 dark:text-green-300 flex justify-between items-center focus:outline-none"
+                                        onClick={() => toggleAccordion(`drill-${index}`)}
+                                    >
+                                        <span>{expandedSections[`drill-${index}`] ? '▲' : '▼'}</span>
+                                    </button>
+                                </div>
                                 <div className={`mt-2 ${expandedSections[`drill-${index}`] ? 'block' : 'hidden'}`}>
                                     <p>{drill.description}</p>
                                     <p><strong>Focus:</strong> {drill.focus}</p>
                                     <p className="text-sm text-muted-foreground">Duration: {drill.duration}</p>
-                                    <DrillTimer
-                                        initialDurationMinutes={parseInt(drill.duration.split(' ')[0]) || 5}
-                                        drillName={drill.name}
-                                        themeColor="bg-green-500"
-                                        progressColor="bg-green-600"
-                                    />
+                                    <div className="flex items-center mt-2 gap-4">
+                                        <DrillTimer
+                                            initialDurationMinutes={parseInt(drill.duration.split(' ')[0]) || 5}
+                                            drillName={drill.name}
+                                            themeColor="bg-green-500"
+                                            progressColor="bg-green-600"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         ))}

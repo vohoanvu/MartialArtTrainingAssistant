@@ -191,6 +191,24 @@ public static class Global
                 }
                 return Configuration?["Authentication:Google:ClientSecret"]
                     ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.XAIGrokApiKey:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("XAIGROK_API_KEY");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["XAIGROK_API_KEY"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
+            case AppEnvironmentVariables.XAIGrokEndpoint:
+                if (RunsInContainer)
+                {
+                    var possibleValue = Environment.GetEnvironmentVariable("XAIGROK_ENDPOINT");
+                    if (!string.IsNullOrEmpty(possibleValue))
+                        return possibleValue;
+                }
+                return Configuration?["XAIGROK_ENDPOINT"]
+                    ?? throw new InvalidOperationException($"Environment variable {variable} not found");
             default:
                 throw new ArgumentOutOfRangeException(nameof(variable), variable, null);
         }
@@ -274,5 +292,7 @@ public enum AppEnvironmentVariables
     /// <summary>
     /// Google OAuth ClientSecret
     /// </summary>
-    AuthenticationGoogleClientSecret
+    AuthenticationGoogleClientSecret,
+    XAIGrokApiKey,
+    XAIGrokEndpoint,
 }

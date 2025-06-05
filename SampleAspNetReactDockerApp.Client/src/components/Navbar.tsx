@@ -46,14 +46,14 @@ export default function Navbar(
                                     <li className="">
                                         <Link to="/share-video">
                                             <Button size="sm" variant="outline" className="w-full">
-                                                Share a Video
+                                                Upload Videos
                                             </Button>
                                         </Link>
                                     </li>
                                     <li>
                                         <Link to="/video-listing">
                                             <Button size="sm" variant="outline" className="w-full">
-                                                Manage Video Storage
+                                                Manage Videos
                                             </Button>
                                         </Link>
                                     </li>

@@ -19,6 +19,7 @@ using VideoSharing.Server.Domain.GoogleCloudStorageService;
 using VideoSharing.Server.Domain.GeminiService;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
+using VideoSharing.Server.Domain.AIServices;
 
 namespace VideoSharing.Server
 {
@@ -57,6 +58,7 @@ namespace VideoSharing.Server
             builder.Services.AddScoped<IGeminiVisionService, GeminiVisionService>();
             builder.Services.AddScoped<AiAnalysisProcessorService>();
             builder.Services.AddScoped<CurriculumRecommendationService>();
+            builder.Services.AddHttpClient<IXAIService, XAIService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
