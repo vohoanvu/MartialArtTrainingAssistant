@@ -76,30 +76,33 @@ const LiveSearchResults: React.FC<LiveSearchResultsProps> = ({ jsonContent }) =>
                 </section>
             )}
 
-            {data.free_videos?.length > 0 && (
-                <section>
-                    <h2 className="text-2xl font-bold mb-4 flex items-center">
-                        <Link className="mr-2" /> Free Resources
-                    </h2>
-                    <ul className="space-y-2">
-                        {data.free_videos.map((resource, index) => (
-                            <FreeResourceItem key={index} resource={resource} />
-                        ))}
-                    </ul>
-                </section>
-            )}
-
-            {data.paid_resources?.length > 0 && (
-                <section>
-                    <h2 className="text-2xl font-bold mb-4 flex items-center">
-                        <Lock className="mr-2" /> Paid Resources
-                    </h2>
-                    <ul className="space-y-4">
-                        {data.paid_resources.map((resource, index) => (
-                            <PaidResourceItem key={index} resource={resource} />
-                        ))}
-                    </ul>
-                </section>
+            {(data.free_videos?.length > 0 || data.paid_resources?.length > 0) && (
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {data.free_videos?.length > 0 && (
+                        <section className="flex-1">
+                            <h2 className="text-2xl font-bold mb-4 flex items-center">
+                                <Link className="mr-2" /> Free Resources
+                            </h2>
+                            <ul className="space-y-2">
+                                {data.free_videos.map((resource, index) => (
+                                    <FreeResourceItem key={index} resource={resource} />
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+                    {data.paid_resources?.length > 0 && (
+                        <section className="flex-1">
+                            <h2 className="text-2xl font-bold mb-4 flex items-center">
+                                <Lock className="mr-2" /> Paid Resources
+                            </h2>
+                            <ul className="space-y-4">
+                                {data.paid_resources.map((resource, index) => (
+                                    <PaidResourceItem key={index} resource={resource} />
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+                </div>
             )}
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
