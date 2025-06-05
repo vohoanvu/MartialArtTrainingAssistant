@@ -172,7 +172,7 @@ This section outlines the key UI components required to build the features descr
     -   Could display a welcome message, quick links, or a summary of recent activity.
     -   Currently, `Home.tsx` seems to be the main landing for logged-in users, might need refactoring if a true "dashboard" is desired.
 -   **Share Video Page (`pages/SharingVideo.tsx`):**
-    -   Contains `VideoSharingFormComponent` which includes:
+    -   Contains `VideoAnalysisManagement` which includes:
         -   Form for sharing YouTube URLs.
         -   `VideoUploadForm` for direct GCS uploads (sparring/demonstration based on role).
 -   **Video Listing (User's own uploads) (`pages/VideoStorageListing.tsx`):**

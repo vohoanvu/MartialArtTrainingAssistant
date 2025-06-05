@@ -10,6 +10,7 @@ interface TechniqueFeedbackProps {
     saveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
     onInputChange: (section: string, index: string | number, field: string | number, value: any) => void;
     selectedSegment?: { start: string; end: string } | null;
+    isAnalysisSaving?: boolean;
 }
 
 type ActiveTab = 'techniques' | 'drills' | 'analysis';
@@ -19,6 +20,7 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
     onSeek,
     saveChanges,
     selectedSegment,
+    isAnalysisSaving
 }) => {
     const [activeTab, setActiveTab] = useState<ActiveTab>('techniques');
 
@@ -77,18 +79,21 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
                             onSeek={onSeek}
                             handleSaveChanges={saveChanges}
                             selectedSegment={selectedSegment}
+                            isAnalysisSaving={isAnalysisSaving}
                         />
                     )}
                     {activeTab === 'drills' && (
                         <DrillsEditorial
                             analysisResultDto={feedbackData}
                             handleSaveChanges={saveChanges}
+                            isAnalysisSaving={isAnalysisSaving}
                         />
                     )}
                     {activeTab === 'analysis' && (
                         <OverallAnalysisEditorial
                             analysisResultDto={feedbackData}
                             handleSaveChanges={saveChanges}
+                            isAnalysisSaving={isAnalysisSaving}
                         />
                     )}
                 </div>

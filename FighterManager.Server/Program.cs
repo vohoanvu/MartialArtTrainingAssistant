@@ -134,11 +134,6 @@ namespace FighterManager.Server
 
             builder.Services.AddDbContext<MyDatabaseContext>();
 
-            // builder.Services.AddAuthentication(options =>
-            // {
-            //     options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-            //     options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme; 
-            // })
             builder.Services.AddAuthentication()
             .AddJwtBearer(options =>
             {
@@ -151,7 +146,6 @@ namespace FighterManager.Server
                     ValidateIssuerSigningKey = true,
                     ValidAudience = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtAudience),
                     ValidIssuer = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtIssuer),
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtKey)))
                 };
                 options.Events = new JwtBearerEvents
                 {
@@ -192,6 +186,19 @@ namespace FighterManager.Server
             .AddEntityFrameworkStores<MyDatabaseContext>()
             .AddSignInManager<FighterSignInService<AppUserEntity>>()
             .AddUserManager<UserManager<AppUserEntity>>();
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.ExpireTimeSpan = TimeSpan.FromDays(3);
+                options.SlidingExpiration = true;
+                options.Cookie.MaxAge = TimeSpan.FromDays(3);
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                };
+            });
+
+
             builder.Services.AddHealthChecks();
 
             var app = builder.Build();

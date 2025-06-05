@@ -133,7 +133,7 @@ export default function ClassSession(): ReactElement {
     return (
         <div className="flex flex-col items-center space-y-8">
             {/* Training Sessions Section */}
-            <div className="w-full max-w-4xl">
+            <div className="w-full max-w-6xl">
                 <h1 className="text-2xl font-bold my-4 text-center">
                     Find your training session to check in
                 </h1>
@@ -151,7 +151,7 @@ export default function ClassSession(): ReactElement {
                             titleClassName={"text-center text-xl font-bold py-2"}
                         />
                         <div className="flex justify-start mt-4">
-                            <Button type="button" onClick={handleCreateNewSession}>
+                            <Button type="button" onClick={handleCreateNewSession} disabled={user?.fighterInfo?.role == 0}>
                                 Create New Session
                             </Button>
                         </div>

@@ -389,39 +389,29 @@ export async function SuggestFighterPairs(matchMakerRequest: MatchMakerRequest, 
     }
 }
 
-interface UploadVideoParams {
-    file: File;
-    description: string;
-    studentIdentifier: string;
-    martialArt: MartialArt;
-    uploadType: 'sparring' | 'demonstration';
-    jwtToken: string;
-    currentTry?: number;
-    hydrate: () => Promise<void>;
-    onProgress?: (percent: number) => void;
+interface VideoUploadResponse {
+    message: string;
+    videoId: number;
+    signedUrl: string;
+    isDuplicate?: boolean;
 }
 export async function uploadVideoFile({
     file,
     description,
     studentIdentifier,
     martialArt,
-    uploadType,
     jwtToken,
     currentTry = 0,
     hydrate,
     onProgress,
 }: UploadVideoParams): Promise<VideoUploadResponse> {
-    console.log(`Uploading ${uploadType} video to Microservice D...`);
-
     const formData = new FormData();
     formData.append('videoFile', file);
     formData.append('description', description);
     formData.append('studentIdentifier', studentIdentifier);
     formData.append('martialArt', martialArt);
 
-    const endpoint = uploadType === 'sparring'
-        ? '/vid/api/video/upload-sparring'
-        : '/vid/api/video/upload-demonstration';
+    const endpoint = '/vid/api/video/upload-sparring';
 
     try {
         const response = await axios.post(endpoint, formData, {
@@ -432,21 +422,23 @@ export async function uploadVideoFile({
                 const percentCompleted = Math.round(
                     (progressEvent.loaded * 100) / progressEvent.total
                 );
-                console.log(`Upload progress: ${percentCompleted}%`);
                 if (onProgress) onProgress(percentCompleted);
             },
         });
 
-        console.log(`${uploadType} video uploaded successfully!`);
-        return response.data as VideoUploadResponse;
+        return {
+            ...response.data,
+            isDuplicate: false
+        } as VideoUploadResponse;
     } catch (error: any) {
         if (error.response?.status === 409) {
-            console.warn('Duplicate video detected:', error.response.data.Message);
-            return Promise.reject({
-                message: error.response.data.Message,
-                signedUrl: error.response.data.SignedUrl,
-                videoId: error.response.data.VideoId,
-            });
+            // Handle duplicate video case
+            return {
+                message: error.response.data.message,
+                signedUrl: error.response.data.signedUrl,
+                videoId: error.response.data.videoId,
+                statusCode: error.response.status,
+            } as VideoUploadResponse;
         }
 
         if (error.response?.status === 401 && currentTry === 0) {
@@ -456,7 +448,6 @@ export async function uploadVideoFile({
                 description,
                 studentIdentifier,
                 martialArt,
-                uploadType,
                 jwtToken,
                 currentTry: 1,
                 hydrate,
@@ -464,8 +455,12 @@ export async function uploadVideoFile({
             });
         }
 
-        const errorText = error.response?.data || error.response?.statusText || error.message;
-        throw new Error(`Error uploading ${uploadType} video: ${errorText}`);
+        // Throw a more informative error
+        const errorMessage = error.response?.data?.message
+            || error.response?.statusText
+            || error.message
+            || 'An unexpected error occurred during upload';
+        throw new Error(errorMessage);
     }
 }
 

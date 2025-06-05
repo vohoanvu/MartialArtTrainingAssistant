@@ -53,6 +53,7 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
     const [isFinalizeDialogOpen, setIsFinalizeDialogOpen] = useState(false);
     const [lbsInput, setLbsInput] = useState('');
     const [ftInput, setFtInput] = useState('');
+    const [isAttendanceFinalizing, setIsAttendanceFinalizing] = useState(false);
 
     const {
         sessionRecords,
@@ -274,6 +275,7 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
 
     const handleSubmit = async () => {
         try {
+            setIsAttendanceFinalizing(true);
             const records = sessionRecords[trainingSessionId!] || [];
             const validRecords = records.filter(record =>
                 record.fighterName.trim() !== '' &&
@@ -301,6 +303,8 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
         } catch (error) {
             console.error('Error submitting attendance:', error);
             alert('Failed to record attendance');
+        } finally {
+            setIsAttendanceFinalizing(false);
         }
     };
 
@@ -339,7 +343,7 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                         onClick={() => setIsFinalizeDialogOpen(true)}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
-                        Finalize Attendance
+                        {isAttendanceFinalizing ? "Finalizing..." : "Finalize Attendance"}
                     </Button>
                 </div>
             </div>

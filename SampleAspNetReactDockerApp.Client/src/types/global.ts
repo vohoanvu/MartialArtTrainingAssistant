@@ -232,9 +232,11 @@ export interface GetBMIResponse {
 }
 
 export interface VideoUploadResponse {
-    videoId: number | null; // For sparring
-    demonstrationId: number | null; // For demonstration
-    signedUrl: string;
+    videoId: number | null;
+    demonstrationId?: number | null;
+    signedUrl?: string;
+    message?: string;
+    statusCode?: number;
 }
 
 export interface VideoDeleteResponse {

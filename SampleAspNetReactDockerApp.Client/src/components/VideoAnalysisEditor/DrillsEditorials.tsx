@@ -4,16 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, TrashIcon, PlusIcon } from 'lucide-react';
 
 interface DrillsEditorialProps {
     analysisResultDto: AnalysisResultDto;
     handleSaveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
+    isAnalysisSaving?: boolean;
 }
 
 export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
     analysisResultDto,
     handleSaveChanges,
+    isAnalysisSaving,
 }) => {
     const [drills, setDrills] = useState<SuggestedDrill[]>(analysisResultDto.drills ?? []);
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -117,7 +119,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                 className=""
                 variant="default"
             >
-                <span className="text-xl mr-2">+</span> Create New Drill
+                <PlusIcon/>
             </Button>
 
             {showCreateForm && (
@@ -352,7 +354,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                                     onClick={() => deleteDrill(index)}
                                     className="bg-red-500 text-white hover:bg-red-600"
                                 >
-                                    Delete Drill
+                                    <TrashIcon/>
                                 </Button>
                             </div>
                         )}
@@ -367,7 +369,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                 variant="default"
                 size='lg'
             >
-                Save Changes
+                {isAnalysisSaving ? "Saving changes..." : "Save Changes"}
             </Button>
         </div>
     );
