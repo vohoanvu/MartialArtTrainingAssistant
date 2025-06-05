@@ -41,15 +41,15 @@ export default function Navbar(
                                         </Link>
                                     </li>
                                     <li>
-                                        Welcome <strong>{authUser?.email}!</strong>
-                                    </li>
-                                    {/* <li>
-                                        <Link to="/videos">
+                                        <Link to="/class-session">
                                             <Button size="sm" variant="outline" className="w-full">
-                                                Video Showcase
+                                                Manage Classes
                                             </Button>
                                         </Link>
-                                    </li> */}
+                                    </li>
+                                    <li>
+                                        Welcome <strong>{authUser?.email}!</strong>
+                                    </li>
                                     <li>
                                         <button onClick={() => { logout(); }}>
                                             {t("navbar.logout")}

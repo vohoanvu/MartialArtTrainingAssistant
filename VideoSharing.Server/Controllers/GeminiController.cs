@@ -81,11 +81,11 @@ namespace VideoSharing.Server.Controllers
                     {
                         VideoId = videoId,
                         AnalysisJson = structuredJson,
-                        Strengths = JsonSerializer.Serialize(analysis.Strengths ?? new List<Strength>()),
-                        AreasForImprovement = JsonSerializer.Serialize(analysis.AreasForImprovement ?? new List<AreaForImprovement>()),
+                        Strengths = JsonSerializer.Serialize(analysis.Strengths ?? []),
+                        AreasForImprovement = JsonSerializer.Serialize(analysis.AreasForImprovement ?? []),
                         OverallDescription = analysis.OverallDescription,
-                        Techniques = new List<Techniques>(),
-                        Drills = new List<Drills>(),
+                        Techniques = [],
+                        Drills = [],
                         GeneratedAt = DateTime.UtcNow,
                         UpdatedBy = uploadedVideo.UserId
                     };
@@ -94,6 +94,10 @@ namespace VideoSharing.Server.Controllers
                 }
 
                 await dbContext.SaveChangesAsync();
+
+                var analysisProcessorService = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<AiAnalysisProcessorService>();
+                await analysisProcessorService.ProcessAnalysisJsonAsync(aiResult.AnalysisJson, videoId);
+
                 return Ok(aiResult);
             }
             catch (Exception ex)

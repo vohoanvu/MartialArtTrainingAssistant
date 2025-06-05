@@ -2,32 +2,36 @@ import { useState } from 'react';
 import { uploadVideoFile } from '@/services/api';
 import { Button } from '../ui/button';
 import { VideoUploadResponse, MartialArt } from '@/types/global';
-import AiAnalysisResults from '../AiAnalysisResults';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface VideoUploadFormProps {
     fighterRole: number; // 0 for Student, 1 for Instructor
     jwtToken: string;
     hydrateFn: () => Promise<void>;
+    isUploading: boolean;
+    setIsUploading: (value: boolean) => void;
+    onUploadSuccess: (response: VideoUploadResponse) => void;
 }
 
-const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormProps) => {
+const VideoUploadForm = ({
+    jwtToken,
+    hydrateFn,
+    isUploading,
+    setIsUploading,
+    onUploadSuccess
+}: VideoUploadFormProps) => {
     const [file, setFile] = useState<File | null>(null);
     const [description, setDescription] = useState('');
     const [studentIdentifier, setStudentIdentifier] = useState('');
     const [martialArt, setMartialArt] = useState<MartialArt>(MartialArt.BrazilianJiuJitsu_GI);
     const [signedUrl, setSignedUrl] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
+    const { toast } = useToast();
 
-    const [analysisLoading, setAnalysisLoading] = useState(false);
-    const [analysisCompleted, setAnalysisCompleted] = useState(false);
-    const [analysisResult, setAnalysisResult] = useState<any>(null);
-
-    const uploadType = fighterRole === 0 ? 'sparring' : 'demonstration';
     const title = 'Upload BJJ training video for AI analysis';
 
     const martialArtOptions = Object.values(MartialArt);
@@ -43,11 +47,9 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
             return;
         }
 
-        setIsLoading(true);
+        setIsUploading(true);
         setError(null);
         setProgress(0);
-        setAnalysisCompleted(false);
-        setAnalysisResult(null);
 
         try {
             const response: VideoUploadResponse = await uploadVideoFile({
@@ -55,58 +57,35 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                 description,
                 studentIdentifier,
                 martialArt,
-                uploadType,
                 jwtToken,
                 hydrate: hydrateFn,
                 onProgress: (percent: number) => setProgress(percent)
             });
-            setSignedUrl(response.signedUrl);
-            console.log('SignedUrl response expected as GCS path:', response.signedUrl);
-            const videoId = response.videoId;
-            console.log('VideoId response expected:', videoId);
             setFile(null);
             setDescription('');
             setStudentIdentifier('');
             setMartialArt(MartialArt.None);
-            console.log(`${uploadType} video upload response:`, response);
 
-            // Trigger analysis AI asynchronously
-            setAnalysisLoading(true);
-            (async () => {
-                try {
-                    const res = await fetch(`/vid/api/video/analyze/${videoId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${jwtToken}`,
-                        },
-                    });
-                    if (!res.ok) {
-                        console.error('Analysis API call failed');
-                    } else {
-                        const resultData = await res.json();
-                        console.log('Analysis completed successfully.', resultData);
-                        setAnalysisResult(resultData);
-                        setAnalysisCompleted(true);
-                    }
-                } catch (err) {
-                    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-                    setError(`Upload failed: ${errorMessage}`);
-                    console.error(`Error uploading ${uploadType} video:`, err);
-                } finally {
-                    setIsLoading(false);
-                }
-            })();
-        } catch (err : any) {
-            if (err.signedUrl) {
-                alert(`Duplicate video detected: ${err.message}. You can access the existing video here: ${err.signedUrl}`);
-            } else {
-                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-                setError(`Upload failed: ${errorMessage}`);
-                console.error(`Error uploading ${uploadType} video:`, err.message);
+            if (response.statusCode == 409 && response.message !== null) {
+                toast({
+                    title: "Duplicate Video Detected",
+                    description: response.message,
+                    variant: "destructive"
+                });
+                return;
             }
+            setSignedUrl(response.signedUrl || '')
+            onUploadSuccess(response);
+        } catch (err: any) {
+            setError(err);
+            toast({
+                title: "Upload Failed",
+                description: err.message || "An error occurred while uploading the video.",
+                variant: "destructive"
+            });
+            setError(err.message || "An error occurred while uploading the video.");
         } finally {
-            setIsLoading(false);
+            setIsUploading(false);
         }
     };
 
@@ -124,7 +103,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                         accept="video/mp4,video/avi,video/mov,video/mpeg,video/webm"
                         onChange={(e) => setFile(e.target.files?.[0] || null)}
                         className="mt-1"
-                        disabled={isLoading}
+                        disabled={isUploading}
                     />
                 </div>
                 <div>
@@ -138,7 +117,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                         placeholder="Optional: Enter a description"
                         className="mt-1"
                         rows={4}
-                        disabled={isLoading}
+                        disabled={isUploading}
                     />
                 </div>
                 <div>
@@ -152,7 +131,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                         onChange={(e) => setStudentIdentifier(e.target.value)}
                         placeholder="For example: 'the Fighter in Blue GI, the player is in Black GI'"
                         className="mt-1"
-                        disabled={isLoading}
+                        disabled={isUploading}
                     />
                 </div>
                 <div>
@@ -162,7 +141,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                     <Select
                         value={martialArt}
                         onValueChange={(value) => setMartialArt(value as MartialArt)}
-                        disabled={isLoading}
+                        disabled={isUploading}
                     >
                         <SelectTrigger className="mt-1">
                             <SelectValue placeholder="Select martial art" />
@@ -178,13 +157,13 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
                 </div>
                 <Button
                     type="submit"
-                    disabled={!file || isLoading}
+                    disabled={!file || isUploading}
                     className="w-full"
                 >
-                    {isLoading ? 'Uploading...' : `Upload Video`}
+                    {isUploading ? 'Uploading...' : `Upload Video`}
                 </Button>
             </form>
-            {isLoading && (
+            {isUploading && (
                 <div className="mt-4">
                     <progress value={progress} max="100" className="w-full" />
                     <p className="text-center mt-1 text-muted-foreground">{progress}%</p>
@@ -194,17 +173,8 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
             {signedUrl && (
                 <div className="mt-4">
                     <p className="text-green-500">Upload successful!</p>
-                    <video src={signedUrl} controls className="w-full mt-2" />
+                    {/* <video src={signedUrl} controls className="w-full mt-2" /> */}
                 </div>
-            )}
-            {analysisLoading && !analysisCompleted && (
-                <div className="mt-4 flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                    <p className="text-primary">Your video is being analyzed. This may take a few minutes.</p>
-                </div>
-            )}
-            {analysisCompleted && analysisResult && (
-                <AiAnalysisResults analysisJson={analysisResult.analysisJson} />
             )}
         </div>
     );

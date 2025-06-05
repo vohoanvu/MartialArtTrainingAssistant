@@ -153,6 +153,7 @@ namespace VideoSharing.Server.Controllers
                 FileHash = videoHash,
                 Type = VideoType.StudentUpload,
             };
+            var appUserEntity = dbContext.Users.Find(userId);
 
             dbContext.Videos.Add(uploadedVideo);
             await dbContext.SaveChangesAsync();
@@ -162,7 +163,7 @@ namespace VideoSharing.Server.Controllers
                 "ReceiveVideoSharedNotification",
                 "New Sparring Video Uploaded!",
                 uploadedVideo.Description,
-                User.Identity?.Name
+                appUserEntity?.UserName
             );
 
             return Ok(new { VideoId = uploadedVideo.Id, SignedUrl = signedUrl });
@@ -241,18 +242,25 @@ namespace VideoSharing.Server.Controllers
         public async Task<IActionResult> DeleteUploadedVideoAsync(int videoId)
         {
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
+            var aiAnalysisId = dbContext.AiAnalysisResults.FirstOrDefault(a => a.VideoId == videoId)?.Id;
+            await dbContext.Techniques
+                .Where(t => t.AiAnalysisResultId == aiAnalysisId)
+                .ExecuteDeleteAsync();
+            await dbContext.Drills.Where(d => d.AiAnalysisResultId == aiAnalysisId)
+                .ExecuteDeleteAsync();
+                
             var video = await dbContext.Videos.FindAsync(videoId);
             if (video == null)
             {
                 return NotFound(new { Message = $"Video with ID {videoId} not found" });
             }
 
-            // Delete from GCS
-            await _gcsService.DeleteFileAsync(video.FilePath!);
-
-            // Remove from database
+            // Remove from database first
             dbContext.Videos.Remove(video);
             await dbContext.SaveChangesAsync();
+
+            // then delete from GCS, might throw exception if file was already deleted
+            await _gcsService.DeleteFileAsync(video.FilePath!);
 
             return Ok(new { Message = $"Video with ID {videoId} deleted successfully" });
         }
