@@ -22,7 +22,12 @@ export interface UploadedVideoDto {
     studentIdentifier: string | null;
 }
 
-const VideoStorageListing = () => {
+interface VideoStorageListingProps {
+    shouldRefresh: boolean;
+    onRefreshComplete: () => void;
+}
+
+const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageListingProps) => {
     const [videos, setVideos] = useState<UploadedVideoDto[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -31,9 +36,13 @@ const VideoStorageListing = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        if (shouldRefresh) {
+            fetchVideos().then(() => {
+                onRefreshComplete();
+            });
+        }
         fetchVideos();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [shouldRefresh]);
 
     const fetchVideos = async () => {
         setIsLoading(true);
@@ -81,41 +90,41 @@ const VideoStorageListing = () => {
         setSelectedAnalysis(null);
     };
 
-    const onImportAIAnalysis = async () => {
-        if (!selectedAnalysis) return;
+    // const onImportAIAnalysis = async () => {
+    //     if (!selectedAnalysis) return;
 
-        const { videoId } = selectedAnalysis;
+    //     const { videoId } = selectedAnalysis;
 
-        setIsLoading(true);
-        try {
-            const response = await fetch(`/vid/api/video/import-ai/${videoId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
+    //     setIsLoading(true);
+    //     try {
+    //         const response = await fetch(`/vid/api/video/import-ai/${videoId}`, {
+    //             method: 'GET',
+    //             headers: {
+    //                 'Authorization': `Bearer ${accessToken}`,
+    //                 'Content-Type': 'application/json',
+    //             },
+    //         });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Failed to import AI analysis: ${errorText}`);
-            }
+    //         if (!response.ok) {
+    //             const errorText = await response.text();
+    //             throw new Error(`Failed to import AI analysis: ${errorText}`);
+    //         }
 
-            const data = await response.json();
-            alert('AI analysis imported successfully!');
-            console.log('Import AI Analysis response:', data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
-            alert('Failed to import AI analysi: ' + (err instanceof Error ? err.message : 'Unknown error'));
-        } finally {
-            setIsLoading(false);
-            closeDialog();
-        }
-    };
+    //         const data = await response.json();
+    //         alert('AI analysis imported successfully!');
+    //         console.log('Import AI Analysis response:', data);
+    //     } catch (err) {
+    //         setError(err instanceof Error ? err.message : 'Unknown error');
+    //         alert('Failed to import AI analysi: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    //     } finally {
+    //         setIsLoading(false);
+    //         closeDialog();
+    //     }
+    // };
 
     return (
-        <div className="max-w-6xl mx-auto my-10 p-6 border border-border rounded-lg shadow-lg bg-background">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">Uploaded Videos</h2>
+        <div className="max-w-6xl mx-auto my-5 p-4 border border-border rounded-lg shadow-md bg-background">
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Your uploaded videos</h2>
             {isLoading && <p className="text-muted-foreground">Loading...</p>}
             {error && <p className="text-destructive">{error}</p>}
             {!isLoading && !error && videos.length === 0 && <p className="text-muted-foreground">No videos uploaded yet.</p>}
@@ -123,7 +132,6 @@ const VideoStorageListing = () => {
                 <Table className="w-full">
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Cloud Filepath</TableHead>
                             <TableHead>Description</TableHead>
                             <TableHead>Uploaded At</TableHead>
                             <TableHead>Martial Art</TableHead>
@@ -134,7 +142,6 @@ const VideoStorageListing = () => {
                     <TableBody>
                         {videos.map(video => (
                             <TableRow key={video.id}>
-                                <TableCell>{video.filePath}</TableCell>
                                 <TableCell>{video.description}</TableCell>
                                 <TableCell>{new Date(video.uploadTimestamp).toLocaleString()}</TableCell>
                                 <TableCell>{video.martialArt}</TableCell>
@@ -153,14 +160,14 @@ const VideoStorageListing = () => {
                                         size="sm"
                                         onClick={() => handleReview(video.id)}
                                     >
-                                        Review
+                                        View Analysis Results
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleViewAnalysis(video.id, video.aiAnalysisResult)}
                                     >
-                                        View AI Analysis
+                                        View JSON
                                     </Button>
                                 </TableCell>
                             </TableRow>
@@ -174,7 +181,7 @@ const VideoStorageListing = () => {
                     <div className="bg-background p-6 rounded-lg shadow-lg max-w-6xl w-full max-h-[80vh] overflow-y-auto border border-border">
                         <AiAnalysisResults analysisJson={selectedAnalysis.aiAnalysisResult} />
                         <div className="flex justify-between mt-4">
-                            <Button variant="default" onClick={onImportAIAnalysis}>Import AI Analysis</Button>
+                            {/* <Button variant="default" onClick={onImportAIAnalysis}>Import AI Analysis</Button> */}
                             <Button variant="secondary" onClick={closeDialog}>Close</Button>
                         </div>
                         {error && <p className="text-destructive mt-2">{error}</p>}

@@ -7,6 +7,7 @@ using SharedEntities.Models;
 using SharedEntities;
 using System.Text;
 using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
 
 namespace VideoSharing.Server.Domain.GeminiService
 {
@@ -152,9 +153,9 @@ namespace VideoSharing.Server.Domain.GeminiService
                 },
                 GenerationConfig = new GenerationConfig
                 {
-                    Temperature = 0.4f,
+                    Temperature = 0.7f,
                     TopP = 1.0f,
-                    MaxOutputTokens = 65535, // Increased from 2048, 65535 is current Max.
+                    MaxOutputTokens = 65535,
                     ResponseMimeType = "application/json",
                 }
             };
@@ -166,8 +167,12 @@ namespace VideoSharing.Server.Domain.GeminiService
                 // _logger.LogDebug("Vision Prompt: {Prompt}", prompt); // Log prompt at Debug level if needed
 
                 GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
-                string resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
-                    ?? throw new InvalidOperationException("No valid JSON response received from the API for video analysis.");
+                string? resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text;
+                if (resultJson == null) {
+                    _logger.LogDebug("FinishReason: {FinishReason}", response.Candidates.FirstOrDefault()?.FinishReason);
+                    _logger.LogDebug("FinisheMessage: {FinishMessage}", response.Candidates.FirstOrDefault()?.FinishMessage);
+                    throw new InvalidOperationException("No valid JSON response received from the API for video analysis.");
+                }
                 _logger.LogInformation("Received valid response for video: {FileUri}", fileUri);
                 return new GeminiVisionResponse { AnalysisJson = resultJson };
             }
@@ -374,7 +379,8 @@ namespace VideoSharing.Server.Domain.GeminiService
 
             return $@"
             You are an expert {martialArt} instructor. You have been given video of your student with the description as '{videoDescription}'.
-            Analyze the performance of the student, identified as {studentIdentifier}, in this {martialArt} video. The student is at the {skillLevel} level and is training for {trainingGoal}.
+            Analyze the performance of the student, identified as {studentIdentifier}, in this {martialArt} video using the instructions below. The student is at the {skillLevel} level and is training for {trainingGoal}.
+            Describe the student's techniques, execution, strengths, and weaknesses in detail. For each techniques used, provude the time stamps of the video where the technique starts and ends, and categorize the technique type and positional scenario.
             Provide a detailed analysis of the student's techniques, execution, strengths, weaknesses, and suggest specific drills for practice on what they could do differently.
             Pay close attention to the student's score-losing techniques, based loosely on official IBJJF rule set, and tailor the situational drills (positional sparring) to only focus on practicing that weakness.
 

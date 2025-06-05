@@ -33,7 +33,17 @@ const TrainingSessionDetails = () => {
     const [suggestedPairingsContent, setSuggestedPairingsContent] = useState<ApiMatchMakerResponseContent | null>(null);
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);
     const [showAttendanceForm, setShowAttendanceForm] = useState(false);
-    const [isAIDialogOpen, SetIsAIDialogOpen] = useState(false);
+    const [confirmationOptions, setConfirmationOptions] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => Promise<void> | void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => {}
+    });
     const [isRemoving, setIsRemoving] = useState<number | null>(null);
 
     const pairingData = matchMakeResponse?.suggestedPairings ?? suggestedPairingsContent;
@@ -62,6 +72,15 @@ const TrainingSessionDetails = () => {
 
         fetchSessionDetails();
     }, [hydrate, jwtToken, refreshToken, sessionIdNumber, showAttendanceForm]);
+
+    const openConfirmationDialog = (title: string, message: string, onConfirm: () => Promise<void> | void) => {
+        setConfirmationOptions({
+            isOpen: true,
+            title,
+            message,
+            onConfirm
+        });
+    };
 
     const handleCheckIn = async () => {
         if (!user?.fighterInfo) {
@@ -118,8 +137,6 @@ const TrainingSessionDetails = () => {
                 instructorFighterId: user.fighterInfo.id
             };
             const matchMakeResponseData = await SuggestFighterPairs(generatePairRequest, sessionIdNumber, { jwtToken, hydrate });
-            alert('Fighter Pair successfully generated');
-            //setFighterPairResult(matchMakeResponse);
             setMatchMakerResponse(matchMakeResponseData);
         } catch (err) {
             setError('Failed to generate pairs');
@@ -175,14 +192,21 @@ const TrainingSessionDetails = () => {
                                         type="button"
                                         onClick={() => setShowAttendanceForm(true)}
                                         variant='default'
+                                        disabled={isLessonloading || isPairingLoading}
                                     >
                                         Take Attendance
                                     </Button>
                                     <Button type="button" variant='outline'
-                                        onClick={() => {
-                                            window.confirm('Are you sure you want to pair up fighters? This will generate pairs based on the current roster.') && handlePairUp();
-                                        }}
-                                        disabled={isPairingLoading}
+                                        onClick={() =>
+                                            openConfirmationDialog(
+                                                "Pairing up the students",
+                                                "The AI will analyze the current roster and generate pairs based on their skill levels and physical size. This process may take a few minutes to complete.",
+                                                async () => {
+                                                    await handlePairUp();
+                                                }
+                                            )
+                                        }
+                                        disabled={isPairingLoading || isLessonloading}
                                     >
                                         PAIR UP
                                     </Button>
@@ -195,8 +219,16 @@ const TrainingSessionDetails = () => {
                                     <Button
                                         type="button"
                                         variant='default'
-                                        onClick={() => SetIsAIDialogOpen(true)}
-                                        disabled={isLessonloading}
+                                        onClick={() =>
+                                            openConfirmationDialog(
+                                                "Generate AI Lesson Plan",
+                                                "You are about to generate a new lesson plan using AI. This process may take a few minutes to complete. The AI will analyze your training requirements and create a structured curriculum for today's session.",
+                                                async () => {
+                                                    await handleGenerateCurriculum();
+                                                }
+                                            )
+                                        }
+                                        disabled={isLessonloading || isPairingLoading}
                                     >
                                         Generate Today's Lessons
                                     </Button>
@@ -213,14 +245,16 @@ const TrainingSessionDetails = () => {
                         <p className="text-muted-foreground">No session details available.</p>
                     )}
                     <ConfirmationDialog
-                        title="Generate AI Lesson Plan"
-                        message="You are about to generate a new lesson plan using AI. This process may take a few minutes to complete. The AI will analyze your training requirements and create a structured curriculum for today's session."
-                        isOpen={isAIDialogOpen}
+                        title={confirmationOptions.title}
+                        message={confirmationOptions.message}
+                        isOpen={confirmationOptions.isOpen}
                         onConfirm={async () => {
-                            SetIsAIDialogOpen(false);
-                            await handleGenerateCurriculum();
+                            setConfirmationOptions(prev => ({ ...prev, isOpen: false }));
+                            await confirmationOptions.onConfirm();
                         }}
-                        onCancel={() => SetIsAIDialogOpen(false)}
+                        onCancel={() =>
+                            setConfirmationOptions(prev => ({ ...prev, isOpen: false }))
+                        }
                     />
                 </div>
 

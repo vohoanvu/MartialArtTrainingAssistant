@@ -17,6 +17,7 @@ const VideoReview: React.FC = () => {
     const [fighterDetails, setFighterDetails] = useState<Fighter | null>(null);
     const videoPlayerRef = useRef<VideoPlayerHandle>(null);
     const [studentIdentifier, setStudentIdentifier] = useState<string | null>(null);
+    const [isAnalysisSaving , setIsAnalysisSaving] = useState(false);
 
     useEffect(() => {
         if (!videoId) return;
@@ -80,6 +81,7 @@ const VideoReview: React.FC = () => {
         }
 
         try {
+            setIsAnalysisSaving(true);
             const updatedAnalysisResult = await saveVideoAnalysisResult({
                 videoId,
                 analysisResultBody: partialFeedbackData,
@@ -93,6 +95,8 @@ const VideoReview: React.FC = () => {
         } catch (error: any) {
             console.error('Save operation failed:', error);
             alert(`Error saving changes: ${error.message || 'Unknown error'}`);
+        } finally {
+            setIsAnalysisSaving(false);
         }
     };
 
@@ -108,7 +112,7 @@ const VideoReview: React.FC = () => {
 
     return (
         <div className="w-full">
-            <h1 className="text-3xl font-bold text-center mt-3">Review this student uploaded tape</h1>
+            <h1 className="text-3xl font-bold text-center mt-3">Review and edit this tape</h1>
             <div className="flex flex-col md:flex-row gap-4 md:p-4 m-0 md:m-2">
                 <div className="w-full md:w-1/2 flex flex-col gap-4">
                     <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
@@ -135,6 +139,7 @@ const VideoReview: React.FC = () => {
                             saveChanges={handleSaveAnalysisResult}
                             onInputChange={handleInputChange}
                             selectedSegment={selectedSegment}
+                            isAnalysisSaving={isAnalysisSaving}
                         />
                     </div>
                 </div>

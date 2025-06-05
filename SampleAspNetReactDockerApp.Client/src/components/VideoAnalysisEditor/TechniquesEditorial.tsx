@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, TrashIcon, PlusIcon } from 'lucide-react';
 
 interface TechniquesEditorialProps {
     analysisResultDto: AnalysisResultDto;
     onSeek: (timestamp: string) => void;
     handleSaveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
     selectedSegment?: { start: string; end: string } | null;
+    isAnalysisSaving?: boolean;
 }
 
 export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
@@ -18,6 +19,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
     onSeek,
     handleSaveChanges,
     selectedSegment,
+    isAnalysisSaving
 }) => {
     const [techniques, setTechniques] = useState<TechniqueDto[]>(analysisResultDto.techniques ?? []);
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -145,7 +147,6 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
         const updatingPartialFeedbackData: AnalysisResultDto = {
             techniques,
         };
-        console.log('Sending to PATCH /api/video/{}/analysis with body.... ', updatingPartialFeedbackData);
         await handleSaveChanges(updatingPartialFeedbackData);
     };
 
@@ -156,7 +157,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                 className=""
                 variant="default"
             >
-                <span className="text-xl mr-2">+</span> Create New Technique
+                <PlusIcon/>
             </Button>
 
             {showCreateForm && (
@@ -439,7 +440,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                                 variant="destructive"
                                 size='sm'
                             >
-                                Delete Technique
+                                <TrashIcon/>
                             </Button>
                         </div>
                     )}
@@ -452,7 +453,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                 variant="default"
                 size='lg'
             >
-                Save Changes
+                {isAnalysisSaving ? "Saving changes..." : "Save Changes"}
             </Button>
         </div>
     );

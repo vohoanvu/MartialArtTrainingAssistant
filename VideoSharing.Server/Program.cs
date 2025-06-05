@@ -183,7 +183,17 @@ namespace VideoSharing.Server
                     ValidateIssuerSigningKey = true,
                     ValidAudience = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtAudience),
                     ValidIssuer = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtIssuer),
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtKey)))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtKey))),
+                    ValidateLifetime = true,  // Enable lifetime validation
+                    ClockSkew = TimeSpan.Zero,  // Removes default 5-minute clock skew
+                    LifetimeValidator = (notBefore, expires, token, parameters) =>
+                    {
+                        if (expires != null)
+                        {
+                            return expires.Value.ToUniversalTime() > DateTime.UtcNow;
+                        }
+                        return false;
+                    }
                 };
 
                 options.Events = new JwtBearerEvents
@@ -191,13 +201,15 @@ namespace VideoSharing.Server
                     OnAuthenticationFailed = context =>
                     {
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                        logger.LogError(context.Exception, "Authentication failed.");
-                        return Task.CompletedTask;
-                    },
-                    OnTokenValidated = context =>
-                    {
-                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                        logger.LogInformation("Token validated successfully.");
+                        if (context.Exception is SecurityTokenExpiredException)
+                        {
+                            logger.LogWarning("Token expired: {Message}", context.Exception.Message);
+                            context.Response.Headers.Append("Token-Expired", "true");
+                        }
+                        else
+                        {
+                            logger.LogError(context.Exception, "Authentication failed: {Message}", context.Exception.Message);
+                        }
                         return Task.CompletedTask;
                     }
                 };

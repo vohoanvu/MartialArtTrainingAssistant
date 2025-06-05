@@ -3,16 +3,18 @@ import { AnalysisResultDto, Strength, AreaForImprovement } from '@/types/global'
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, PlusIcon, TrashIcon } from 'lucide-react';
 
 interface OverallAnalysisEditorialProps {
     analysisResultDto: AnalysisResultDto;
     handleSaveChanges: (updatedFeedbackData: AnalysisResultDto) => Promise<void>;
+    isAnalysisSaving?: boolean;
 }
 
 export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> = ({
     analysisResultDto,
     handleSaveChanges,
+    isAnalysisSaving,
 }) => {
     const [overallDescription, setOverallDescription] = useState<string>(
         analysisResultDto.overallDescription ?? ''
@@ -152,7 +154,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                             className="mt-2"
                                             variant="destructive"
                                         >
-                                            Delete Strength
+                                            <TrashIcon/>
                                         </Button>
                                     </div>
                                 );
@@ -163,7 +165,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                             className="mt-2"
                             variant="outline"
                         >
-                            Add Strength
+                            <PlusIcon/>
                         </Button>
                     </div>
                 )}
@@ -228,7 +230,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                             className="mt-2"
                                             variant="destructive"
                                         >
-                                            Delete Area
+                                            <TrashIcon/>
                                         </Button>
                                     </div>
                                 );
@@ -239,7 +241,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                             className="mt-2"
                             variant="outline"
                         >
-                            Add Area for Improvement
+                            <PlusIcon/>
                         </Button>
                     </div>
                 )}
@@ -251,7 +253,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                 variant="default"
                 size='lg'
             >
-                Save Changes
+                {isAnalysisSaving ? "Saving changes..." : "Save Changes"}
             </Button>
         </div>
     );

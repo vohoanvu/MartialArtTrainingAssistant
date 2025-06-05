@@ -11,15 +11,14 @@ import ClassSession from "@/pages/Dashboard.tsx";
 import About from "@/pages/About.tsx";
 import Register from "@/pages/Register.tsx";
 import Contact from "@/pages/Contact.tsx";
-import SharingVideo from '@/pages/SharingVideo.tsx';
 import TrainingSessionForm from './components/ClassSessionManagement/TrainingSessionForm.tsx';
 import TrainingSessionDetails from './components/ClassSessionManagement/TrainingSessionDetails.tsx';
 import VideoShareList from './pages/VideoShareList.tsx';
-import VideoStorageListing from './pages/VideoStorageListing.tsx';
 import VideoReview from './pages/VideoReview.tsx';
 import LandingPage from './pages/LandingPage.tsx';
 import SsoCallback from './pages/SSOCallback.tsx';
 import { Toaster } from './components/ui/toaster.tsx';
+import VideoAnalysisManagement from './pages/VideoAnalysisManagement.tsx';
 
 const router = createBrowserRouter([
     {
@@ -40,7 +39,7 @@ const router = createBrowserRouter([
             },
             {
                 path: '/login',
-                element: <Login/>,
+                element: <Home/>,
             },
             {
                 path: '/register',
@@ -55,8 +54,8 @@ const router = createBrowserRouter([
                 element: <Contact/>,
             },
             {
-                path: '/share-video',
-                element: <SharingVideo/>,
+                path: '/video-analysis',
+                element: <VideoAnalysisManagement/>,
             },
             {
                 path: '/create-session',
@@ -73,10 +72,6 @@ const router = createBrowserRouter([
             {
                 path: '/videos',
                 element: <VideoShareList/>,
-            },
-            {
-                path: '/video-listing',
-                element: <VideoStorageListing/>,
             },
             {
                 path: '/video-review/:videoId',
