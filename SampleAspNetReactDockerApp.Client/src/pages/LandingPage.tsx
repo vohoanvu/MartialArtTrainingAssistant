@@ -54,21 +54,24 @@ const LandingPage: React.FC = () => {
                         Revolutionize Your BJJ Dojo with AI Assistance
                     </h1>
                     <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-                        Imagine having a dedicated AI Assistant that manages your classes, analyzes sparring footage, and personalizes learning for every student—streamlining your dojo operations and boosting retention like never before.
+                        Imagine having a dedicated AI Assistant that plans your classes day-to-day activities, analyzes sparring footage, and personalizes learning for every student—streamlining your dojo operations and boosting retention like never before.
                     </p>
-                    <Button
-                        asChild
-                        className="bg-card text-primary hover:bg-accent hover:text-accent-foreground text-lg px-8 py-3 shadow"
-                    >
+                    <Button asChild className="bg-card text-primary hover:bg-accent hover:text-accent-foreground text-lg px-8 py-3 shadow">
                         <a href="#waitlist">Join the AI Revolution in BJJ Training – Get Started Today!</a>
                     </Button>
-                    <div className="mt-12">
-                        {/* <img
-                            src="/mockups/ai-dashboard.png"
-                            alt="AI Assistant Dashboard"
-                            className="mx-auto w-full max-w-3xl rounded-lg shadow-lg"
+                    <div className="mt-12 flex flex-col md:flex-row justify-center items-center gap-8">
+                        <img
+                            src="/mockups/codejitsu-class-dashboard.png"
+                            alt="Class Dashboard"
+                            className="w-[480px] h-[300px] rounded-lg shadow-lg object-cover"
                             loading="lazy"
-                        /> */}
+                        />
+                        <img
+                            src="/mockups/live-video-search.png"
+                            alt="Live Video Search"
+                            className="w-[480px] h-[300px] rounded-lg shadow-lg object-cover"
+                            loading="lazy"
+                        />
                     </div>
                 </div>
             </section>
@@ -77,70 +80,87 @@ const LandingPage: React.FC = () => {
             <section className="py-16">
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold text-center mb-12">
-                        Your AI Assistant: Streamline Operations, Enhance Learning
+                        Empower Your Coaching: How CodeJitsu's AI Works for You
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <Card className="bg-card text-card-foreground shadow-lg border border-border">
-                            <CardHeader>
-                                <CardTitle>Effortless Class Management</CardTitle>
-                                <CardDescription>
-                                    Let your AI Assistant oversee daily dojo activities like a pro.
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                        {/* Feature Card 1: Smart Class & Curriculum */}
+                        <Card className="bg-card text-card-foreground shadow-lg border border-border flex flex-col">
+                            <CardHeader className="text-center">
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground mb-4">
+                                    {/* Icon Example: Users or Calendar */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar-check"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
+                                </div>
+                                <CardTitle>Smart Class & Lesson Planning</CardTitle>
+                                <CardDescription className="text-sm">
+                                    Automate attendance, pair students, and get AI-generated lesson plans instantly.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                {/* <img
+                            <CardContent className="flex-grow flex flex-col items-center">
+                                <img
                                     src="/mockups/class-management.png"
-                                    alt="Class Management Dashboard"
-                                    className="w-32 h-24 rounded-md object-cover"
+                                    alt="AI BJJ Class Planning"
+                                    className="w-full h-48 rounded-md object-cover mb-4 shadow-md"
                                     loading="lazy"
-                                /> */}
-                                <ul className="list-disc pl-5 mt-2">
-                                    <li>Automate attendance and pair students by size and skill.</li>
-                                    <li>Generate tailored training curriculums for each class.</li>
-                                    <li>Track sparring and drilling time effortlessly.</li>
-                                </ul>
+                                />
+                                <div className="space-y-2 text-sm text-center">
+                                    <p><span className="font-semibold text-primary">✓</span> Walk-in Attendance</p>
+                                    <p><span className="font-semibold text-primary">✓</span> Intelligent Pairing</p>
+                                    <p><span className="font-semibold text-primary">✓</span> AI-Drafted Curricula</p>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card className="bg-card text-card-foreground shadow-lg border border-border">
-                            <CardHeader>
-                                <CardTitle>In-Depth Sparring Analysis</CardTitle>
-                                <CardDescription>
-                                    Turn footage into actionable insights with AI precision.
+
+                        {/* Feature Card 2: AI Sparring Analysis */}
+                        <Card className="bg-card text-card-foreground shadow-lg border border-border flex flex-col">
+                            <CardHeader className="text-center">
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground mb-4">
+                                    {/* Icon Example: Video or Bar Chart */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-video"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
+                                </div>
+                                <CardTitle>Unlock Sparring Insights</CardTitle>
+                                <CardDescription className="text-sm">
+                                    AI breaks down footage, highlighting techniques, strengths, and areas for growth.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                {/* <img
-                                    src="/mockups/sparring-analysis.png"
-                                    alt="Sparring Analysis Report"
-                                    className="w-32 h-24 rounded-md object-cover"
+                            <CardContent className="flex-grow flex flex-col items-center">
+                                <img
+                                    src="/mockups/video-analysis.png"
+                                    alt="BJJ Sparring Video Analysis Interface"
+                                    className="w-full h-48 rounded-md object-cover mb-4 shadow-md"
                                     loading="lazy"
-                                /> */}
-                                <ul className="list-disc pl-5 mt-2">
-                                    <li>Upload footage for AI-driven breakdowns.</li>
-                                    <li>Get feedback on techniques, strengths, and improvements.</li>
-                                    <li>Use it as a template for personalized coaching.</li>
-                                </ul>
+                                />
+                                <div className="space-y-2 text-sm text-center">
+                                    <p><span className="font-semibold text-primary">✓</span> Easy Video Upload</p>
+                                    <p><span className="font-semibold text-primary">✓</span> Key Technique identification</p>
+                                    <p><span className="font-semibold text-primary">✓</span> Editable AI Feedback</p>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card className="bg-card text-card-foreground shadow-lg border border-border">
-                            <CardHeader>
-                                <CardTitle>Personalized Learning Journeys</CardTitle>
-                                <CardDescription>
-                                    Extend your expertise to every student, effortlessly.
+
+                        {/* Feature Card 3: Efficient Coaching Workflow */}
+                        <Card className="bg-card text-card-foreground shadow-lg border border-border flex flex-col">
+                            <CardHeader className="text-center">
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground mb-4">
+                                    {/* Icon Example: Edit or Clipboard Check */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clipboard-check"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
+                                </div>
+                                <CardTitle>Streamlined Coaching Tools</CardTitle>
+                                <CardDescription className="text-sm">
+                                    Review AI analysis, make quick edits, and prepare targeted training efficiently.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                {/* <img
-                                    src="/mockups/personalized-lessons.png"
-                                    alt="Personalized Feedback Distribution"
-                                    className="w-32 h-24 rounded-md object-cover"
+                            <CardContent className="flex-grow flex flex-col items-center">
+                                <img
+                                    src="/mockups/ai-analysis-editor.png"
+                                    alt="Instructor Editing AI Feedback"
+                                    className="w-full h-48 rounded-md object-cover mb-4 shadow-md"
                                     loading="lazy"
-                                /> */}
-                                <ul className="list-disc pl-5 mt-2">
-                                    <li>Students upload videos for your review.</li>
-                                    <li>AI distributes your approved feedback via email.</li>
-                                    <li>Curated resources enhance student engagement.</li>
-                                </ul>
+                                />
+                                <div className="space-y-2 text-sm text-center">
+                                    <p><span className="font-semibold text-primary">✓</span> Focused Analysis Review</p>
+                                    <p><span className="font-semibold text-primary">✓</span> Quick-Edit Interface</p>
+                                    <p><span className="font-semibold text-primary">✓</span> Data-Driven Insights</p>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -154,14 +174,14 @@ const LandingPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                         <Card>
                             <CardContent className="pt-6">
-                                <p className="italic">"This AI Assistant saved me hours of planning and brought more students to my dojo!"</p>
-                                <p className="mt-4 font-semibold">— Coach Alex, USA</p>
+                                <p className="italic">"CodeJitsu's AI video analysis is a game-changer. I can pinpoint student mistakes and strengths much faster, giving me more time to actually coach. The AI-generated curriculum ideas are a fantastic starting point for my classes."</p>
+                                <p className="mt-4 font-semibold">— Renowned BJJ Black Belt & Competition Coach</p>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardContent className="pt-6">
-                                <p className="italic">"Student retention jumped 30% since we started using personalized feedback."</p>
-                                <p className="mt-4 font-semibold">— Sensei Maria, Brazil</p>
+                                <p className="italic">"Managing class attendance, especially with walk-ins, used to be chaotic. CodeJitsu streamlined it. Plus, generating tailored drills with the AI assistant keeps my students engaged and learning effectively."</p>
+                                <p className="mt-4 font-semibold">— Owner & Head Instructor</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -175,14 +195,28 @@ const LandingPage: React.FC = () => {
                         Be the First to Experience the Future of AI-assisted BJJ coaching
                     </h2>
                     <p className="text-lg text-center mb-8 max-w-xl mx-auto">
-                        Join BJJ instructors worldwide transforming their dojos with AI. Sign up now and unlock exclusive early access!
+                        Get early access to CodeJitsu and our exclusive MVP launch discount. Help shape the future of BJJ training while making your coaching more efficient and impactful.
                     </p>
-                    {/* <img
-                        src="/mockups/ai-curriculum.png"
-                        alt="AI Curriculum Dashboard"
-                        className="mx-auto w-full max-w-2xl rounded-lg shadow-lg"
-                        loading="lazy"
-                    /> */}
+                    <div className="flex flex-col md:flex-row justify-center items-center gap-8 mb-8">
+                        <img
+                            src="/mockups/ai-lessons-1.png"
+                            alt="AI Generated Lesson plans"
+                            className="w-full max-w-md rounded-lg shadow-lg"
+                            loading="lazy"
+                        />
+                        <img
+                            src="/mockups/ai-lessons-2.png"
+                            alt="AI Generated Lesson plans"
+                            className="w-full max-w-md rounded-lg shadow-lg"
+                            loading="lazy"
+                        />
+                        <img
+                            src="/mockups/ai-lessons-3.png"
+                            alt="AI Generated Lesson plans"
+                            className="w-full max-w-md rounded-lg shadow-lg"
+                            loading="lazy"
+                        />
+                    </div>
                     <Card className="max-w-md mx-auto bg-card text-card-foreground shadow-lg border border-border">
                         <CardHeader>
                             <CardTitle>Early Access to Your AI Assistant</CardTitle>

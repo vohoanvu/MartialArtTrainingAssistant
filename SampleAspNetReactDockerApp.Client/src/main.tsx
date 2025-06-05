@@ -18,6 +18,7 @@ import LandingPage from './pages/LandingPage.tsx';
 import SsoCallback from './pages/SSOCallback.tsx';
 import { Toaster } from './components/ui/toaster.tsx';
 import VideoAnalysisManagement from './pages/VideoAnalysisManagement.tsx';
+import PricingPage from './pages/Pricing.tsx';
 
 const router = createBrowserRouter([
     {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
             {
                 path: '/home',
                 element: <Home/>,
+            },
+            {
+                path: '/pricing',
+                element: <PricingPage/>,
             },
             {
                 path: '/about',
