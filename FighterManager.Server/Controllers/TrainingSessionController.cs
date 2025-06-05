@@ -8,7 +8,6 @@ using System.Net;
 using System.Security.Claims;
 using SharedEntities.Models;
 using FighterManager.Server.Domain.AttendanceService;
-using System.ComponentModel;
 
 namespace FighterManager.Server.Controllers
 {

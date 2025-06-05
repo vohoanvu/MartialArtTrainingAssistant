@@ -33,6 +33,13 @@ export default function Navbar(
                         {authStatus === "authenticated" ?
                             (
                                 <>
+                                    <li className="">
+                                        <Link to="/video-analysis">
+                                            <Button size="sm" variant="outline" className="w-full">
+                                                Video Analysis
+                                            </Button>
+                                        </Link>
+                                    </li>
                                     <li>
                                         Welcome <strong>{authUser?.email}!</strong>
                                     </li>
@@ -43,20 +50,6 @@ export default function Navbar(
                                             </Button>
                                         </Link>
                                     </li> */}
-                                    <li className="">
-                                        <Link to="/share-video">
-                                            <Button size="sm" variant="outline" className="w-full">
-                                                Upload Videos
-                                            </Button>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/video-listing">
-                                            <Button size="sm" variant="outline" className="w-full">
-                                                Manage Videos
-                                            </Button>
-                                        </Link>
-                                    </li>
                                     <li>
                                         <button onClick={() => { logout(); }}>
                                             {t("navbar.logout")}

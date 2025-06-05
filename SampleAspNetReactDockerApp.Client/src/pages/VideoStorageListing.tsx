@@ -114,8 +114,8 @@ const VideoStorageListing = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto my-10 p-6 border border-border rounded-lg shadow-lg bg-background">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">Uploaded Videos</h2>
+        <div className="max-w-6xl mx-auto my-5 p-4 border border-border rounded-lg shadow-md bg-background">
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Your uploaded videos</h2>
             {isLoading && <p className="text-muted-foreground">Loading...</p>}
             {error && <p className="text-destructive">{error}</p>}
             {!isLoading && !error && videos.length === 0 && <p className="text-muted-foreground">No videos uploaded yet.</p>}

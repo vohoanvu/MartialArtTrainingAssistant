@@ -9,7 +9,7 @@ import FetchMock, {enableFetchMocks} from 'jest-fetch-mock';
 enableFetchMocks();
 
 
-describe('VideoSharingForm', () => {
+describe('VideoAnalysisManagement', () => {
     beforeEach(() => {
         const mockSharedVideoResponse  = {
             id: 'videoId1',

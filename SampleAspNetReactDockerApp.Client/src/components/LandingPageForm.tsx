@@ -10,9 +10,11 @@ const LandingPageForm = () => {
     const login = useAuthStore((state) => state.login);
     const isLogged = useAuthStore((state) => state.loginStatus);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const loginActionForm = async (email: string, password: string) => {
         try {
+            setIsLoading(true);
             const resp = await login({ email, password });
             if (resp.successful) {
                 navigate("/class-session");
@@ -22,6 +24,8 @@ const LandingPageForm = () => {
             }
         } catch (error) {
             window.alert("Error: " + error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -102,7 +106,7 @@ const LandingPageForm = () => {
                     <Button type="submit"
                         variant={"outline"}
                         className="w-full">
-                        Login
+                        {isLoading ? "Logging in..." : "Login"}
                     </Button>
                 </form>
                 <div className="flex flex-col gap-2 mt-6">
@@ -130,7 +134,7 @@ const LandingPageForm = () => {
             <p className="mt-4">
                 New User?{' '}
                 <Link to="/register" className="text-blue-500 hover:underline">
-                    Get started by filling out our registration form here!
+                    Get started by either filling out our registration form or sign in with Google!
                 </Link>
             </p>
             <div className="flex flex-col items-center mt-8 space-y-4">
@@ -140,7 +144,7 @@ const LandingPageForm = () => {
                 </div>
                 <div className="text-center">
                     <h2 className="text-2xl font-bold">For Instructors</h2>
-                    <p>Create and manage training sessions, review Students training footage to provide feedback, and access to AI Assistant that organizes your class sessions.</p>
+                    <p>Create and manage training lessons, review Students training footage to provide feedback, and access to AI agent that organizes your class lessons.</p>
                 </div>
             </div>
         </div>

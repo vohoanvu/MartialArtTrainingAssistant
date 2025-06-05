@@ -28,7 +28,7 @@ const VideoUploadForm = ({ fighterRole, jwtToken, hydrateFn }: VideoUploadFormPr
     const [analysisResult, setAnalysisResult] = useState<any>(null);
 
     const uploadType = fighterRole === 0 ? 'sparring' : 'demonstration';
-    const title = fighterRole === 0 ? 'Upload your training video for AI analysis' : 'Upload your students video for AI analysis';
+    const title = 'Upload BJJ training video for AI analysis';
 
     const martialArtOptions = Object.values(MartialArt);
 

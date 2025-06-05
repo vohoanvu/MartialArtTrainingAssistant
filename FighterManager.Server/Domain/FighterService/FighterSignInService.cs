@@ -64,7 +64,7 @@ namespace FighterManager.Server.Domain.FighterService
                 issuer: Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtIssuer),
                 audience: Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.JwtAudience),
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.UtcNow.AddDays(3),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

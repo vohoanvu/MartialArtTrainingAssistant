@@ -208,7 +208,7 @@ The core functionalities include secure user registration and authentication (em
 
 #### 3.2.3 Video Upload & Analysis (Student & Instructor)
 -   **Web/Mobile:**
-    -   **Student Upload:** Students navigate to a video upload section (`VideoSharingForm.tsx` which includes `VideoUploadForm.tsx`). They can choose to upload a file or provide a YouTube URL, add a description, and specify their identifier in the video. Progress bar shown during upload.
+    -   **Student Upload:** Students navigate to a video upload section (`VideoAnalysisManagement.tsx` which includes `VideoUploadForm.tsx`). They can choose to upload a file or provide a YouTube URL, add a description, and specify their identifier in the video. Progress bar shown during upload.
     -   **Instructor Upload (for student footage):** Similar flow to student upload, but the system needs to be aware it's an instructor uploading for (potentially multiple) students, influencing AI analysis focus.
     -   **Analysis Status:** Users are notified when analysis begins and completes (potentially via SignalR notifications - `NotificationsListener.tsx`).
     -   **Viewing Raw AI Analysis:** Users can view the raw JSON output of the AI analysis (`AiAnalysisResults.tsx`).
