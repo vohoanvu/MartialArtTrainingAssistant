@@ -74,9 +74,9 @@ const PricingPage: React.FC = () => {
                             Unlock the full power of AI to supercharge your coaching and dojo.
                         </CardDescription>
                         <p className="text-4xl font-bold text-center mt-2">
-                            $10<span className="text-lg font-normal text-muted-foreground">/month</span>
+                            $20<span className="text-lg font-normal text-muted-foreground">/month</span>
                         </p>
-                        <p className="text-sm text-muted-foreground text-center">(Regularly $20/month - Limited Time Offer!)</p>
+                        <p className="text-sm text-muted-foreground text-center">(Regularly $40/month - Limited Time Offer!)</p>
                     </CardHeader>
                     <CardContent className="flex-grow">
                         <ul className="space-y-3">
@@ -124,7 +124,7 @@ const PricingPage: React.FC = () => {
                     <div>
                         <h4 className="font-semibold">What happens after the early adopter period?</h4>
                         <p className="text-muted-foreground">
-                            Early adopters who sign up for the Instructor Premium plan at $10/month will lock in that price for as long as they maintain their subscription. Future new subscribers will be subject to the standard pricing.
+                            Early adopters who sign up for the Instructor Premium plan at $20/month will lock in that price for as long as they maintain their subscription. Future new subscribers will be subject to the standard pricing.
                         </p>
                     </div>
                     <div>
