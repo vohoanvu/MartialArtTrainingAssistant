@@ -274,7 +274,8 @@ namespace VideoSharing.Server.Controllers
 
             var videos = await (
                 from v in dbContext.Videos.AsNoTracking()
-                where v.Type == VideoType.StudentUpload || v.Type == VideoType.Demonstration
+                where (v.Type == VideoType.StudentUpload || v.Type == VideoType.Demonstration)
+                && v.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier)
                 join ai in dbContext.AiAnalysisResults.AsNoTracking()
                     on v.Id equals ai.VideoId into aiGroup
                 select new UploadedVideoDto

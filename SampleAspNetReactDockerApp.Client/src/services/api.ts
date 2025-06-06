@@ -49,7 +49,7 @@ export const apiCall = <P extends Path, M extends PathMethod<P>>(
     console.log("Inspecting params: ", params);
 };
 
-export async function getTrainingSessions({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<TrainingSessionResponse[]> {
+export async function getMyTrainingSessions({ currentTry = 0, jwtToken, refreshToken, hydrate }): Promise<TrainingSessionResponse[]> {
     console.log("Trying to get training session list...");
 
     const response = await fetch("api/trainingsession", {
