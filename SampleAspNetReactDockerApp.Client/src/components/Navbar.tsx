@@ -29,7 +29,7 @@ export default function Navbar(
                         <span className="text-primary">CodeJitsu</span>
                     </Link>
                     <ul className="flex space-x-4 md:space-x-5 items-center">
-                        <li>
+                        <li className="hidden">
                             <Link to="/pricing" className="hover:text-primary">
                                 Pricing
                             </Link>

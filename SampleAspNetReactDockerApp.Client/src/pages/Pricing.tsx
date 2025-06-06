@@ -34,19 +34,19 @@ const PricingPage: React.FC = () => {
                             </li>
                             <li className="flex items-start">
                                 <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                                <span><strong>1 Video Upload/Month</strong> for AI Analysis</span>
+                                <span><strong>5 Video Upload/Month</strong> for AI Analysis</span>
                             </li>
                             <li className="flex items-start">
                                 <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                                <span>View AI-Generated Analysis (Simplified for Free Tier)</span>
+                                <span>View AI-Generated Analysis (No Edits)</span>
                             </li>
                             <li className="flex items-start">
                                 <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                                <span><strong>1 Active Class Session</strong> Creation & Management</span>
+                                <span><strong>Unlimited Active Class Session</strong> Creation & Management</span>
                             </li>
                             <li className="flex items-start">
                                 <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                                <span>Basic AI Curriculum Viewer</span>
+                                <span><strong>1 AI-Generated Curriculum</strong> per class session</span>
                             </li>
                              <li className="flex items-start">
                                 <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />

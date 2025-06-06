@@ -132,15 +132,18 @@ const LandingPageForm = () => {
             </div>
 
             <p className="mt-4">
-                New User?{' '}
-                <Link to="/register" className="text-blue-500 hover:underline">
+                Want to start quickly?{' '}
+                {/* <Link to="/register" className="text-blue-500 hover:underline">
                     Get started by either filling out our registration form or sign in with Google!
+                </Link> */}
+                <Link to="/register" className="text-blue-500 hover:underline">
+                    Sign in with Google to start using our premium Instructor features!
                 </Link>
             </p>
             <div className="flex flex-col items-center mt-8 space-y-4">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold">For Students</h2>
-                    <p>Access training materials and AI-driven feedback, join class sessions to get paired up with your ideal partner.</p>
+                    <p>Upload training videos and access AI-driven feedback, join class sessions to get paired up with your ideal partner.</p>
                 </div>
                 <div className="text-center">
                     <h2 className="text-2xl font-bold">For Instructors</h2>
