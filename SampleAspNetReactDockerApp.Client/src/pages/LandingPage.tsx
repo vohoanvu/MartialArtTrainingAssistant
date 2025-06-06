@@ -1,50 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { useToast } from '../hooks/use-toast';
-import { joinWailList } from '../services/api';
+import { CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const LandingPage: React.FC = () => {
-    const [email, setEmail] = useState('');
-    const [role, setRole] = useState('Instructor');
-    const [region, setRegion] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const { toast } = useToast();
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-    
-        try {
-            const resp = await joinWailList({ email, role, region });
-            if (resp == 200) {
-                toast({
-                    title: "You’re on the List!",
-                    description: "Thank you for joining. You’ll be among the first to experience our AI Assistant—keep an eye on your inbox for early access!",
-                });
-                setEmail('');
-                setRole('');
-                setRegion('');
-            } else {
-                toast({
-                    title: 'Error',
-                    description: 'Failed to join waitlist. Please try again.',
-                    variant: 'destructive',
-                });
-            }
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to join waitlist. Please try again.',
-                variant: 'destructive',
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     return (
         <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
             {/* Hero Section */}
@@ -104,7 +64,7 @@ const LandingPage: React.FC = () => {
                                 />
                                 <div className="space-y-2 text-sm text-center">
                                     <p><span className="font-semibold text-primary">✓</span> Walk-in Attendance</p>
-                                    <p><span className="font-semibold text-primary">✓</span> Intelligent Pairing</p>
+                                    <p><span className="font-semibold text-primary">✓</span> Intelligent Partner matching</p>
                                     <p><span className="font-semibold text-primary">✓</span> AI-Drafted Curricula</p>
                                 </div>
                             </CardContent>
@@ -157,8 +117,8 @@ const LandingPage: React.FC = () => {
                                     loading="lazy"
                                 />
                                 <div className="space-y-2 text-sm text-center">
-                                    <p><span className="font-semibold text-primary">✓</span> Focused Analysis Review</p>
-                                    <p><span className="font-semibold text-primary">✓</span> Quick-Edit Interface</p>
+                                    <p><span className="font-semibold text-primary">✓</span> Detailed Analysis on Performance</p>
+                                    <p><span className="font-semibold text-primary">✓</span> Instant Suggestions with Improvement Plans</p>
                                     <p><span className="font-semibold text-primary">✓</span> Data-Driven Insights</p>
                                 </div>
                             </CardContent>
@@ -188,94 +148,97 @@ const LandingPage: React.FC = () => {
                 </div>
             </section>
 
-            {/* Waitlist Section */}
-            <section id="waitlist" className="bg-muted py-16">
+            {/* Value proposition Section */}
+            <section id="beta-launch" className="bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-16">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-3xl font-bold text-center mb-8">
-                        Be the First to Experience the Future of AI-assisted BJJ coaching
-                    </h2>
-                    <p className="text-lg text-center mb-8 max-w-xl mx-auto">
-                        Get early access to CodeJitsu and our exclusive MVP launch discount. Help shape the future of BJJ training while making your coaching more efficient and impactful.
-                    </p>
-                    <div className="flex flex-col md:flex-row justify-center items-center gap-8 mb-8">
-                        <img
-                            src="/mockups/ai-lessons-1.png"
-                            alt="AI Generated Lesson plans"
-                            className="w-full max-w-md rounded-lg shadow-lg"
-                            loading="lazy"
-                        />
-                        <img
-                            src="/mockups/ai-lessons-2.png"
-                            alt="AI Generated Lesson plans"
-                            className="w-full max-w-md rounded-lg shadow-lg"
-                            loading="lazy"
-                        />
-                        <img
-                            src="/mockups/ai-lessons-3.png"
-                            alt="AI Generated Lesson plans"
-                            className="w-full max-w-md rounded-lg shadow-lg"
-                            loading="lazy"
-                        />
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+                            Ready to Transform Your BJJ Dojo? CodeJitsu Beta is LIVE!
+                        </h2>
+                        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-4">
+                            Step into the future of BJJ coaching. Our AI-powered assistant is here to help you create a thriving, feedback-driven, and beginner-friendly training environment that keeps students coming back for more.
+                        </p>
+
+                        <div className="flex flex-col md:flex-row justify-center items-center gap-8 mb-8">
+                            <img
+                                src="/mockups/ai-lessons-1.png"
+                                alt="AI Generated Lesson planning"
+                                className="w-full max-w-md rounded-lg shadow-lg"
+                                loading="lazy"
+                            />
+                            <img
+                                src="/mockups/ai-lessons-2.png"
+                                alt="AI Generated Lesson planning"
+                                className="w-full max-w-md rounded-lg shadow-lg"
+                                loading="lazy"
+                            />
+                            <img
+                                src="/mockups/ai-lessons-3.png"
+                                alt="AI Generated Lesson planning"
+                                className="w-full max-w-md rounded-lg shadow-lg"
+                                loading="lazy"
+                            />
+                        </div>
                     </div>
-                    <Card className="max-w-md mx-auto bg-card text-card-foreground shadow-lg border border-border">
-                        <CardHeader>
-                            <CardTitle>Early Access to Your AI Assistant</CardTitle>
-                            <CardDescription>
-                                Shape the future of BJJ with cutting-edge tools designed for you.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium mb-1">Email Address</label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        placeholder="your.email@example.com"
-                                        className="bg-background text-foreground"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="role" className="block text-sm font-medium mb-1">Your Role</label>
-                                    <Select value={role} onValueChange={setRole} required>
-                                        <SelectTrigger className="bg-background text-foreground">
-                                            <SelectValue placeholder="Select your role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Instructor">BJJ Instructor</SelectItem>
-                                            <SelectItem value="Student">BJJ Student</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <label htmlFor="region" className="block text-sm font-medium mb-1">Region</label>
-                                    <Select value={region} onValueChange={setRegion} required>
-                                        <SelectTrigger className="bg-background text-foreground">
-                                            <SelectValue placeholder="Select your region" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="North America">North America</SelectItem>
-                                            <SelectItem value="South America">South America</SelectItem>
-                                            <SelectItem value="Europe">Europe</SelectItem>
-                                            <SelectItem value="Asia">Asia</SelectItem>
-                                            <SelectItem value="Africa">Africa</SelectItem>
-                                            <SelectItem value="Other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <Button
-                                    type="submit"
-                                    className="w-full"
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting ? 'Joining...' : 'Join Waitlist'}
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
+
+                    <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center mb-16">
+                        <div className="space-y-6 order-1 md:order-2">
+                            <h3 className="text-2xl font-semibold text-foreground">For Instructors: Multiply Your Impact, Minimize Your Hassle</h3>
+                            <p className="text-muted-foreground">
+                                Imagine effortlessly designing engaging, well-structured classes that cater to all skill levels. CodeJitsuAI intelligently suggests drills and lesson plans, letting you focus on teaching and fostering a safe, motivating atmosphere. By providing data-driven insights and streamlining feedback, you'll see your students' skills skyrocket, directly impacting your dojo's retention and reputation. No more guessing what to teach – just show up and share your passion, amplified by AI.
+                            </p>
+                            <ul className="space-y-2 list-inside">
+                                <li className="flex items-center">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" strokeWidth="2.5" />
+                                    AI-Generated Lesson Plans: Tailored, effective, and fresh.
+                                </li>
+                                <li className="flex items-center">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" strokeWidth="2.5" />
+                                    Reduced Prep Time: More time for what matters – your students.
+                                </li>
+                                <li className="flex items-center">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" strokeWidth="2.5" />
+                                    Enhanced Student Progress & Retention.
+                                </li>
+                            </ul>
+                        </div>
+                        <div className="space-y-6 order-1 md:order-2">
+                            <h3 className="text-2xl font-semibold text-foreground">For Students (Kids, Hobbyists, Competitors): Train Smarter, Connect Deeper</h3>
+                            <p className="text-muted-foreground">
+                                Say goodbye to mat awkwardness! Our AI Partner Matching helps find suitable training partners for every drill and spar, making every session less stressful and more productive, especially for beginners and kids. Focus on learning and having incredible fun on the mats, building new friendships in a positive environment. CodeJitsu helps lower the entry barrier, making BJJ accessible and enjoyable for everyone.
+                            </p>
+                             <ul className="space-y-2 list-inside">
+                                <li className="flex items-center">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" strokeWidth="2.5" />
+                                    AI Partner Matching: Safe & effective sparring partners every time.
+                                </li>
+                                <li className="flex items-center">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" strokeWidth="2.5" />
+                                    Fun, Engaging, Stress-Reduced Learning.
+                                </li>
+                                <li className="flex items-center">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" strokeWidth="2.5" />
+                                    Accelerated Skill Improvement & Deeper Connections.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="bg-primary text-primary-foreground py-10">
+                <div className="text-center">
+                    <h3 className="text-2xl font-bold text-secondary mb-3">
+                        Join Our Beta & Get FREE Premium AI Features!
+                    </h3>
+                    <p className="text-secondary mb-6 max-w-xl mx-auto">
+                        Be an early shaper of CodeJitsu! Sign up for our Beta Program today and receive extended access to our AI lesson planning and video analysis tools on our Free plan. Your feedback will be invaluable!
+                    </p>
+                    <div className="space-y-4 md:space-y-0 md:space-x-4 flex flex-col md:flex-row justify-center">
+                        <Button size="lg" variant="secondary">
+                            <Link to="/home">Sign Up (Beta)</Link>
+                        </Button>
+                    </div>
                 </div>
             </section>
 
@@ -295,3 +258,112 @@ const LandingPage: React.FC = () => {
 };
 
 export default LandingPage;
+
+
+// const [email, setEmail] = useState('');
+// const [role, setRole] = useState('Instructor');
+// const [region, setRegion] = useState('');
+// const [isSubmitting, setIsSubmitting] = useState(false);
+// const { toast } = useToast();
+
+// const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setIsSubmitting(true);
+
+//     try {
+//         const resp = await joinWailList({ email, role, region });
+//         if (resp == 200) {
+//             toast({
+//                 title: "You’re on the List!",
+//                 description: "Thank you for joining. You’ll be among the first to experience our AI Assistant—keep an eye on your inbox for early access!",
+//             });
+//             setEmail('');
+//             setRole('');
+//             setRegion('');
+//         } else {
+//             toast({
+//                 title: 'Error',
+//                 description: 'Failed to join waitlist. Please try again.',
+//                 variant: 'destructive',
+//             });
+//         }
+//     } catch (error) {
+//         toast({
+//             title: 'Error',
+//             description: 'Failed to join waitlist. Please try again.',
+//             variant: 'destructive',
+//         });
+//     } finally {
+//         setIsSubmitting(false);
+//     }
+// };
+{/* Waitlist Section */}
+{/* <section id="waitlist" className="bg-muted py-16">
+    <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-8">
+            Be the First to Experience the Future of AI-assisted BJJ coaching
+        </h2>
+        <p className="text-lg text-center mb-8 max-w-xl mx-auto">
+            Get early access to CodeJitsu and our exclusive MVP launch discount. Help shape the future of BJJ training while making your coaching more efficient and impactful.
+        </p>
+        <Card className="max-w-md mx-auto bg-card text-card-foreground shadow-lg border border-border">
+            <CardHeader>
+                <CardTitle>Early Access to Your AI Assistant</CardTitle>
+                <CardDescription>
+                    Shape the future of BJJ with cutting-edge tools designed for you.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label htmlFor="email" className="block text-sm font-medium mb-1">Email Address</label>
+                        <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            placeholder="your.email@example.com"
+                            className="bg-background text-foreground"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="role" className="block text-sm font-medium mb-1">Your Role</label>
+                        <Select value={role} onValueChange={setRole} required>
+                            <SelectTrigger className="bg-background text-foreground">
+                                <SelectValue placeholder="Select your role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Instructor">BJJ Instructor</SelectItem>
+                                <SelectItem value="Student">BJJ Student</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <label htmlFor="region" className="block text-sm font-medium mb-1">Region</label>
+                        <Select value={region} onValueChange={setRegion} required>
+                            <SelectTrigger className="bg-background text-foreground">
+                                <SelectValue placeholder="Select your region" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="North America">North America</SelectItem>
+                                <SelectItem value="South America">South America</SelectItem>
+                                <SelectItem value="Europe">Europe</SelectItem>
+                                <SelectItem value="Asia">Asia</SelectItem>
+                                <SelectItem value="Africa">Africa</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Joining...' : 'Join Waitlist'}
+                    </Button>
+                </form>
+            </CardContent>
+        </Card>
+    </div>
+</section> */}
