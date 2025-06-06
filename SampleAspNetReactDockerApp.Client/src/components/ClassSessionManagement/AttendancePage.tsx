@@ -319,7 +319,7 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
     return (
         <div className="container mx-auto p-6 max-w-7xl h-screen flex flex-col">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Take Attendance</h1>
+                <h1 className="text-3xl font-bold">Walk-In Attendance</h1>
                 <div className="space-x-4">
                     <Button
                         variant="outline"
