@@ -52,7 +52,10 @@ namespace VideoSharing.Server.Controllers
                 // Validate the response is valid JSON
                 string? structuredJson = ValidateStructuredJson(visionAnalysisResult.AnalysisJson);
                 if (structuredJson == null)
+                {
+                    _logger.LogError("Invalid JSON structure: {json}", visionAnalysisResult.AnalysisJson);
                     return StatusCode(500, "Invalid or empty JSON response from the API.");
+                }
 
                 // Deserialize JSON to extract Strengths, AreasForImprovement, and OverallDescription
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };

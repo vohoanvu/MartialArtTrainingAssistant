@@ -153,7 +153,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                 },
                 GenerationConfig = new GenerationConfig
                 {
-                    Temperature = 0.7f,
+                    Temperature = 0.5f,
                     TopP = 1.0f,
                     MaxOutputTokens = 65535,
                     ResponseMimeType = "application/json",
