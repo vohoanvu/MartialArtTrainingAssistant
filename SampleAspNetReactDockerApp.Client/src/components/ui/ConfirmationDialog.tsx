@@ -30,12 +30,14 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                 </CardContent>
                 <CardFooter className="flex justify-end space-x-2">
                     <Button
+                        type="button"
                         variant="outline"
                         onClick={onCancel}
                     >
                         Cancel
                     </Button>
                     <Button
+                        type="button"
                         variant="default"
                         onClick={onConfirm}
                     >

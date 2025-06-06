@@ -28,7 +28,6 @@ const TrainingSessionDetails = () => {
     const refreshToken = useAuthStore((state) => state.refreshToken);
     const user = useAuthStore((state) => state.user);
     const hydrate = useAuthStore((state) => state.hydrate);
-    //const [fighterPairResult, setFighterPairResult] = useState<FighterPairResult>();
     const [matchMakeResponse, setMatchMakerResponse] = useState<ApiMatchMakerResponse>();
     const [suggestedPairingsContent, setSuggestedPairingsContent] = useState<ApiMatchMakerResponseContent | null>(null);
     const [curriculum, setCurriculum] = useState<CurriculumDto | null>(null);

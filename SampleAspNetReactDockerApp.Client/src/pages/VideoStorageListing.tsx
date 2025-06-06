@@ -124,10 +124,10 @@ const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageL
 
     return (
         <div className="max-w-6xl mx-auto my-5 p-4 border border-border rounded-lg shadow-md bg-background">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">Your uploaded videos</h2>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Uploaded Videos</h2>
             {isLoading && <p className="text-muted-foreground">Loading...</p>}
             {error && <p className="text-destructive">{error}</p>}
-            {!isLoading && !error && videos.length === 0 && <p className="text-muted-foreground">No videos uploaded yet.</p>}
+            {!isLoading && !error && videos.length === 0 && <p className="text-muted-foreground">No videos uploaded.</p>}
             {!isLoading && videos.length > 0 && (
                 <Table className="w-full">
                     <TableHeader>
@@ -135,7 +135,7 @@ const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageL
                             <TableHead>Description</TableHead>
                             <TableHead>Uploaded At</TableHead>
                             <TableHead>Martial Art</TableHead>
-                            <TableHead>Name</TableHead>
+                            <TableHead>Uploaded By</TableHead>
                             <TableHead>Action</TableHead>
                         </TableRow>
                     </TableHeader>

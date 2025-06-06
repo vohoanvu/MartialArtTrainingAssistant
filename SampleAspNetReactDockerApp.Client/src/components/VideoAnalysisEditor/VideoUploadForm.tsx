@@ -110,13 +110,13 @@ const VideoUploadForm = ({
                     <label htmlFor="description" className="block text-sm font-medium text-foreground">
                         Description
                     </label>
-                    <Textarea
+                    <Input
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Optional: Enter a description"
                         className="mt-1"
-                        rows={4}
+                        type="text"
                         disabled={isUploading}
                     />
                 </div>
@@ -124,8 +124,8 @@ const VideoUploadForm = ({
                     <label htmlFor="studentIdentifier" className="block text-sm font-medium text-foreground">
                         Specify which fighter in the video you want the AI to analyze!
                     </label>
-                    <Input
-                        type="text"
+                    <Textarea
+                        rows={4}
                         id="studentIdentifier"
                         value={studentIdentifier}
                         onChange={(e) => setStudentIdentifier(e.target.value)}

@@ -47,9 +47,6 @@ interface AttendancePageProps {
 
 export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onCancel }: AttendancePageProps) => {
     const navigate = useNavigate();
-    // const jwtToken = useAuthStore((state) => state.accessToken);
-    // const refreshToken = useAuthStore((state) => state.refreshToken);
-    // const hydrate = useAuthStore((state) => state.hydrate);
     const [isFinalizeDialogOpen, setIsFinalizeDialogOpen] = useState(false);
     const [lbsInput, setLbsInput] = useState('');
     const [ftInput, setFtInput] = useState('');
