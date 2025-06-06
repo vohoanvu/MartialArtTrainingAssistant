@@ -76,6 +76,17 @@ spec:
                 configMapKeyRef:
                   name: app-config
                   key: GeminiVision__VideoAnalysisPrompt
+            - name: XAIGROK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: XAIGROK_API_KEY
+            - name: XAIGROK_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: XAIGROK_ENDPOINT
+              
           volumeMounts:
             - name: sa-key
               mountPath: "/app/secrets"
