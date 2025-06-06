@@ -427,6 +427,7 @@ FodyWeavers.xsd
 
 # Potential secrets
 appsettings.Development.json
+k8s/test/secrets.yaml
 
 # Runtime
 Runtime/Data/*

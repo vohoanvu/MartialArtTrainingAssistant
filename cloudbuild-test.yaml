@@ -54,6 +54,23 @@ steps:
     env:
       - 'SHORT_SHA=$SHORT_SHA'
       - 'PROJECT_ID=$PROJECT_ID'
+  # Install gettext for envsubst
+  # - name: 'ubuntu'
+  #   args:
+  #     - 'bash'
+  #     - '-c'
+  #     - 'apt-get update && apt-get install -y gettext-base'
+  # Fetch secrets, base64-encode, and generate secrets.yaml
+  # - name: 'ubuntu'
+  #   args:
+  #     - 'bash'
+  #     - '-c'
+  #     - |
+  #       export JWT_KEY_B64=$(echo -n $JWT_KEY | base64) && \
+  #       export DB_PASSWORD_B64=$(echo -n $DB_PASSWORD | base64) && \
+  #       export GOOGLE_CLIENT_SECRET_B64=$(echo -n $GOOGLE_CLIENT_SECRET | base64) && \
+  #       envsubst < k8s/test/secrets-template.yaml > k8s/test/secrets.yaml
+  #   secretEnv: ['JWT_KEY', 'DB_PASSWORD', 'GOOGLE_CLIENT_SECRET']
   # Apply the cert-manager ClusterIssuer FIRST
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/test/letsencrypt-staging-issuer.yaml']
@@ -61,12 +78,12 @@ steps:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
     id: 'Apply Staging Issuer'
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/secrets.yaml', '--namespace=test']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
-    waitFor: ['Apply Staging Issuer']
+  # - name: 'gcr.io/cloud-builders/kubectl'
+  #   args: ['apply', '-f', 'k8s/test/secrets.yaml', '--namespace=test']
+  #   env:
+  #     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+  #     - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+  #   waitFor: ['Apply Staging Issuer']
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/test/configmap.yaml', '--namespace=test']
     env:
@@ -115,6 +132,15 @@ steps:
   #   env:
   #     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
   #     - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
+# Define secrets from Secret Manager
+# availableSecrets:
+#   secretManager:
+#   - versionName: projects/$PROJECT_ID/secrets/jwt-key/versions/latest
+#     env: JWT_KEY
+#   - versionName: projects/$PROJECT_ID/secrets/supabase-db-connection/versions/latest
+#     env: SUPABASE_DB_CONNECTION
+#   - versionName: projects/$PROJECT_ID/secrets/google-cloud-sa-key/versions/latest
+#     env: GOOGLE_CLOUD_SA_KEY
 options:
   substitution_option: 'ALLOW_LOOSE'
   logging: CLOUD_LOGGING_ONLY
