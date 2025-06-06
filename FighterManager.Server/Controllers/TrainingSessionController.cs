@@ -23,8 +23,11 @@ namespace FighterManager.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<TrainingSessionDtoBase>>> GetSessionsAsync()
         {
-            var allSessions = await _unitOfWork.AppDbContext.TrainingSessions
-                .Include(ts => ts.Students!).ToListAsync();
+            var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var appUser = await _unitOfWork.AppDbContext.Users.Include(u => u.Fighter).FirstAsync(u => u.Id == authUserId);
+            var allSessions = await _unitOfWork.AppDbContext.TrainingSessions.Where(ts => ts.InstructorId == appUser.Fighter!.Id)
+                .Include(ts => ts.Students!)
+                .ToListAsync();
 
             return Ok(_objectMapper.Map<List<TrainingSession>, List<TrainingSessionDtoBase>>(allSessions));
         }

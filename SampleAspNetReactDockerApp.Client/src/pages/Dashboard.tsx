@@ -2,7 +2,7 @@
 import useAuthStore from "@/store/authStore.ts";
 import {useNavigate} from "react-router-dom";
 import { TrainingSessionResponse } from "@/types/global";
-import { getTrainingSessions } from "@/services/api";
+import { getMyTrainingSessions } from "@/services/api";
 import { DataTable } from "@/components/ui/data-table";
 
 import { ColumnDef } from '@tanstack/react-table';  // or wherever your ColumnDef type is coming from
@@ -35,7 +35,7 @@ export default function ClassSession(): ReactElement {
 
     const fetchData = async () => {
         try {
-            const trainingSessions = await getTrainingSessions({ jwtToken, refreshToken, hydrate });
+            const trainingSessions = await getMyTrainingSessions({ jwtToken, refreshToken, hydrate });
             setData(trainingSessions);
         } catch (error) {
             console.error("Error fetching training sessions: ", error);
