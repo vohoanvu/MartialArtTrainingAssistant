@@ -11,6 +11,7 @@ const LandingPageForm = () => {
     const isLogged = useAuthStore((state) => state.loginStatus);
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isSSOloading, setIsSSOloading] = useState(false);
 
     const loginActionForm = async (email: string, password: string) => {
         try {
@@ -46,6 +47,7 @@ const LandingPageForm = () => {
     }, [isLogged, navigate]);
 
     const handleSSOLogin = (provider: "google" | "facebook") => {
+        setIsSSOloading(true);
         // Use a relative path so Nginx proxies /api to the backend in production
         window.location.href = `/api/externalauth/signin-${provider}?returnUrl=${encodeURIComponent(window.location.origin + "/sso-callback")}`;
     };
@@ -105,7 +107,9 @@ const LandingPageForm = () => {
                     </div>
                     <Button type="submit"
                         variant={"outline"}
-                        className="w-full">
+                        className="w-full"
+                        disabled={isLoading}
+                    >
                         {isLoading ? "Logging in..." : "Login"}
                     </Button>
                 </form>
@@ -113,20 +117,26 @@ const LandingPageForm = () => {
                     <Button
                         type="button"
                         variant="outline"
-                        className="w-full h-full p-0"
+                        className="w-full h-full p-0 relative overflow-hidden"
                         onClick={() => handleSSOLogin("google")}
+                        disabled={isSSOloading}
                     >
-                        <img
-                            src="/signin-assets/Web/svg/light/web_light_sq_na.svg"
-                            alt="Google"
-                            className="h-auto w-auto mr-4 dark:hidden"
-                        />
-                        <img
-                            src="/signin-assets/Web/svg/dark/web_dark_sq_na.svg"
-                            alt="Google"
-                            className="h-auto w-auto mr-4 hidden dark:block"
-                        />
-                        Sign in with Google
+                        <div className="flex items-center justify-center relative z-10">
+                            <img
+                                src="/signin-assets/Web/svg/light/web_light_sq_na.svg"
+                                alt="Google"
+                                className="h-auto w-auto mr-4 dark:hidden"
+                            />
+                            <img
+                                src="/signin-assets/Web/svg/dark/web_dark_sq_na.svg"
+                                alt="Google"
+                                className="h-auto w-auto mr-4 hidden dark:block"
+                            />
+                            {isSSOloading ? "Signing in..." : "Sign in with Google"}
+                        </div>
+                        {isSSOloading && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-shimmer" />
+                        )}
                     </Button>
                 </div>
             </div>
