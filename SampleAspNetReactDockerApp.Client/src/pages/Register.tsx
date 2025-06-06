@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useAuthStore, { RegisterFighterBody } from "@/store/authStore.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,8 @@ enum TrainingExperience {
 }
 
 export default function Register() {
+    const [searchParams] = useSearchParams();
+    const roleParams = searchParams.get("role");
     const navigate = useNavigate();
     const registerFighter = useAuthStore((state) => state.registerFighter);
 
@@ -32,7 +34,7 @@ export default function Register() {
     const [password, setPassword] = useState('');
     const [validationError, setValidationError] = useState<ValidationError | null>();
 
-    const [role, setRole] = useState("Instructor");
+    const [role, setRole] = useState(roleParams ?? "Instructor");
     const [name, setName] = useState("");
     const [height, setHeight] = useState('0');
     const [weight, setWeight] = useState('0');
