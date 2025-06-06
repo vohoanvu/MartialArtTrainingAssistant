@@ -91,6 +91,7 @@ const TrainingSessionForm = () => {
                         description: details.description ?? '',
                         targetLevel: details.targetLevel as TargetLevel,
                     });
+                    console.log("Session Status: ", details.status);
                 } catch (error) {
                     console.error('Failed to load session details:', error);
                 }
@@ -138,7 +139,7 @@ const TrainingSessionForm = () => {
                 description: session.description,
                 capacity: Number(session.capacity),
                 duration: Number(session.duration) / 60,
-                status: 'Active',
+                status: session.status,
                 targetLevel: session.targetLevel,
             };
             try {
@@ -306,14 +307,7 @@ const TrainingSessionForm = () => {
                         onClick={handleCloseSession}
                         disabled={isClosing}
                     >
-                        {isClosing ? (
-                            <>
-                                <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-current"></div>
-                                Closing...
-                            </>
-                        ) : (
-                            'Close Session'
-                        )}
+                        {isClosing ? "Closing..." : "Close Session"}
                     </Button>
                     <Button
                         type="button"
