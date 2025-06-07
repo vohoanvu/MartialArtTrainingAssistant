@@ -21,7 +21,7 @@ const LandingPage: React.FC = () => {
                     >
                         <a href="/home">Join the AI Revolution – Get Beta Access!</a>
                     </Button>
-                    <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 justify-center items-center gap-4 md:gap-6">
+                    {/* <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 justify-center items-center gap-4 md:gap-6">
                         <img
                             src="/mockups/codejitsu-class-dashboard.png" // Main dashboard view focused
                             alt="CodeJitsu AI Class Planning Dashboard"
@@ -34,6 +34,19 @@ const LandingPage: React.FC = () => {
                             className="w-full max-w-lg rounded-lg shadow-2xl object-cover aspect-video border-4 border-background/20"
                             loading="lazy"
                         />
+                    </div> */}
+                    <div className="mt-12 md:mt-16 max-w-4xl mx-auto"> {/* Container for responsiveness and centering */}
+                        <div className="aspect-video rounded-lg shadow-2xl overflow-hidden border-4 border-background/20">
+                            <iframe
+                                className="w-full h-full"
+                                src={`https://www.youtube.com/embed/RGXiLOPkxGY?autoplay=0&modestbranding=1&rel=0&showinfo=0&controls=1`}
+                                title="CodeJitsu BJJ AI Assistant Demo"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerPolicy="strict-origin-when-cross-origin"
+                                allowFullScreen
+                            ></iframe>
+                        </div>
                     </div>
                 </div>
             </section>
