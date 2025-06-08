@@ -41,6 +41,7 @@ This document outlines the recommended technology stack for the CodeJitsu BJJ Ma
     -   **Justification:** Explicitly chosen and suitable for the platform's core AI requirements. Gemini's multimodal capabilities are well-suited for video content understanding (identifying techniques, strengths, weaknesses) and its generative capabilities can be leveraged for curriculum planning based on structured prompts.
 -   **Cloud Storage for AI Models/Data (if applicable):** Google Cloud Storage (GCS)
     -   **Justification:** If custom model fine-tuning becomes a future requirement, GCS provides a convenient and integrated storage solution within the GCP ecosystem.
+-   **xAI Live Search API**  Integrated Live Search API with Grok 3 model to perform web search for the techniques of the day.
 
 ### 3.3 Authentication & Authorization
 -   **Mechanism:** **JWT (JSON Web Tokens) with ASP.NET Core Identity**
