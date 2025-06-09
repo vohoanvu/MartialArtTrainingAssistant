@@ -2,8 +2,10 @@ import useAuthStore from '@/store/authStore';
 import VideoUploadForm from '../components/VideoAnalysisEditor/VideoUploadForm';
 import VideoStorageListing from './VideoStorageListing';
 import { VideoUploadResponse } from '@/types/global';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { analysisConnection } from '../services/SignalRService';
+import * as signalR from '@microsoft/signalr';
 
 const VideoAnalysisManagement: React.FC = () => {
     const { user, accessToken, hydrate } = useAuthStore();
@@ -11,6 +13,32 @@ const VideoAnalysisManagement: React.FC = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [shouldRefreshList, setShouldRefreshList] = useState(false);
     const { toast } = useToast();
+    const [isConnected, setIsConnected] = useState(false);
+
+    useEffect(() => {
+        if (isConnected || analysisConnection.state === signalR.HubConnectionState.Disconnected) {
+            analysisConnection.start().then(() => {
+                console.log('Connected to SignalR hub');
+                setIsConnected(true);
+                // Listen for the AnalysisCompleted event from the server.
+                analysisConnection.on("AnalysisCompleted", (videoId: number) => {
+                    toast({
+                        title: "Analysis Completed",
+                        description: `Video ${videoId} analysis is complete.`,
+                        variant: "default",
+                    });
+                    setShouldRefreshList(true);
+                });
+            }).catch((err) => console.error("SignalR Connection Error on /analysisHub: ", err));
+        }
+
+        return () => {
+            if (isConnected) {
+                analysisConnection.stop();
+                setIsConnected(false);
+            }
+        };
+    }, [toast]);
 
     const handleUploadSuccess = async (response: VideoUploadResponse) => {
         try {
@@ -23,16 +51,22 @@ const VideoAnalysisManagement: React.FC = () => {
                 },
             });
 
-            if (!res.ok) {
+            if (res.status === 202) {
+                // API accepted the request for background processing.
+                toast({
+                    title: "Analysis Started",
+                    description: "Your video is being analyzed. This may take a few minutes...",
+                    variant: "default",
+                });
+            } else if (!res.ok) {
                 throw new Error('Analysis failed');
-            }   
-
-            toast({
-                title: "Analysis Complete!",
-                description: "Your video has been successfully analyzed by AI. Check the video list to view the results.",
-                variant: "default",
-            });
-
+            } else {
+                toast({
+                    title: "Unexpected Response",
+                    description: "Received an unexpected status from the analysis background job.",
+                    variant: "destructive",
+                });
+            }
             setShouldRefreshList(true);
         } catch (error) {
             console.error('Analysis failed:', error);

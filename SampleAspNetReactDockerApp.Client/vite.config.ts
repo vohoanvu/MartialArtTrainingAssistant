@@ -76,6 +76,18 @@ let serverProxies: Record<string, ProxyOptions> =
                 changeOrigin: true,
                 secure: false,
             },
+            "/hangfire" : {
+                target: videoBackendUrl,
+                ws: true,
+                changeOrigin: true,
+                secure: false,
+            },
+            "/videoAnalysisHub": {
+                target: videoBackendUrl,
+                ws: true,
+                changeOrigin: true,
+                secure: false,
+            },
             "/vid/api": {
                 target: videoBackendUrl,
                 agent: httpsAgent,
@@ -107,7 +119,18 @@ let serverProxies: Record<string, ProxyOptions> =
                 changeOrigin: true,
                 secure: false,
             },
-            
+            "/hangfire" : {
+                target: videoBackendUrl,
+                ws: true,
+                changeOrigin: true,
+                secure: false,
+            },
+            "/videoAnalysisHub": {
+                target: videoBackendUrl,
+                ws: true,
+                changeOrigin: true,
+                secure: false,
+            },
             "/vid/api": {
                 target: videoBackendUrl,
                 changeOrigin: true,

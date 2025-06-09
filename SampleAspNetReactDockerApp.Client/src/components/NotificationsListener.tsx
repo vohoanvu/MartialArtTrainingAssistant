@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { connection } from '../services/SignalRService';
+import { connection, analysisConnection } from '../services/SignalRService';
 import * as signalR from '@microsoft/signalr';
 import NotificationPopup from './NotificationPopup';
 
@@ -19,6 +19,17 @@ const NotificationListener: React.FC = () => {
                     setNotification({ bannerTitle, videoTitle, userName });
                     setShowNotification(true);
                 });
+
+                // New listener for AnalysisCompleted event
+                analysisConnection.on('AnalysisCompleted', (videoId: number) => {
+                    console.log('Client received AnalysisCompleted notification for videoId', videoId);
+                    setNotification({ 
+                        bannerTitle: "AI Analysis Completed", 
+                        videoTitle: `Video Numer ${videoId}`, 
+                        userName: "" 
+                    });
+                    setShowNotification(true);
+                });
             }).catch(error => {
                 console.error('Error starting SignalR connection:', error);
             });
@@ -28,6 +39,7 @@ const NotificationListener: React.FC = () => {
             if (isConnected) {
                 console.log('Stopping SignalR connection...');
                 connection.stop();
+                analysisConnection.stop();
                 setIsConnected(false);
             }
         };

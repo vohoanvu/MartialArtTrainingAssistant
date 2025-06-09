@@ -2,6 +2,7 @@
 
 namespace VideoSharing.Server.Domain.YoutubeSharingService
 {
+    /// <inheritdoc/>
     public class VideoShareHub : Hub
     {
         public VideoShareHub()
@@ -24,5 +25,10 @@ namespace VideoSharing.Server.Domain.YoutubeSharingService
             await base.OnDisconnectedAsync(exception);
         }
 
+    }
+
+    /// <inheritdoc/>
+    public class VideoAnalysisHub : Hub
+    {
     }
 }

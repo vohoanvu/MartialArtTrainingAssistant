@@ -20,6 +20,8 @@ using VideoSharing.Server.Domain.GeminiService;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using VideoSharing.Server.Domain.AIServices;
+using Hangfire;
+using Hangfire.PostgreSql;
 
 namespace VideoSharing.Server
 {
@@ -59,6 +61,7 @@ namespace VideoSharing.Server
             builder.Services.AddScoped<AiAnalysisProcessorService>();
             builder.Services.AddScoped<CurriculumRecommendationService>();
             builder.Services.AddHttpClient<IXAIService, XAIService>();
+            builder.Services.AddTransient<VideoAnalysisBackgroundJobService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -221,6 +224,23 @@ namespace VideoSharing.Server
             {
                 options.MultipartBodyLengthLimit = 300 * 1024 * 1024; // 300MB
             });
+
+            // Add Hangfire services and configure with PostgreSQL
+            var connectionString = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.AppDb);
+            builder.Services.AddHangfire(config =>
+            {
+                config.UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings()
+                    .UsePostgreSqlStorage(option =>
+                    {
+                        option.UseNpgsqlConnection(connectionString);
+                    }, new PostgreSqlStorageOptions
+                    {
+                        SchemaName = "hangfire"
+                    });
+            });
+            builder.Services.AddHangfireServer();
+
             builder.Services.AddHealthChecks();
 
             var app = builder.Build();
@@ -268,6 +288,8 @@ namespace VideoSharing.Server
             }
 
             app.MapHub<VideoShareHub>("/videoShareHub");
+            app.MapHub<VideoAnalysisHub>("/videoAnalysisHub");
+            app.UseHangfireDashboard("/hangfire");
 
             //app.MapGroup("/api/auth/v1")
             //    .MapIdentityApi<AppUserEntity>();
