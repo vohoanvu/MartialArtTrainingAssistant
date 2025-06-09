@@ -8,3 +8,12 @@ export const connection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
     .configureLogging(signalR.LogLevel.Information)
     .build();
+
+export const analysisConnection = new signalR.HubConnectionBuilder()
+    .withUrl(`/videoAnalysisHub`, {
+        withCredentials: true,
+        transport: signalR.HttpTransportType.WebSockets
+    })
+    .withAutomaticReconnect()
+    .configureLogging(signalR.LogLevel.Information)
+    .build();

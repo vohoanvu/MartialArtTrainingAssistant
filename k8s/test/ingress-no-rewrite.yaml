@@ -50,6 +50,20 @@ spec:
                 name: video-sharing
                 port:
                   number: 7081
+          - path: /videoAnalysisHub
+            pathType: Prefix
+            backend:
+              service:
+                name: video-sharing
+                port:
+                  number: 7081
+          - path: /hangfire
+            pathType: Prefix
+            backend:
+              service:
+                name: video-sharing
+                port:
+                  number: 7081
           - path: /
             pathType: Prefix
             backend:
