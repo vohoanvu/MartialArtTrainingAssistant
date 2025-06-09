@@ -1,11 +1,13 @@
 using System.Security.Claims;
 using System.Text.Json;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using VideoSharing.Server.Domain.GeminiService;
+using VideoSharing.Server.Helpers;
 using VideoSharing.Server.Models.Dtos;
 
 namespace VideoSharing.Server.Controllers
@@ -35,79 +37,13 @@ namespace VideoSharing.Server.Controllers
             if (!await dbContext.Videos.AnyAsync(v => v.Id == videoId))
                 return BadRequest("Invalid VideoId.");
 
-            var uploadedVideo = await dbContext.Videos.FindAsync(videoId);
-            var appUserFighter = await dbContext.Users.Include(u => u.Fighter).FirstAsync(u => u.Id == uploadedVideo!.UserId);
+            // Enqueue background job for video analysis; returns a jobId if needed.
+            BackgroundJob.Enqueue<VideoAnalysisBackgroundJobService>(
+                job => job.ProcessVideoAnalysisAsync(videoId)
+            );
 
-            try
-            {
-                // Call the Gemini Vision API asynchronously
-                var visionAnalysisResult = await _geminiService.AnalyzeVideoAsync(
-                    uploadedVideo!.FilePath!,
-                    uploadedVideo.MartialArt.ToString(),
-                    uploadedVideo.StudentIdentifier ?? "Fighter in the video",
-                    uploadedVideo.Description ?? "sparring tape",
-                    appUserFighter.Fighter!.BelkRank.ToString()
-                );
-
-                // Validate the response is valid JSON
-                string? structuredJson = ValidateStructuredJson(visionAnalysisResult.AnalysisJson);
-                if (structuredJson == null)
-                {
-                    _logger.LogError("Invalid JSON structure: {json}", visionAnalysisResult.AnalysisJson);
-                    return StatusCode(500, "Invalid or empty JSON response from the API.");
-                }
-
-                // Deserialize JSON to extract Strengths, AreasForImprovement, and OverallDescription
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var analysis = JsonSerializer.Deserialize<AiAnalysisResultResponse>(structuredJson, options)
-                    ?? throw new InvalidOperationException("Failed to deserialize JSON response.");
-
-                var existingAiResult = await dbContext.AiAnalysisResults
-                    .FirstOrDefaultAsync(a => a.VideoId == videoId);
-
-                AiAnalysisResult aiResult;
-                if (existingAiResult != null)
-                {
-                    // Update existing record
-                    _logger.LogInformation("Updating existing AiAnalysisResult for VideoId {VideoId}.", videoId);
-                    existingAiResult.AnalysisJson = structuredJson;
-                    existingAiResult.Strengths = JsonSerializer.Serialize(analysis.Strengths ?? new List<Strength>());
-                    existingAiResult.AreasForImprovement = JsonSerializer.Serialize(analysis.AreasForImprovement ?? new List<AreaForImprovement>());
-                    existingAiResult.OverallDescription = analysis.OverallDescription;
-                    aiResult = existingAiResult;
-                }
-                else
-                {
-                    // Create new record
-                    _logger.LogInformation("Creating new AiAnalysisResult for VideoId {VideoId}.", videoId);
-                    var newAiResult = new AiAnalysisResult
-                    {
-                        VideoId = videoId,
-                        AnalysisJson = structuredJson,
-                        Strengths = JsonSerializer.Serialize(analysis.Strengths ?? []),
-                        AreasForImprovement = JsonSerializer.Serialize(analysis.AreasForImprovement ?? []),
-                        OverallDescription = analysis.OverallDescription,
-                        Techniques = [],
-                        Drills = [],
-                        GeneratedAt = DateTime.UtcNow,
-                        UpdatedBy = uploadedVideo.UserId
-                    };
-                    dbContext.AiAnalysisResults.Add(newAiResult);
-                    aiResult = newAiResult;
-                }
-
-                await dbContext.SaveChangesAsync();
-
-                var analysisProcessorService = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<AiAnalysisProcessorService>();
-                await analysisProcessorService.ProcessAnalysisJsonAsync(aiResult.AnalysisJson, videoId);
-
-                return Ok(aiResult);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error analyzing video with path {Path}", uploadedVideo!.FilePath);
-                return StatusCode(500, $"Error analyzing video: {ex.Message}");
-            }
+            // Return 202 Accepted to indicate the analysis is processing
+            return Accepted(new { Message = "Video analysis is processing", VideoId = videoId });
         }
 
         [HttpGet("{videoId}/feedback")]
@@ -270,23 +206,23 @@ namespace VideoSharing.Server.Controllers
             return Ok(pairMatchingAIResponse);
         }
 
-        private static string? ValidateStructuredJson(string apiResponseJson)
-        {
-            if (string.IsNullOrWhiteSpace(apiResponseJson))
-                return null;
+        // private static string? ValidateStructuredJson(string apiResponseJson)
+        // {
+        //     if (string.IsNullOrWhiteSpace(apiResponseJson))
+        //         return null;
 
-            try
-            {
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var analysis = JsonSerializer.Deserialize<AiAnalysisResultResponse>(apiResponseJson, options);
-                if (analysis == null)
-                    return null;
-                return apiResponseJson;
-            }
-            catch (JsonException)
-            {
-                return null;
-            }
-        }
+        //     try
+        //     {
+        //         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        //         var analysis = JsonSerializer.Deserialize<AiAnalysisResultResponse>(apiResponseJson, options);
+        //         if (analysis == null)
+        //             return null;
+        //         return apiResponseJson;
+        //     }
+        //     catch (JsonException)
+        //     {
+        //         return null;
+        //     }
+        // }
     }
 }
