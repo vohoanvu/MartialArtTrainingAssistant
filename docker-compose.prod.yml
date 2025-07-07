@@ -1,6 +1,6 @@
 ﻿services:
   fighter-manager:
-    image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/fighter-manager
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager
     build:
       context: .
       dockerfile: FighterManager.Server/Dockerfile
@@ -11,7 +11,7 @@
       - appnet
 
   video-sharing:
-    image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/video-sharing
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing
     build:
       context: .
       dockerfile: VideoSharing.Server/Dockerfile
@@ -25,7 +25,7 @@
       - appnet
 
   app-client:
-    image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/app-client
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/app-client
     build:
       context: ./SampleAspNetReactDockerApp.Client
       dockerfile: Dockerfile
