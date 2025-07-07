@@ -48,24 +48,28 @@ jobs:
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }} -f SampleAspNetReactDockerApp.Client/Dockerfile ./SampleAspNetReactDockerApp.Client
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
 
+      # === FIX: NEW STEP TO PREPARE VARIABLES ===
+      - name: Prepare Deployment Variables
+        id: prepare_vars
+        run: |
+          sa_email="${{ secrets.GCP_SERVICE_ACCOUNT }}"
+          username=$(echo "$sa_email" | cut -d'@' -f1)
+          echo "username=$username" >> $GITHUB_OUTPUT
+
       - name: Deploy to VM
         uses: "google-github-actions/ssh-compute@v1"
         with:
-          # Details from your gcp-vm-provisioning.json
           instance_name: "thecodejitsu-app-vm"
           zone: "us-central1-c"
           project_id: "${{ secrets.GCP_PROJECT_ID }}"
-
-          # This script will run on your VM
           command: |
             set -e
-            # This uses the correct GitHub Actions expression syntax
-            APP_DIR="/home/${{ split(secrets.GCP_SERVICE_ACCOUNT, '@')[0] }}/app"
+            # === FIX: USE THE OUTPUT FROM THE PREVIOUS STEP ===
+            APP_DIR="/home/${{ steps.prepare_vars.outputs.username }}/app"
             mkdir -p $APP_DIR/secrets
             cd $APP_DIR
 
             echo "--- Creating docker-compose.prod.yml on VM ---"
-            # Create the docker-compose file on the VM with the latest image tags
             cat <<EOF > $APP_DIR/docker-compose.prod.yml
             services:
               fighter-manager:
@@ -75,7 +79,6 @@ jobs:
                 env_file: .env
                 networks:
                   - appnet
-
               video-sharing:
                 image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }}
                 ports:
@@ -85,7 +88,6 @@ jobs:
                   - ./secrets/gcs-key.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro
                 networks:
                   - appnet
-
               app-client:
                 image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
                 ports:
@@ -97,7 +99,6 @@ jobs:
                   - fighter-manager
                 networks:
                   - appnet
-
             networks:
               appnet:
                 driver: bridge
