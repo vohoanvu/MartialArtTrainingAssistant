@@ -32,7 +32,6 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      # === FIX: Use the correct Artifact Registry repository name "codejitsu-repo" ===
       - name: Build and Push fighter-manager
         run: |
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/fighter-manager:${{ github.sha }} -f FighterManager.Server/Dockerfile .
@@ -61,7 +60,6 @@ jobs:
           instance_name: "thecodejitsu-app-vm"
           zone: "us-central1-c"
           project_id: "${{ secrets.GCP_PROJECT_ID }}"
-          use_oslogin: false
           command: |
             set -e
             APP_DIR="/home/${{ steps.prepare_vars.outputs.username }}/app"
@@ -69,7 +67,6 @@ jobs:
             cd $APP_DIR
 
             echo "--- Creating docker-compose.prod.yml on VM ---"
-            # === FIX: Use the correct Artifact Registry repository name "codejitsu-repo" ===
             cat <<EOF > $APP_DIR/docker-compose.prod.yml
             services:
               fighter-manager:
