@@ -61,6 +61,7 @@ jobs:
           instance_name: "thecodejitsu-app-vm"
           zone: "us-central1-c"
           project_id: "${{ secrets.GCP_PROJECT_ID }}"
+          use_oslogin: false
           command: |
             set -e
             APP_DIR="/home/${{ steps.prepare_vars.outputs.username }}/app"
