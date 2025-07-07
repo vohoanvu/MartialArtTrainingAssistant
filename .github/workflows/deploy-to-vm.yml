@@ -46,7 +46,7 @@ jobs:
       - name: Build and Push app-client
         run: |
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }} -f SampleAspNetReactDockerApp.Client/Dockerfile ./SampleAspNetReactDockerApp.Client
-          docker push us-central1-docker.pkg.dev/${{ secrets.GIP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
 
       - name: Prepare Deployment Variables
         id: prepare_vars
