@@ -35,7 +35,7 @@ namespace VideoSharing.Server.Domain.GeminiService
         private readonly string _projectId;
         private readonly string _location;
         private readonly string _model; //default to latest gemini pro model from appsettings for Vision analysis
-        private readonly string _textModel = "gemini-2.5-flash-preview-05-20";
+        private readonly string _textModel = "gemini-2.5-flash";
 
         private readonly IGoogleCloudStorageService _storageService;
         private readonly ILogger<GeminiVisionService> _logger;

@@ -1,0 +1,106 @@
+name: Build and Deploy to GCP VM
+
+on:
+  push:
+    branches:
+      - feature/gcp-vm-deploy
+
+# These permissions are required for authentication with GCP
+permissions:
+  contents: "read"
+  id-token: "write"
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: "google-github-actions/auth@v2"
+        with:
+          workload_identity_provider: "${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
+          service_account: "${{ secrets.GCP_SERVICE_ACCOUNT }}"
+
+      - name: Set up gcloud SDK
+        uses: "google-github-actions/setup-gcloud@v2"
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      # Build and push each service image, tagged with the commit SHA for versioning
+      - name: Build and Push fighter-manager
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/fighter-manager:${{ github.sha }} -f FighterManager.Server/Dockerfile .
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/fighter-manager:${{ github.sha }}
+
+      - name: Build and Push video-sharing
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/video-sharing:${{ github.sha }} -f VideoSharing.Server/Dockerfile .
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/video-sharing:${{ github.sha }}
+
+      - name: Build and Push app-client
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/app-client:${{ github.sha }} -f SampleAspNetReactDockerApp.Client/Dockerfile ./SampleAspNetReactDockerApp.Client
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/app-client:${{ github.sha }}
+
+      - name: Deploy to VM
+        uses: "google-github-actions/ssh-compute@v1"
+        with:
+          # Details from your gcp-vm-provisioning.json
+          instance_name: "thecodejitsu-app-vm"
+          zone: "us-central1-c"
+          project_id: "${{ secrets.GCP_PROJECT_ID }}"
+
+          # This script will run on your VM
+          command: |
+            set -e
+            APP_DIR="/home/${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL | split: '@' | get: 0 }}/app"
+            mkdir -p $APP_DIR/secrets
+            cd $APP_DIR
+
+            echo "--- Downloading secrets ---"
+
+            # Download the GCS service account key
+            gcloud secrets versions access latest --secret="GCS_SERVICE_ACCOUNT_KEY" > $APP_DIR/secrets/gcs-key.json
+
+            # Create the .env file for Docker Compose from Secret Manager
+            (
+              echo "SUPABASE_APP_DB='$(gcloud secrets versions access latest --secret="SUPABASE_APP_DB")'"
+              echo "ASPNETCORE_APP_PORT_1=8081"
+              echo "ASPNETCORE_APP_PORT_2=7081"
+              echo "CLIENT_APP_PORTS=3000:80"
+              echo "ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION=true"
+              echo "JWT_AUDIENCE='$(gcloud secrets versions access latest --secret="JWT_AUDIENCE")'"
+              echo "JWT_ISSUER='$(gcloud secrets versions access latest --secret="JWT_ISSUER")'"
+              echo "JWT_KEY='$(gcloud secrets versions access latest --secret="JWT_KEY")'"
+              echo "GOOGLE_CLIENT_ID='$(gcloud secrets versions access latest --secret="GOOGLE_CLIENT_ID")'"
+              echo "GOOGLE_CLIENT_SECRET='$(gcloud secrets versions access latest --secret="GOOGLE_CLIENT_SECRET")'"
+              echo "YOUTUBE_API_KEY='$(gcloud secrets versions access latest --secret="YOUTUBE_API_KEY")'"
+              echo "GOOGLE_CLOUD_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}"
+              echo "GOOGLE_CLOUD_BUCKET_NAME=martial-art-demo-vids"
+              echo "GEMINI_VISION_VIDEO_ANALYSIS_PROMPT='$(gcloud secrets versions access latest --secret="GEMINI_VISION_VIDEO_ANALYSIS_PROMPT")'"
+              echo "XAIGROK_API_KEY='$(gcloud secrets versions access latest --secret="XAIGROK_API_KEY")'"
+              echo "GoogleCloud__ServiceAccountKeyPath=/app/secrets/codejitsu-cloud-storage-service-account.json"
+            ) > $APP_DIR/.env
+
+            echo "--- Updating docker-compose.prod.yml with latest image tag ---"
+            # Replace the image placeholders in the compose file with the specific commit SHA tag
+            # This ensures we are always running the version we just built
+            sed -i 's|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/fighter-manager.*|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/fighter-manager:${{ github.sha }}|' docker-compose.prod.yml
+            sed -i 's|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/video-sharing.*|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/video-sharing:${{ github.sha }}|' docker-compose.prod.yml
+            sed -i 's|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/app-client.*|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/app-client:${{ github.sha }}|' docker-compose.prod.yml
+
+
+            echo "--- Starting Docker Compose ---"
+            # Pull the new images from Artifact Registry
+            docker-compose -f docker-compose.prod.yml --env-file .env pull
+
+            # Start the services. --remove-orphans cleans up old containers.
+            docker-compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans
+
+            echo "--- Deployment successful! ---"
