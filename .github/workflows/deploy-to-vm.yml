@@ -35,18 +35,18 @@ jobs:
       # Build and push each service image, tagged with the commit SHA for versioning
       - name: Build and Push fighter-manager
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/fighter-manager:${{ github.sha }} -f FighterManager.Server/Dockerfile .
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/fighter-manager:${{ github.sha }}
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/fighter-manager:${{ github.sha }} -f FighterManager.Server/Dockerfile .
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/fighter-manager:${{ github.sha }}
 
       - name: Build and Push video-sharing
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/video-sharing:${{ github.sha }} -f VideoSharing.Server/Dockerfile .
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/video-sharing:${{ github.sha }}
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }} -f VideoSharing.Server/Dockerfile .
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }}
 
       - name: Build and Push app-client
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/app-client:${{ github.sha }} -f SampleAspNetReactDockerApp.Client/Dockerfile ./SampleAspNetReactDockerApp.Client
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/martial-arts-app/app-client:${{ github.sha }}
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }} -f SampleAspNetReactDockerApp.Client/Dockerfile ./SampleAspNetReactDockerApp.Client
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
 
       - name: Deploy to VM
         uses: "google-github-actions/ssh-compute@v1"
@@ -59,16 +59,53 @@ jobs:
           # This script will run on your VM
           command: |
             set -e
-            APP_DIR="/home/${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL | split: '@' | get: 0 }}/app"
+            # This uses the correct GitHub Actions expression syntax
+            APP_DIR="/home/${{ split(secrets.GCP_SERVICE_ACCOUNT, '@')[0] }}/app"
             mkdir -p $APP_DIR/secrets
             cd $APP_DIR
 
-            echo "--- Downloading secrets ---"
+            echo "--- Creating docker-compose.prod.yml on VM ---"
+            # Create the docker-compose file on the VM with the latest image tags
+            cat <<EOF > $APP_DIR/docker-compose.prod.yml
+            services:
+              fighter-manager:
+                image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/fighter-manager:${{ github.sha }}
+                ports:
+                  - "\${ASPNETCORE_APP_PORT_1}:\${ASPNETCORE_APP_PORT_1}"
+                env_file: .env
+                networks:
+                  - appnet
 
-            # Download the GCS service account key
+              video-sharing:
+                image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }}
+                ports:
+                  - "7081:7081"
+                env_file: .env
+                volumes:
+                  - ./secrets/gcs-key.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro
+                networks:
+                  - appnet
+
+              app-client:
+                image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
+                ports:
+                  - "\${CLIENT_APP_PORTS}"
+                env_file: .env
+                volumes:
+                  - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
+                depends_on:
+                  - fighter-manager
+                networks:
+                  - appnet
+
+            networks:
+              appnet:
+                driver: bridge
+            EOF
+
+            echo "--- Downloading secrets ---"
             gcloud secrets versions access latest --secret="GCS_SERVICE_ACCOUNT_KEY" > $APP_DIR/secrets/gcs-key.json
 
-            # Create the .env file for Docker Compose from Secret Manager
             (
               echo "SUPABASE_APP_DB='$(gcloud secrets versions access latest --secret="SUPABASE_APP_DB")'"
               echo "ASPNETCORE_APP_PORT_1=8081"
@@ -88,19 +125,8 @@ jobs:
               echo "GoogleCloud__ServiceAccountKeyPath=/app/secrets/codejitsu-cloud-storage-service-account.json"
             ) > $APP_DIR/.env
 
-            echo "--- Updating docker-compose.prod.yml with latest image tag ---"
-            # Replace the image placeholders in the compose file with the specific commit SHA tag
-            # This ensures we are always running the version we just built
-            sed -i 's|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/fighter-manager.*|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/fighter-manager:${{ github.sha }}|' docker-compose.prod.yml
-            sed -i 's|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/video-sharing.*|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/video-sharing:${{ github.sha }}|' docker-compose.prod.yml
-            sed -i 's|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/app-client.*|image: us-central1-docker.pkg.dev/codejitsu/martial-arts-app/app-client:${{ github.sha }}|' docker-compose.prod.yml
-
-
             echo "--- Starting Docker Compose ---"
-            # Pull the new images from Artifact Registry
             docker-compose -f docker-compose.prod.yml --env-file .env pull
-
-            # Start the services. --remove-orphans cleans up old containers.
             docker-compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans
 
             echo "--- Deployment successful! ---"
