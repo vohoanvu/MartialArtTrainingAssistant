@@ -54,79 +54,79 @@ jobs:
           username=$(echo "$sa_email" | cut -d'@' -f1)
           echo "username=$username" >> $GITHUB_OUTPUT
 
-      - name: Deploy to VM
-        uses: "google-github-actions/ssh-compute@v1"
-        with:
-          instance_name: "thecodejitsu-app-vm"
-          zone: "us-central1-c"
-          project_id: "${{ secrets.GCP_PROJECT_ID }}"
-          # === THE FINAL FIX: Explicitly define the user for the SSH connection ===
-          user: "${{ steps.prepare_vars.outputs.username }}"
-          command: |
-            set -e
-            APP_DIR="/home/${{ steps.prepare_vars.outputs.username }}/app"
-            mkdir -p $APP_DIR/secrets
-            cd $APP_DIR
+      # - name: Deploy to VM
+      #   uses: "google-github-actions/ssh-compute@v1"
+      #   with:
+      #     instance_name: "thecodejitsu-app-vm"
+      #     zone: "us-central1-c"
+      #     project_id: "${{ secrets.GCP_PROJECT_ID }}"
+      #     # === THE FINAL FIX: Explicitly define the user for the SSH connection ===
+      #     user: "${{ steps.prepare_vars.outputs.username }}"
+      #     command: |
+      #       set -e
+      #       APP_DIR="/home/${{ steps.prepare_vars.outputs.username }}/app"
+      #       mkdir -p $APP_DIR/secrets
+      #       cd $APP_DIR
 
-            echo "--- Creating docker-compose.prod.yml on VM ---"
-            cat <<EOF > $APP_DIR/docker-compose.prod.yml
-            services:
-              fighter-manager:
-                image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/fighter-manager:${{ github.sha }}
-                ports:
-                  - "\${ASPNETCORE_APP_PORT_1}:\${ASPNETCORE_APP_PORT_1}"
-                env_file: .env
-                networks:
-                  - appnet
-              video-sharing:
-                image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }}
-                ports:
-                  - "7081:7081"
-                env_file: .env
-                volumes:
-                  - ./secrets/gcs-key.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro
-                networks:
-                  - appnet
-              app-client:
-                image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
-                ports:
-                  - "\${CLIENT_APP_PORTS}"
-                env_file: .env
-                volumes:
-                  - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
-                depends_on:
-                  - fighter-manager
-                networks:
-                  - appnet
-            networks:
-              appnet:
-                driver: bridge
-            EOF
+      #       echo "--- Creating docker-compose.prod.yml on VM ---"
+      #       cat <<EOF > $APP_DIR/docker-compose.prod.yml
+      #       services:
+      #         fighter-manager:
+      #           image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/fighter-manager:${{ github.sha }}
+      #           ports:
+      #             - "\${ASPNETCORE_APP_PORT_1}:\${ASPNETCORE_APP_PORT_1}"
+      #           env_file: .env
+      #           networks:
+      #             - appnet
+      #         video-sharing:
+      #           image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }}
+      #           ports:
+      #             - "7081:7081"
+      #           env_file: .env
+      #           volumes:
+      #             - ./secrets/gcs-key.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro
+      #           networks:
+      #             - appnet
+      #         app-client:
+      #           image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
+      #           ports:
+      #             - "\${CLIENT_APP_PORTS}"
+      #           env_file: .env
+      #           volumes:
+      #             - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
+      #           depends_on:
+      #             - fighter-manager
+      #           networks:
+      #             - appnet
+      #       networks:
+      #         appnet:
+      #           driver: bridge
+      #       EOF
 
-            echo "--- Downloading secrets ---"
-            gcloud secrets versions access latest --secret="GCS_SERVICE_ACCOUNT_KEY" > $APP_DIR/secrets/gcs-key.json
+      #       echo "--- Downloading secrets ---"
+      #       gcloud secrets versions access latest --secret="GCS_SERVICE_ACCOUNT_KEY" > $APP_DIR/secrets/gcs-key.json
 
-            (
-              echo "SUPABASE_APP_DB='$(gcloud secrets versions access latest --secret="SUPABASE_APP_DB")'"
-              echo "ASPNETCORE_APP_PORT_1=8081"
-              echo "ASPNETCORE_APP_PORT_2=7081"
-              echo "CLIENT_APP_PORTS=3000:80"
-              echo "ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION=true"
-              echo "JWT_AUDIENCE='$(gcloud secrets versions access latest --secret="JWT_AUDIENCE")'"
-              echo "JWT_ISSUER='$(gcloud secrets versions access latest --secret="JWT_ISSUER")'"
-              echo "JWT_KEY='$(gcloud secrets versions access latest --secret="JWT_KEY")'"
-              echo "GOOGLE_CLIENT_ID='$(gcloud secrets versions access latest --secret="GOOGLE_CLIENT_ID")'"
-              echo "GOOGLE_CLIENT_SECRET='$(gcloud secrets versions access latest --secret="GOOGLE_CLIENT_SECRET")'"
-              echo "YOUTUBE_API_KEY='$(gcloud secrets versions access latest --secret="YOUTUBE_API_KEY")'"
-              echo "GOOGLE_CLOUD_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}"
-              echo "GOOGLE_CLOUD_BUCKET_NAME=martial-art-demo-vids"
-              echo "GEMINI_VISION_VIDEO_ANALYSIS_PROMPT='$(gcloud secrets versions access latest --secret="GEMINI_VISION_VIDEO_ANALYSIS_PROMPT")'"
-              echo "XAIGROK_API_KEY='$(gcloud secrets versions access latest --secret="XAIGROK_API_KEY")'"
-              echo "GoogleCloud__ServiceAccountKeyPath=/app/secrets/codejitsu-cloud-storage-service-account.json"
-            ) > $APP_DIR/.env
+      #       (
+      #         echo "SUPABASE_APP_DB='$(gcloud secrets versions access latest --secret="SUPABASE_APP_DB")'"
+      #         echo "ASPNETCORE_APP_PORT_1=8081"
+      #         echo "ASPNETCORE_APP_PORT_2=7081"
+      #         echo "CLIENT_APP_PORTS=3000:80"
+      #         echo "ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION=true"
+      #         echo "JWT_AUDIENCE='$(gcloud secrets versions access latest --secret="JWT_AUDIENCE")'"
+      #         echo "JWT_ISSUER='$(gcloud secrets versions access latest --secret="JWT_ISSUER")'"
+      #         echo "JWT_KEY='$(gcloud secrets versions access latest --secret="JWT_KEY")'"
+      #         echo "GOOGLE_CLIENT_ID='$(gcloud secrets versions access latest --secret="GOOGLE_CLIENT_ID")'"
+      #         echo "GOOGLE_CLIENT_SECRET='$(gcloud secrets versions access latest --secret="GOOGLE_CLIENT_SECRET")'"
+      #         echo "YOUTUBE_API_KEY='$(gcloud secrets versions access latest --secret="YOUTUBE_API_KEY")'"
+      #         echo "GOOGLE_CLOUD_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}"
+      #         echo "GOOGLE_CLOUD_BUCKET_NAME=martial-art-demo-vids"
+      #         echo "GEMINI_VISION_VIDEO_ANALYSIS_PROMPT='$(gcloud secrets versions access latest --secret="GEMINI_VISION_VIDEO_ANALYSIS_PROMPT")'"
+      #         echo "XAIGROK_API_KEY='$(gcloud secrets versions access latest --secret="XAIGROK_API_KEY")'"
+      #         echo "GoogleCloud__ServiceAccountKeyPath=/app/secrets/codejitsu-cloud-storage-service-account.json"
+      #       ) > $APP_DIR/.env
 
-            echo "--- Starting Docker Compose ---"
-            docker-compose -f docker-compose.prod.yml --env-file .env pull
-            docker-compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans
+      #       echo "--- Starting Docker Compose ---"
+      #       docker-compose -f docker-compose.prod.yml --env-file .env pull
+      #       docker-compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans
 
-            echo "--- Deployment successful! ---"
+      #       echo "--- Deployment successful! ---"

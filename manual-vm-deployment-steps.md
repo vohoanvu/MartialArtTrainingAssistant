@@ -140,6 +140,33 @@ After a successful deployment, you can remove the old, unused Docker images to f
 sudo docker image prune -a -f
 ```
 
+- Configure Firewall to allow standard HTTP traffic on port 80 and HTTPS traffic on port 443
+```shell
+gcloud compute firewall-rules create allow-http-80 \
+    --network=default \
+    --allow=tcp:80 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=http-server \
+    --description="Allow port 80 for Let's Encrypt and HTTP" \
+    --project=codejitsu
+
+gcloud compute firewall-rules create allow-https-443 \
+    --network=default \
+    --allow=tcp:443 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=http-server \
+    --description="Allow port 443 for SSL/TLS" \
+    --project=codejitsu
+```
+
+- Check public IP:
+```shell
+gcloud compute instances describe thecodejitsu-app-vm \
+    --zone=us-central1-c \
+    --project=codejitsu \
+    --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
+```
+
 Your deployment is now complete. Your site is running the new code.
 
 ---

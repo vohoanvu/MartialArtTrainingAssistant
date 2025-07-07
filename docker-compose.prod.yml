@@ -30,16 +30,14 @@
 
   app-client:
     image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/app-client
-    build:
-      context: ./SampleAspNetReactDockerApp.Client
-      dockerfile: Dockerfile
     ports:
-      - "${CLIENT_APP_PORTS}"
+      - "80:80"
+      - "443:443"
     env_file: .env
-    environment:
-      - ASPNETCORE_APP_DB=${SUPABASE_APP_DB}
     volumes:
       - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./letsencrypt/config:/etc/letsencrypt
+      - ./letsencrypt/webroot:/var/www/certbot
     depends_on:
       - fighter-manager
     networks:
