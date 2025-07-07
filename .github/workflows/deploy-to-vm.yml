@@ -60,6 +60,8 @@ jobs:
           instance_name: "thecodejitsu-app-vm"
           zone: "us-central1-c"
           project_id: "${{ secrets.GCP_PROJECT_ID }}"
+          # === THE FINAL FIX: Explicitly define the user for the SSH connection ===
+          user: "${{ steps.prepare_vars.outputs.username }}"
           command: |
             set -e
             APP_DIR="/home/${{ steps.prepare_vars.outputs.username }}/app"
