@@ -84,7 +84,10 @@ SECRETS_TO_FETCH=(
   "GOOGLE_CLOUD_PROJECT_ID"
   "GOOGLE_CLOUD_BUCKET_NAME"
   "GEMINI_VISION_VIDEO_ANALYSIS_PROMPT"
+  "GEMINI_VISION_LOCATION"
+  "GEMINI_VISION_MODEL"
   "XAIGROK_API_KEY"
+  "XAIGROK_ENDPOINT"
 )
 # --- End of Configuration ---
 
@@ -200,7 +203,7 @@ This indicates a networking or configuration error. The application cannot reach
 
     ```bash
     # Open the file for viewing/editing
-    sudo nano docker-compose.yml
+    sudo vim docker-compose.yml
     ```
     *Correct section from our final working file:*
     ```yaml
@@ -215,7 +218,7 @@ This is a syntax error in your web server's configuration file.
 *   **Action:** Edit the NGINX configuration file and look for syntax mistakes. The most common error is forgetting to wrap your `server` block inside an `http` block.
 
     ```bash
-    sudo nano ./SampleAspNetReactDockerApp.Client/nginx.conf
+    sudo vim ./SampleAspNetReactDockerApp.Client/nginx.conf
     ```
 
 **Symptom 4: The `docker-compose pull` command fails with "pull access denied".**
