@@ -1,48 +1,40 @@
 ﻿services:
   fighter-manager:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager
-    build:
-      context: .
-      dockerfile: FighterManager.Server/Dockerfile
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:e062b3e63574c73b4a6a553d5072d406e268f847
     ports:
-      - "${ASPNETCORE_APP_PORT_1}:${ASPNETCORE_APP_PORT_1}"
+      - "7080:7080"
     env_file: .env
     environment:
       - ASPNETCORE_APP_DB=${SUPABASE_APP_DB}
     networks:
       - appnet
-
   video-sharing:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing
-    build:
-      context: .
-      dockerfile: VideoSharing.Server/Dockerfile
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing:e062b3e63574c73b4a6a553d5072d406e268f847
     ports:
       - "7081:7081"
     env_file: .env
     environment:
       - ASPNETCORE_APP_DB=${SUPABASE_APP_DB}
     volumes:
-      # This path will be created by the deployment script on the VM
       - ./secrets/gcs-key.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro
     networks:
       - appnet
-
   app-client:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/app-client
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/app-client:e062b3e63574c73b4a6a553d5072d406e268f847
     ports:
       - "80:80"
       - "443:443"
     env_file: .env
     volumes:
+      - ./SampleAspNetReactDockerApp.Client/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./letsencrypt/config:/etc/letsencrypt
       - ./letsencrypt/webroot:/var/www/certbot
     depends_on:
       - fighter-manager
+      - video-sharing
     networks:
       - appnet
-
 networks:
   appnet:
     driver: bridge
