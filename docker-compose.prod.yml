@@ -1,6 +1,6 @@
 ﻿services:
   fighter-manager:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:e062b3e63574c73b4a6a553d5072d406e268f847
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:latest
     ports:
       - "7080:7080"
     env_file: .env
@@ -9,7 +9,7 @@
     networks:
       - appnet
   video-sharing:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing:e062b3e63574c73b4a6a553d5072d406e268f847
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing:latest
     ports:
       - "7081:7081"
     env_file: .env
@@ -20,7 +20,7 @@
     networks:
       - appnet
   app-client:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/app-client:e062b3e63574c73b4a6a553d5072d406e268f847
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/app-client:latest
     ports:
       - "80:80"
       - "443:443"

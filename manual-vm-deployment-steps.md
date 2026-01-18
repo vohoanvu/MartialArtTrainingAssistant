@@ -62,6 +62,13 @@ sudo docker-compose pull
 ```
 *You will see Docker pulling the new layers for the images that have changed.*
 
+> [!NOTE]
+> If you are setting this up for the first time or after the migration to `latest` tags, ensure your `docker-compose.yml` on the VM uses the `:latest` image tag instead of a specific SHA. You can update it by copying the content of `docker-compose.prod.yml` from your repo.
+> ```bash
+> # Example of updating the file on the VM (paste content after running this)
+> sudo vim docker-compose.yml
+> ```
+
 - if needed, refresh the latest values from Secret Manager with this script:
 
 ```bash
@@ -112,9 +119,21 @@ done
 echo "Adding static environment variables..."
 echo "GoogleCloud__ServiceAccountKeyPath=/app/secrets/codejitsu-cloud-storage-service-account.json" >> "$ENV_FILE"
 
+# --- Handle Google Cloud Service Account Key ---
+echo "Handling GCS Service Account Key..."
+mkdir -p ./secrets
+echo "Fetching GCS_SERVICE_ACCOUNT_KEY and saving to ./secrets/gcs-key.json..."
+if gcloud secrets versions access latest --secret="GCS_SERVICE_ACCOUNT_KEY" --project="$PROJECT_ID" --quiet > ./secrets/gcs-key.json; then
+    echo "Successfully saved GCS key file."
+else
+    echo "ERROR: Failed to fetch GCS key file! Validation may fail."
+    # We don't exit here to allow .env creation to finish, but you might want to.
+fi
+
 
 echo ""
 echo ".env file has been successfully updated with the latest secrets."
+echo "Secrets directory checked/created and key file attempted fetch."
 ```
 
 **Step 5: Restart the Application Services**
@@ -228,5 +247,55 @@ This is an authentication error.
 *   **Action:** Re-run the `gcloud auth` command from Step 3 of the deployment workflow.
 
     ```bash
-    gcloud auth configure-docker us-central1-docker.pkg.dev
+
+---
+
+### **Part 3: Maintenance & Configuration Updates**
+
+Use this reference when you need to change settings, rotate keys, or add new features.
+
+#### **Scenario A: Updating an Existing Secret**
+*Example: The database password changed, or you want to update the AI prompt.*
+
+1.  **Update Cloud:** Go to [Google Cloud Secret Manager](https://console.cloud.google.com/security/secret-manager) and add a **New Version** to the existing secret (e.g., `SUPABASE_APP_DB`).
+2.  **Update VM:**
+    *   Connect to VM: `gcloud compute ssh ...`
+    *   Go to app folder: `cd ~/app`
+    *   Run the secret refresh script (Step 4 of Standard Workflow). **Note:** This script always fetches the `latest` version.
+3.  **Apply:** Restart containers to pick up the changes.
+    ```bash
+    sudo docker-compose up -d
     ```
+
+#### **Scenario B: Rotating the Service Account Key**
+*Example: The old key expired or was compromised.*
+
+1.  **Generate:** Create a new JSON key for your Service Account in GCP Console IAM.
+2.  **Update Cloud:**
+    *   Open Secret Manager -> `GCS_SERVICE_ACCOUNT_KEY`.
+    *   Add **New Version** and paste the *entire* content of the new JSON file.
+3.  **Update VM:**
+    *   Run the secret refresh script (Step 4).
+    *   Verify the file was updated: `cat ./secrets/gcs-key.json` (check the `private_key_id` to be sure).
+4.  **Apply:** Restart containers: `sudo docker-compose up -d`.
+
+#### **Scenario C: Adding a New Environment Variable**
+*Example: You added a feature that needs `OPENAI_API_KEY`.*
+
+This requires updates in 4 places. **Do not skip validation.**
+
+1.  **Google Cloud (Storage):**
+    *   Create a new Secret in Secret Manager: `OPENAI_API_KEY`.
+2.  **Deployment Script (Usage):**
+    *   Edit the script in **Step 4** of this guide (and on your VM `~/app/refresh_secrets.sh` if you saved it there).
+    *   Add `"OPENAI_API_KEY"` to the `SECRETS_TO_FETCH` list.
+3.  **Docker Compose (Mapping):**
+    *   Update `docker-compose.prod.yml` in your codebase.
+    *   Add the mapping under `environment`:
+        ```yaml
+        environment:
+          - OPENAI_API_KEY=${OPENAI_API_KEY}
+        ```
+    *   Push this code change and wait for the new image build.
+4.  **Application Code (Logic):**
+    *   Ensure your C# code (`Global.cs`) handles reading this variable, ideally with a fallback or check for `RunsInContainer`.
