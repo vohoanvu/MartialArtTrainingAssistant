@@ -95,7 +95,7 @@ namespace VideoSharing.Server.Domain.AIServices
             var query = $"{trainingSession.MartialArt} {techniqueName} or closely related techniques";
             return new XAILiveSearchRequest
             {
-                Model = "grok-3-latest",
+                Model = "grok-4-1-fast-reasoning",
                 Messages =
                 [
                     new() {
