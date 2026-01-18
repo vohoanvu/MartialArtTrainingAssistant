@@ -69,7 +69,10 @@ sudo docker-compose pull
 > sudo vim docker-compose.yml
 > ```
 
-- if needed, refresh the latest values from Secret Manager with this script:
+- if needed, refresh the latest values from Secret Manager with this script: (a version already exist on the VM)
+```bash
+./refresh-env-secret-manager.sh
+```
 
 ```bash
 #!/bin/bash
@@ -145,6 +148,23 @@ sudo docker-compose up -d
 ```
 *You will see lines like `Recreating app_fighter-manager_1 ... done`.*
 
+> [!NOTE]
+> If you run into this error `KeyError: 'ContainerConfig'`that is a known bug with older version of docker-compose, run this command sequence to clear the old state and start fresh
+```bash
+# 1. Stop and remove the containers and the "orphans"
+sudo docker-compose down --remove-orphans
+
+# 2. Prune stopped containers ensuring a clean slate
+sudo docker container prune -f
+
+# 3. Start it up again
+sudo docker-compose up -d
+
+# 4. If for some reason, the fighter-manager failed to run due to MaxClients limit, just restart it or check its logs, or just switch to other SUPBASE connection strings
+sudo docker-compose restart fighter-manager
+sudo docker-compose logs -f fighter-manager
+```
+
 **Step 6: Verify the Deployment**
 
 Check that all containers started correctly and are in an "Up" state.
@@ -162,7 +182,7 @@ After a successful deployment, you can remove the old, unused Docker images to f
 sudo docker image prune -a -f
 ```
 
-- Configure Firewall to allow standard HTTP traffic on port 80 and HTTPS traffic on port 443
+- Configure Firewall to allow standard HTTP traffic on port 80 and HTTPS traffic on port 443 (Ignore if resource already exists)
 ```shell
 gcloud compute firewall-rules create allow-http-80 \
     --network=default \
@@ -287,10 +307,10 @@ This requires updates in 4 places. **Do not skip validation.**
 1.  **Google Cloud (Storage):**
     *   Create a new Secret in Secret Manager: `OPENAI_API_KEY`.
 2.  **Deployment Script (Usage):**
-    *   Edit the script in **Step 4** of this guide (and on your VM `~/app/refresh_secrets.sh` if you saved it there).
+    *   Edit the script in **Step 4** of this guide (or on your VM `~/app/refresh-env-secret-manager.sh` if you saved it there).
     *   Add `"OPENAI_API_KEY"` to the `SECRETS_TO_FETCH` list.
 3.  **Docker Compose (Mapping):**
-    *   Update `docker-compose.prod.yml` in your codebase.
+    *   Update `docker-compose.prod.yml` in your codebase (or `~/app/docker-compose.yml` on the VM).
     *   Add the mapping under `environment`:
         ```yaml
         environment:
