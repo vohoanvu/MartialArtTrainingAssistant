@@ -372,7 +372,7 @@ namespace VideoSharing.Server.Domain.GeminiService
         private static string BuildVisionAnalysisPrompt(string martialArt, string studentIdentifier, string videoDescription, string skillLevel, string trainingGoal)
         {
             // Comprehensive list of BJJ weakness categories, useful for the AI's selection process.
-            const string bjjWeaknessCategories = "'Takedown Defense/Offense', 'Guard Passing/Retention', 'Submission', 'Posture Control', 'Grip Strength', 'Timing', 'Stamina'";
+            const string bjjWeaknessCategories = "'Takedown Defense/Offense', 'Guard Passing/Retention', 'Sweep', 'Submission', 'Posture Control', 'Grip Strength', 'Timing', 'Stamina'";
             // Technique types and positional scenarios for the AI to select from.
             const string techniqueTypes = "'Takedown', 'Submission', 'Sweep', 'Pass', 'Escape', 'Transition', 'Control', 'Defense'";
             const string positionalScenarios = "'Standing', 'Guard', 'Half Guard', 'Side Control', 'Mount', 'Back Control', 'Knee on Belly', 'Turtle'";
@@ -380,7 +380,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             return $@"
             You are an expert {martialArt} instructor. You have been given video of your student with the description as '{videoDescription}'.
             Analyze the performance of the student, identified as {studentIdentifier}, in this {martialArt} video using the instructions below. The student is at the {skillLevel} level and is training for {trainingGoal}.
-            Describe the student's techniques, execution, strengths, and weaknesses in detail. For each techniques used, provude the time stamps of the video where the technique starts and ends, and categorize the technique type and positional scenario.
+            Describe the student's techniques, execution, strengths, and weaknesses in detail. For each techniques used, provide the time stamps of the video where the technique starts and ends, and categorize the technique type and positional scenario.
             Provide a detailed analysis of the student's techniques, execution, strengths, weaknesses, and suggest specific drills for practice on what they could do differently.
             Pay close attention to the student's score-losing techniques, based loosely on official IBJJF rule set, and tailor the situational drills (positional sparring) to only focus on practicing that weakness.
 
