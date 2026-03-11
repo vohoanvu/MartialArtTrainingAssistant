@@ -1,161 +1,177 @@
-This documentation outlines the comprehensive technical solution for solving the **"Identity Drift"** problem in your BJJ analysis application. By combining the **"Smart Frame Picker"** with a **"Face/Body Cluster"** UI, we create a high-confidence visual anchor that guides the downstream AI agents.
+# 🥋 Technical Design: Zero-Click BJJ Identity-Lock Pipeline
+
+This document outlines the finalized architecture for a friction-less, agentic video analysis pipeline designed to eliminate **Identity Drift**. By utilizing a multi-step chain and temporal chunking, the system ensures the AI maintains a "Ground Truth" visual anchor of the student throughout complex grappling matches.
 
 ---
-
-## 🥋 Project: Identity-Guaranteed BJJ Analysis Pipeline
-
-**Objective:** Eliminate AI confusion between the user (Student) and the opponent by establishing a "Ground Truth" visual reference before full-video processing begins.
-
-### 1. The "Smart Identity Discovery" UX (Frontend)
-
-Instead of processing the entire video file blindly, we guide the user through a two-step "Identity Lock" phase in the React SPA.
-
-* **Step A: The Smart Frame Picker**
-* The app extracts 10 high-quality frames from the first 60 seconds of the video (using `ffmpeg`).
-* **The User sees:** A horizontal scrollable gallery of these frames.
-* **The Action:** The user selects the frame where they (and their opponent) are most clearly visible—usually during the "handshake" or the first standing exchange.
-
-
-* **Step B: Face/Body Cluster Selection**
-* Once a frame is selected, the **Detection Agent** (Backend) identifies all human participants.
-* **The User sees:** A "Portrait Grid" of 2–4 square crops extracted from that frame (Student, Opponent, and potentially the Referee).
-* **The Action:** The user simply clicks on the portrait that is **THEM**.
-* **Final Verification:** A quick toggle asks: *"Confirm your Gi color for this match: [Black] [White] [Blue]"*.
-
-
-
----
-
-### 2. Agentic Orchestration (.NET 8 Backend)
-
-To handle this high-resolution task, the application follows a **Multi-Step Agentic Chain**. This prevents "hallucinations" by specializing each LLM call.
-
-| Agent | Responsibility | Input | Output |
-| --- | --- | --- | --- |
-| **1. The Detection Agent** | Identify humans and extract crops for the UI. | Selected Frame (Image) | Bounding Boxes + 300x300px Cropped Portraits. |
-| **2. The Profiling Agent** | Generate the "Visual Anchor" text description. | User-Selected Crop + Gi Color | "Student: Black Kingz Gi, White Belt 2-stripes, Red Rashguard." |
-| **3. The Event Logger** | Map out every technical exchange in the video. | Full Video + Visual Anchor Profile | List of Timestamps, Techniques, and Outcomes. |
-| **4. The Head Coach** | Perform deep analysis and suggest drills. | Event Log + Student Level (White Belt) | Structured JSON with Analysis and Drills. |
-
----
-
-### 3. Solving "Identity Drift" (Technical Logic)
-
-**Identity Drift** happens when the AI "swaps" the players during a scramble. We solve this by passing the **Step 2 (Visual Profile)** into the **Step 3 (Event Logger)** prompt as an immutable constraint.
-
-**The "Anchor" Instruction for the Event Logger:**
-
-> "Reference the attached **Identity Crop** (input_file_0.png). This is the 'Student'. The student is wearing a [Black] Gi with [Specific Patch]. Even during high-speed scrambles or when the Student is on the bottom, always verify identity using the [Specific Patch] and [Belt Detail] before logging a technique."
-
----
-
-### 4. Technical Implementation Summary
-
-* **Image Processing:** Use **Magick.NET** or **ImageSharp** in .NET 8 to handle the cropping logic based on the normalized coordinates  returned by Vertex AI.
-* **Storage:** The user's "Identity Crop" is stored in Postgres as a Base64 string or a GCS link. This allows the user to "re-use" their identity profile for future match uploads from the same tournament without re-selecting themselves.
-* **Inference:** By providing a **High-Resolution Image** alongside the **Compressed Video**, you give the Gemini model's attention mechanism a specific pattern to "search" for in every frame, virtually eliminating player confusion.
-
-### Next Steps for Development
-
-Generate the **OpenAPI (Swagger) specification** for the `IdentityDetection` and `VideoAnalysis` endpoints so we can begin building the .NET controllers.
-
-
---------------------------------
-*** Updated fix for Step 1 (The "Smart Identity Discovery" UX) ***
-
-This section outlines the architectural blueprint for an **Agentic Identity-Lock Workflow** designed to solve "Identity Drift" in combat sports video analysis. By utilizing a multi-step chain, we transition from high-level uncertainty to a "pinned" visual profile that ensures the AI analyzes the correct athlete throughout a complex 3GB BJJ match.
-
----
-
-# 🥋 Technical Design: BJJ Identity-Lock Pipeline
 
 ## 1. Architectural Overview
 
-The system is built as a **Sequential Agentic Chain**. Instead of a single "black box" prompt, the task is decomposed into specialized micro-services (Agents) that progressively refine data.
+The system transitions from a single, high-level "black box" prompt to a series of specialized micro-services (Agents).
 
-| Phase | Agent | Input | Technical Output |
+| Phase | Agent | Persona | Technical Task |
 | --- | --- | --- | --- |
-| **I. Discovery** | **Scout Agent** | Video (60s) + Text ID | Ranked Frame Indices (Top 3) |
-| **II. Segmentation** | **Identity Agent** | Selected Frame | JSON Bounding Boxes + Visual DNA |
-| **III. Tracking** | **Event Logger** | Video + Anchor Frame + DNA | Timestamped Technical Log |
-| **IV. Analysis** | **Coach Agent** | Technical Log | Final JSON (Analysis & Drills) |
+| **I. Discovery** | **Auto-Profiler** | Forensic Video Analyst | Generate immutable "Visual DNA" from first 15s. |
+| **II. Segmentation** | **Backend Service** | Deterministic Code | Slice video into 45s chunks with 3s overlap. |
+| **III. Tracking** | **Event Logger** | Play-by-Play Commentator | Log techniques using Visual DNA grounding per chunk. |
+| **IV. Merging** | **.NET Service** | Deterministic Code | Adjust timestamps and deduplicate overlapping events. |
+| **V. Analysis** | **Head Coach** | IBJJF Black Belt | Synthesize merged logs into coaching drills/feedback. |
 
 ---
 
-## 2. Phase I: The Scout Agent (Auto-Selection)
+## 2. Phase I: The Auto-Profiler (Zero-Click Discovery)
 
-To minimize user friction, the **Scout Agent** pre-screens the video for high-information-density frames.
+This agent identifies the student based on the initial user description and creates a detailed text-based anchor.
 
-* **Logic:** The backend extracts 20 frames (1 frame/3s) from the first minute of the match.
-* **Prompting Strategy:** Vertex AI is asked to rank these frames based on the user's `Student_Identifier` (e.g., "Fighter in Blue Gi").
-* **Success Metric:** The agent prioritizes frames with minimal motion blur and clear separation between athletes (e.g., the pre-match handshake).
+### System Instruction
 
----
+> "You are a Forensic Video Analyst. Your sole task is to identify a specific athlete and document their unique visual characteristics. Ignore all technical grappling actions."
 
-## 3. Phase II: The Identity Agent & "Visual DNA"
+### Sample Prompt
 
-This is the "Heart" of the solution. It combines **Object Detection** with **Feature Extraction** in a single multimodal call.
-
-### A. The Bounding Box Request
-
-The agent analyzes the user-selected frame and returns a structured JSON object containing all "Human" entities.
-
-**Vertex AI System Instruction:**
-
-> "Identify all human participants in the frame. Return a JSON array of objects, each containing:
-> 1. `box_2d`: [ymin, xmin, ymax, xmax]
-> 2. `label`: Gi Color and visible rank
-> 3. `visual_dna`: A 2-sentence description of unique markers (patches, hair color, tape, etc.)"
-> 
-> 
-
-### B. The .NET 8 Cropping Service
-
-Your API receives the normalized coordinates . Using **ImageSharp**, the backend performs a localized crop of each participant.
-
-* **User Interaction:** The React UI presents these crops in a **"Who are you?"** grid.
-* **Result:** The user selects the crop that is them. This selected image becomes the **Permanent Anchor**.
+> "Watch the first 15 seconds of this video. Locate the student described as '{studentIdentifier}'. Generate a 'Visual DNA' profile. Look for: Gi color/brand, belt rank/stripes, hair color/style, specific patches, rashguard colors, and athletic tape on fingers or joints. Return ONLY the description."
 
 ---
 
-## 4. Phase III: The Event Logger (Solving Identity Drift)
+## 3. Phase II & III: Chunking and the Event Logger
 
-The final analysis call is "grounded" by the Anchor. You are no longer asking the AI to find "a person"; you are asking it to track a specific **Visual Signature**.
+To prevent **Identity Drift**, the video is processed in 45-second segments. Each segment is "grounded" by the Visual DNA.
 
-### The "Multimodal Payload"
+### Event Logger System Instruction
 
-The final call to the **Event Logger Agent** includes:
+> "You are a meticulous grappling play-by-play logger. You must strictly track the student matching the provided 'Visual DNA' profile. Do not swap identities during scrambles. Focus on positional changes and technique execution."
 
-1. **The Video File:** (Optimized/Compressed for inference).
-2. **The Anchor Crop:** A high-resolution JPG of the student.
-3. **The Visual DNA:** The text profile (e.g., "Student has a red patch on the right shoulder and white finger tape").
-
-### Why this stops Drift:
-
-By providing a static reference image (The Anchor) alongside the video, the LLM’s **cross-modal attention** is forced to "feature-match" the pixels of the anchor against the frames of the video. Even if the student is upside down or in a pile-up, the AI looks for the specific "Red Patch" DNA established in Phase II.
-
----
-
-## 5. Summary of the "Permanent Text Profile"
-
-The output of Phase II is stored in your Postgres database as a `VisualProfile` entity.
+### Event Logger JSON Schema
 
 ```json
 {
-  "match_id": "bjj_001",
-  "student_anchor_image_url": "gcs://bucket/anchor_crop_user1.jpg",
-  "visual_dna": "Student wears a black 'Kingz' brand Gi, white belt with 2 stripes. Notable for long blonde hair tied in a bun and blue rashguard sleeves visible under the Gi.",
-  "gi_color": "Black"
+  "type": "object",
+  "properties": {
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "string", "description": "MM:SS relative to chunk" },
+          "actor": { "type": "string", "enum": ["Student", "Opponent"] },
+          "technique_name": { "type": "string" },
+          "position": { "type": "string", "enum": ["Standing", "Guard", "Side Control", "Mount", "Back", "Turtle"] },
+          "outcome": { "type": "string" }
+        },
+        "required": ["timestamp", "actor", "technique_name", "position"]
+      }
+    }
+  }
 }
 
 ```
 
-This JSON object is injected into every subsequent analysis prompt, acting as the "Source of Truth" for the AI Coach.
+---
+
+## 4. Phase IV: Implementation of "Time-Shift" Logic
+
+The merging of chunked data is handled by a **deterministic .NET service**, not an LLM, to ensure mathematical accuracy.
+
+* **Timestamp Re-basing:** For each chunk $n$, the service adds the start time of that chunk (minus overlap) to every event timestamp.
+* *Formula:* $T_{actual} = T_{chunk} + (ChunkIndex \times (45s - 3s))$.
+
+
+* **Deduplication:** The service scans the 3-second overlap windows. If an event (e.g., "Triangle Choke") appears at the end of Chunk 1 and the start of Chunk 2 with identical metadata, the service merges them into a single entry.
+* **Sorting:** All re-based events are sorted chronologically into a single "Master Match Log".
 
 ---
 
-### Final Implementation Checklist
+## 5. Phase V: The Head Coach (Synthesis)
 
-1. [ ] **FFmpeg Integration:** Setup .NET task to extract frames on upload.
-2. [ ] **JSON Schema Enforcement:** Configure Vertex AI `response_mime_type` to `application/json` for Step 2.
-3. [ ] **Coordinate Scaling:** Implement the math to convert  coordinates to local image pixels.
+The Coach Agent consumes the Master Match Log (text only) to provide high-level insights.
+
+### Head Coach System Instruction
+
+> "You are an expert Brazilian Jiu-Jitsu Head Coach. Analyze the provided match log to identify patterns in the student's performance. Prioritize score-losing technical errors based on IBJJF rules."
+
+### Head Coach JSON Schema
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "match_summary": { "type": "string" },
+    "key_strengths": {
+      "type": "array",
+      "items": { "type": "object", "properties": { "title": { "type": "string" }, "explanation": { "type": "string" } } }
+    },
+    "critical_weaknesses": {
+      "type": "array",
+      "items": { 
+        "type": "object", 
+        "properties": { 
+          "title": { "type": "string" }, 
+          "timestamp_reference": { "type": "string" }, 
+          "explanation": { "type": "string" } 
+        } 
+      }
+    },
+    "prescribed_drills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "drill_name": { "type": "string" },
+          "instructions": { "type": "string" },
+          "goal": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+
+```
+
+---
+
+## 6. Technical Implementation Summary
+
+* **VLM:** Gemini 3.1 (Vertex AI).
+* **Backend:** .NET 8 for video orchestration and JSON merging.
+* **Storage:** Postgres for storing the "Visual DNA" and final analysis reports.
+* **Benefit:** Zero user friction with significantly reduced hallucination and identity swapping.
+
+
+## A Final Pro-Tip for 2026: Thought Signatures
+In your .NET implementation, I strongly recommend utilizing the new Thought Signatures feature for the Event Logger. When you process Chunk 1, the model can emit a `thoughtSignature`. If you pass that signature into the request for Chunk 2, it helps the model maintain the same "reasoning flow" and identity-tracking logic across the temporal boundary. (MORE DETAILS BELOW...)
+
+
+
+## More Details on Thought Signatures
+The **Thought Signature** is a new stateful reasoning mechanism in the Gemini 3 series that replaces the "stateless" nature of previous models.
+
+In a standard API call, the model starts its "thinking" from scratch every time. By using Thought Signatures, you are passing an encrypted, opaque token string that encapsulates the model's internal hidden states and intermediate computation results from the previous step.
+
+For your BJJ pipeline, this is the "glue" that prevents the AI from losing the "why" behind its tracking logic as it moves from one 45-second video chunk to the next.
+
+### 1. How the "Relay" Works (Conceptual)
+
+Think of it like a relay race where the "baton" is the model's internal logic about who the student is.
+
+* **Step 1 (Chunk 1):** You send the video chunk + Visual DNA. The model thinks: *"I see the red patch on the left; that's the student."* Along with its JSON output, it returns a **`thoughtSignature`**.
+* **Step 2 (Chunk 2):** In your next request, you send the second video chunk. **Crucially**, you include the `thoughtSignature` from Step 1 in the message history.
+* **The Result:** The model doesn't just re-read your "Visual DNA" prompt; it **resumes** the exact neural state it was in at the end of Chunk 1. It "remembers" the specific lighting, the angle of the red patch, and the student's movement patterns.
+
+---
+
+### 2. Implementation Rules for 2026
+
+Since you are using the .NET SDK, here is the technical behavior you need to implement:
+
+* **Capture the Signature:** The `thoughtSignature` is found in the `Parts` array of the model's response. For Gemini 3 models, it is mandatory to include this if you are using **Function Calling**, but highly recommended for **Text/JSON** workflows to maintain reasoning quality.
+* **Strict History Placement:** You must return the signature in the exact message part where it was received when building the conversation history for the next chunk.
+* **The "Current Turn" Rule:** The API enforces strict validation on signatures within the "current turn" of an agentic workflow. If you are performing a multi-step analysis within a single chunk, missing a signature will trigger a **400 Bad Request** error.
+
+---
+
+### 3. Impact on Your Pipeline
+
+Using signatures across your temporal chunks solves three major pain points:
+
+1. **Context Continuity:** It preserves the reason *why* the model identified a specific person as the student during a scramble.
+2. **Mitigates "Context Rot":** Even if your total context window is large (1M+ tokens), providing the signature helps the model focus on the *relevant* reasoning path rather than getting lost in the "noise" of previous frames.
+3. **High-Fidelity Tracking:** In 2026, setting `thinking_level` to **HIGH** on your Pro calls enables **Deep Think Mini** capabilities, which generates significantly more complex thought signatures for superior causal reasoning.
