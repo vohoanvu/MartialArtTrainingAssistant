@@ -90,15 +90,18 @@ The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-c`, pr
 
 **Manual deploy workflow:**
 1. SSH: `gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=codejitsu`
-2. `cd ~/app`
-3. Auth Docker: `gcloud auth configure-docker us-central1-docker.pkg.dev`
-4. Pull images: `sudo docker-compose pull`
-5. Refresh secrets: `./refresh-env-secret-manager.sh` (fetches from GCP Secret Manager into `.env` + GCS key)
-6. Restart: `sudo docker-compose down --remove-orphans && sudo docker container prune -f && sudo docker-compose up -d`
-7. Verify: `sudo docker ps`
-8. Cleanup: `sudo docker image prune -a -f`
+2. Run the all-in-one deploy script: `bash ~/deploy-app.sh`
+   - This handles: docker auth, pull, secret refresh, container restart, verification, and image cleanup
+   - Use `bash` to invoke it (avoids `chmod` permission issues on the VM)
 
-Or run the all-in-one script: `./deploy-app-updates-in-vm.sh`
+If you need to run steps individually:
+1. `cd ~/app`
+2. Auth Docker: `gcloud auth configure-docker us-central1-docker.pkg.dev`
+3. Pull images: `sudo docker-compose pull`
+4. Refresh secrets: `bash ./refresh-env-secret-manager.sh` (fetches from GCP Secret Manager into `.env` + GCS key)
+5. Restart: `sudo docker-compose down --remove-orphans && sudo docker container prune -f && sudo docker-compose up -d`
+6. Verify: `sudo docker ps`
+7. Cleanup: `sudo docker image prune -a -f`
 
 **Secrets** are stored in GCP Secret Manager and pulled to the VM's `.env` file via `refresh-env-secret-manager.sh`. The GCS service account key is also fetched to `./secrets/gcs-key.json`.
 
