@@ -57,7 +57,7 @@ namespace VideoSharing.Server
             builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
-            builder.Services.AddScoped<IGeminiVisionService, GeminiVisionService>();
+            builder.Services.AddHttpClient<IGeminiVisionService, GeminiVisionService>();
             builder.Services.AddScoped<AiAnalysisProcessorService>();
             builder.Services.AddScoped<CurriculumRecommendationService>();
             builder.Services.AddHttpClient<IXAIService, XAIService>();

@@ -1,4 +1,6 @@
-using Google.Cloud.AIPlatform.V1;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.StaticFiles;
 using VideoSharing.Server.Domain.GoogleCloudStorageService;
@@ -6,108 +8,94 @@ using VideoSharing.Server.Models.Dtos;
 using SharedEntities.Models;
 using SharedEntities;
 using System.Text;
-using System.Text.Json;
-using Microsoft.IdentityModel.Tokens;
 
 namespace VideoSharing.Server.Domain.GeminiService
 {
     public interface IGeminiVisionService
     {
         /// <summary>
+        /// Analyze a martial arts video using Gemini Vision.
         /// </summary>
         Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput, string martialArt, string studentIdentifier, string videoDescription,
             string skillLevel, string trainingGoal = "both self-defense and competition");
 
         /// <summary>
+        /// Suggest a class curriculum using Gemini text generation.
         /// </summary>
         Task<GeminiChatResponse> SuggestClassCurriculum(List<string>? weaknesses, List<Fighter>? students, TrainingSession classSession);
 
         /// <summary>
+        /// Suggest fighter pairings using Gemini text generation.
         /// </summary>
         Task<MatchMakerResponse> SuggestFighterPairs(List<Fighter> fighters, TrainingSession classSession);
     }
 
     /// <summary>
+    /// Calls Vertex AI Gemini models via the global REST endpoint with OAuth2 Bearer auth.
+    /// Follows the same pattern as MyCoachApp's VertexAiService.
     /// </summary>
     public class GeminiVisionService : IGeminiVisionService
     {
-        private readonly PredictionServiceClient _predictionClient;
+        private readonly HttpClient _httpClient;
+        private readonly GoogleCredential _credential;
         private readonly string _projectId;
-        private readonly string _location;
-        private readonly string _model; //default to latest gemini pro model from appsettings for Vision analysis
-        private readonly string _textModel = "gemini-3-flash-preview";
+        private readonly string _visionModel;
+        private readonly string _textModel;
 
         private readonly IGoogleCloudStorageService _storageService;
         private readonly ILogger<GeminiVisionService> _logger;
-        //private readonly IServiceProvider _serviceProvider;
-        // (Optional but recommended) Add a static field for JsonSerializerOptions for consistent deserialization
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+
+        private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            PropertyNameCaseInsensitive = true // Handles cases where JSON might not strictly match C# casing,
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         };
 
-        public GeminiVisionService(IGoogleCloudStorageService storageService, ILogger<GeminiVisionService> logger)
+        public GeminiVisionService(
+            HttpClient httpClient,
+            IGoogleCloudStorageService storageService,
+            ILogger<GeminiVisionService> logger)
         {
-            _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId);
-            _location = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionLocation);
-            // Assuming the same model is used for vision and text, or you might want separate model IDs
-            _model = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionModel);
+            _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri("https://aiplatform.googleapis.com");
 
             _storageService = storageService;
             _logger = logger;
-            // _serviceProvider = serviceProvider;
 
-            try
+            _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId);
+            _visionModel = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionModel);
+            _textModel = Global.Configuration?["GeminiVision:TextModel"] ?? "gemini-3.1-flash-lite-preview";
+
+            // Authenticate: try service account key file first, fall back to ADC
+            var keyPath = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath);
+            if (File.Exists(keyPath))
             {
-                var keyPath = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath);
-                if (!File.Exists(keyPath))
-                {
-                    // Log a warning or handle differently if key is optional for some environments (e.g. running on GCP infra)
-                    _logger.LogWarning($"Service account key file not found at {keyPath}. Attempting to use default credentials if available.");
-                    _predictionClient = new PredictionServiceClientBuilder
-                    {
-                        // Credential will be null, relying on ADC (Application Default Credentials)
-                        Endpoint = $"{_location}-aiplatform.googleapis.com"
-                    }.Build();
-
-                    _logger.LogInformation("Initialized Vertex AI client with Application Default Credentials.");
-                }
-                else
-                {
-                    var credential = GoogleCredential.FromFile(keyPath)
-                        .CreateScoped("https://www.googleapis.com/auth/cloud-platform");
-
-                    if (credential.UnderlyingCredential is ServiceAccountCredential serviceAccountCredential)
-                    {
-                        _logger.LogInformation("Using service account: {ServiceAccountEmail}", serviceAccountCredential.Id);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Using service account credentials from file.");
-                    }
-
-                    _predictionClient = new PredictionServiceClientBuilder
-                    {
-                        Credential = credential,
-                        Endpoint = $"{_location}-aiplatform.googleapis.com"
-                    }.Build();
-                    _logger.LogInformation("Initialized Vertex AI client with service account key.");
-                }
+                _credential = GoogleCredential.FromFile(keyPath)
+                    .CreateScoped("https://www.googleapis.com/auth/cloud-platform");
+                _logger.LogInformation("GeminiVisionService: using service account key from {KeyPath}", keyPath);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Failed to initialize Vertex AI client.");
-                throw new InvalidOperationException("Failed to initialize Vertex AI client.", ex);
+                _credential = GoogleCredential.GetApplicationDefault()
+                    .CreateScoped("https://www.googleapis.com/auth/cloud-platform");
+                _logger.LogInformation("GeminiVisionService: using Application Default Credentials");
             }
+
+            _logger.LogInformation(
+                "Initialized GeminiVisionService — vision: {VisionModel}, text: {TextModel}, project: {ProjectId}",
+                _visionModel, _textModel, _projectId);
         }
 
+        // ── Public API ────────────────────────────────────────────────────
+
         /// <inheritdoc/>
-        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(string videoInput,
+        public async Task<GeminiVisionResponse> AnalyzeVideoAsync(
+            string videoInput,
             string martialArt,
             string studentIdentifier,
             string videoDescription,
             string skillLevel,
-            string trainingGoal = "both self-defense and competition") // Added trainingGoal as parameter with default
+            string trainingGoal = "both self-defense and competition")
         {
             string fileUri;
             string mimeType;
@@ -126,123 +114,75 @@ namespace VideoSharing.Server.Domain.GeminiService
                 fileUri = await _storageService.UploadFileAsync(fileStream, Path.GetFileName(videoInput), mimeType);
             }
 
-            // Build the prompt using the new static method
             string prompt = BuildVisionAnalysisPrompt(martialArt, studentIdentifier, videoDescription, skillLevel, trainingGoal);
 
-            var request = new GenerateContentRequest
+            var request = new
             {
-                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{_model}", // Ensure this model supports video
-                Contents =
+                contents = new[]
                 {
-                    new Content
+                    new
                     {
-                        Role = "user",
-                        Parts =
+                        role = "user",
+                        parts = new object[]
                         {
-                            new Part { FileData = new FileData { MimeType = mimeType, FileUri = fileUri } },
-                            new Part { Text = prompt }
+                            new { fileData = new { mimeType, fileUri } },
+                            new { text = prompt },
                         }
                     }
                 },
-                SafetySettings =
+                generationConfig = new
                 {
-                    new SafetySetting { Category = HarmCategory.SexuallyExplicit, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.HateSpeech, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.DangerousContent, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.Harassment, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone }
+                    temperature = 0.3f,
+                    topP = 0.95f,
+                    maxOutputTokens = 65535,
+                    responseMimeType = "application/json",
+                    thinkingConfig = new { thinkingBudget = 16384 },
                 },
-                GenerationConfig = new GenerationConfig
-                {
-                    Temperature = 0.3f,
-                    TopP = 1.0f,
-                    MaxOutputTokens = 65535,
-                    ResponseMimeType = "application/json",
-                }
+                safetySettings = AllSafetyOff(),
             };
 
-            try
-            {
-                _logger.LogInformation("Sending GenerateContent request for video: {FileUri} to model {Model} in project {ProjectId}",
-                    fileUri, _model, _projectId);
-                // _logger.LogDebug("Vision Prompt: {Prompt}", prompt); // Log prompt at Debug level if needed
+            _logger.LogInformation("Sending video analysis request for: {FileUri} to model {Model}", fileUri, _visionModel);
 
-                GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
-                string? resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text;
-                if (resultJson == null) {
-                    _logger.LogDebug("FinishReason: {FinishReason}", response.Candidates.FirstOrDefault()?.FinishReason);
-                    _logger.LogDebug("FinisheMessage: {FinishMessage}", response.Candidates.FirstOrDefault()?.FinishMessage);
-                    throw new InvalidOperationException("No valid JSON response received from the API for video analysis.");
-                }
-                _logger.LogInformation("Received valid response for video: {FileUri}", fileUri);
-                return new GeminiVisionResponse { AnalysisJson = resultJson };
-            }
-            catch (Google.GoogleApiException ex)
-            {
-                _logger.LogError(ex, "Vertex AI API call failed for video: {FileUri}, project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
-                    fileUri, _projectId, _model, ex.HttpStatusCode, ex.Error?.ToString());
-                throw new InvalidOperationException($"Vertex AI API call failed: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during Vertex AI API call for video: {FileUri}", fileUri);
-                throw;
-            }
+            var response = await PostJsonAsync(GenerateContentUrl(_visionModel), request, CancellationToken.None);
+            string resultJson = ExtractText(response);
+
+            return new GeminiVisionResponse { AnalysisJson = resultJson };
         }
 
         /// <inheritdoc/>
-        public async Task<GeminiChatResponse> SuggestClassCurriculum(List<string>? weaknesses, List<Fighter>? students, TrainingSession classSession)
+        public async Task<GeminiChatResponse> SuggestClassCurriculum(
+            List<string>? weaknesses,
+            List<Fighter>? students,
+            TrainingSession classSession)
         {
             var curriculumPrompt = BuildCurriculumPrompt(weaknesses, students, classSession);
 
-            var request = new GenerateContentRequest
+            var request = new
             {
-                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{_textModel}",
-                Contents =
+                contents = new[]
                 {
-                    new Content
+                    new
                     {
-                        Role = "user",
-                        Parts = { new Part { Text = curriculumPrompt } }
+                        role = "user",
+                        parts = new[] { new { text = curriculumPrompt } }
                     }
                 },
-                SafetySettings =
+                generationConfig = new
                 {
-                    new SafetySetting { Category = HarmCategory.SexuallyExplicit, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.HateSpeech, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.DangerousContent, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.Harassment, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone }
+                    temperature = 1.0f,
+                    topP = 1.0f,
+                    maxOutputTokens = 16384,
+                    responseMimeType = "application/json",
                 },
-                GenerationConfig = new GenerationConfig
-                {
-                    Temperature = 1.0f, // Higher temperature for more creative responses
-                    TopP = 1.0f,
-                    MaxOutputTokens = 16384, // Ensure this is appropriate for curriculum length
-                    ResponseMimeType = "application/json",
-                }
+                safetySettings = AllSafetyOff(),
             };
 
-            try
-            {
-                _logger.LogInformation("Sending GenerateContent request for class curriculum to model {Model} in project {ProjectId}", _textModel, _projectId);
-                // _logger.LogDebug("Curriculum Prompt: {Prompt}", curriculumPrompt); // Log prompt at Debug level
+            _logger.LogInformation("Sending curriculum request to model {Model}", _textModel);
 
-                GenerateContentResponse response = await _predictionClient.GenerateContentAsync(request);
-                string resultJson = response.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
-                    ?? throw new InvalidOperationException("No valid JSON response received from the API for curriculum suggestion.");
-                _logger.LogInformation("Received valid curriculum response from Vertex AI.");
-                return new GeminiChatResponse { CurriculumJson = resultJson };
-            }
-            catch (Google.GoogleApiException ex)
-            {
-                _logger.LogError(ex, "Vertex AI API call failed for curriculum generation: project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
-                    _projectId, _textModel, ex.HttpStatusCode, ex.Error?.ToString());
-                throw new InvalidOperationException($"Vertex AI API call failed for curriculum generation: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during Vertex AI API call for curriculum generation.");
-                throw;
-            }
+            var response = await PostJsonAsync(GenerateContentUrl(_textModel), request, CancellationToken.None);
+            string resultJson = ExtractText(response);
+
+            return new GeminiChatResponse { CurriculumJson = resultJson };
         }
 
         /// <inheritdoc/>
@@ -258,7 +198,7 @@ namespace VideoSharing.Server.Domain.GeminiService
                     Pairs = [],
                     PairingRationale = "No students provided to pair."
                 };
-                response.RawGenerateContentResponseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
+                response.RawGenerateContentResponseJson = JsonSerializer.Serialize(response, JsonOptions);
                 response.IsSuccessfullyParsed = true;
                 return response;
             }
@@ -278,90 +218,66 @@ namespace VideoSharing.Server.Domain.GeminiService
                     },
                     PairingRationale = "Only one student available."
                 };
-                response.RawGenerateContentResponseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
+                response.RawGenerateContentResponseJson = JsonSerializer.Serialize(response, JsonOptions);
                 response.IsSuccessfullyParsed = true;
                 return response;
             }
 
             var pairingPrompt = BuildFighterPairingPrompt(fighters, classSession);
 
-            var request = new GenerateContentRequest
+            var request = new
             {
-                Model = $"projects/{_projectId}/locations/{_location}/publishers/google/models/{_textModel}",
-                Contents = { new Content { Role = "user", Parts = { new Part { Text = pairingPrompt } } } },
-                SafetySettings =
+                contents = new[]
                 {
-                    new SafetySetting { Category = HarmCategory.SexuallyExplicit, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.HateSpeech, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.DangerousContent, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone },
-                    new SafetySetting { Category = HarmCategory.Harassment, Threshold = SafetySetting.Types.HarmBlockThreshold.BlockNone }
+                    new
+                    {
+                        role = "user",
+                        parts = new[] { new { text = pairingPrompt } }
+                    }
                 },
-                GenerationConfig = new GenerationConfig
+                generationConfig = new
                 {
-                    Temperature = 0.2f,
-                    TopP = 1.0f,
-                    MaxOutputTokens = 8192,
-                    ResponseMimeType = "application/json", // Crucial: Ask AI for JSON output
-                }
+                    temperature = 0.2f,
+                    topP = 1.0f,
+                    maxOutputTokens = 8192,
+                    responseMimeType = "application/json",
+                },
+                safetySettings = AllSafetyOff(),
             };
 
             try
             {
-                _logger.LogInformation("Sending GenerateContent request for fighter pairing to model {Model} in project {ProjectId}", _textModel, _projectId);
+                _logger.LogInformation("Sending fighter pairing request to model {Model}", _textModel);
                 _logger.LogInformation("User Prompt: {Prompt}", pairingPrompt);
-                GenerateContentResponse geminiResponse = await _predictionClient.GenerateContentAsync(request);
 
-                string resultJson = geminiResponse.Candidates.FirstOrDefault()?.Content.Parts.FirstOrDefault(p => p.Text != null)?.Text
-                    ?? string.Empty;
-                _logger.LogInformation("Model Response: {response}", geminiResponse);
+                var geminiResponse = await PostJsonAsync(GenerateContentUrl(_textModel), request, CancellationToken.None);
+                string resultJson = ExtractText(geminiResponse);
 
-                response.RawGenerateContentResponseJson = geminiResponse.Candidates.FirstOrDefault()?.Content.ToString() ?? string.Empty;
-
-                if (string.IsNullOrWhiteSpace(resultJson))
-                {
-                    _logger.LogWarning("Received empty or whitespace JSON response from Vertex AI for fighter pairing.");
-                    response.ErrorMessage = "No valid JSON response received from the API (empty or whitespace).";
-                    response.IsSuccessfullyParsed = false;
-                    // Create a default empty content to avoid null SuggestedPairings
-                    response.SuggestedPairings = new MatchMakerResponseContent { PairingRationale = response.ErrorMessage };
-                    return response;
-                }
-
-                // Helper to remove markdown code fences (```json ... ``` or ``` ... ```)
+                response.RawGenerateContentResponseJson = resultJson;
                 string cleanedJson = CleanJsonFromMarkdown(resultJson);
 
                 try
                 {
-                    // Deserialize the cleaned JSON string into our C# object model
-                    response.SuggestedPairings = JsonSerializer.Deserialize<MatchMakerResponseContent>(cleanedJson, _jsonSerializerOptions);
+                    response.SuggestedPairings = JsonSerializer.Deserialize<MatchMakerResponseContent>(cleanedJson, JsonOptions);
                     response.IsSuccessfullyParsed = response.SuggestedPairings != null;
                     if (!response.IsSuccessfullyParsed)
                     {
                         response.ErrorMessage = "JSON deserialization resulted in a null object, though no exception was thrown.";
                     }
-                    _logger.LogInformation("Successfully deserialized fighter pairing response from Vertex AI.");
+                    _logger.LogInformation("Successfully deserialized fighter pairing response.");
                 }
                 catch (JsonException jsonEx)
                 {
                     _logger.LogError(jsonEx, "Failed to deserialize fighter pairing JSON. Cleaned JSON: {CleanedJson}. Raw JSON: {RawJson}", cleanedJson, resultJson);
                     response.ErrorMessage = $"JSON Deserialization Error: {jsonEx.Message}. Check logs for raw JSON.";
                     response.IsSuccessfullyParsed = false;
-                    // Create a default empty content to avoid null SuggestedPairings
                     response.SuggestedPairings = new MatchMakerResponseContent { PairingRationale = $"Failed to parse AI response: {jsonEx.Message}" };
                 }
             }
-            catch (Google.GoogleApiException ex)
-            {
-                _logger.LogError(ex, "Vertex AI API call failed for fighter pairing: project: {ProjectId}, model: {Model}, HTTP status: {StatusCode}, error details: {Details}",
-                    _projectId, _textModel, ex.HttpStatusCode, ex.Error?.ToString());
-                response.ErrorMessage = $"Vertex AI API call failed: {ex.Message}";
-                response.IsSuccessfullyParsed = false;
-                response.SuggestedPairings = new MatchMakerResponseContent { PairingRationale = response.ErrorMessage };
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during Vertex AI API call for fighter pairing.");
-                response.ErrorMessage = $"Unexpected error: {ex.Message}";
+                _logger.LogError(ex, "Error during fighter pairing request.");
+                response.ErrorMessage = $"Error: {ex.Message}";
                 response.IsSuccessfullyParsed = false;
                 response.SuggestedPairings = new MatchMakerResponseContent { PairingRationale = response.ErrorMessage };
             }
@@ -369,11 +285,83 @@ namespace VideoSharing.Server.Domain.GeminiService
             return response;
         }
 
+        // ── HTTP Helpers (same pattern as MyCoachApp VertexAiService) ──────
+
+        private async Task<string> GetAccessTokenAsync()
+        {
+            var tokenAccess = _credential as ITokenAccess;
+            return await tokenAccess!.GetAccessTokenForRequestAsync();
+        }
+
+        private string ModelPath(string modelId) =>
+            $"projects/{_projectId}/locations/global/publishers/google/models/{modelId}";
+
+        private string GenerateContentUrl(string modelId) =>
+            $"/v1/{ModelPath(modelId)}:generateContent";
+
+        private async Task<JsonElement> PostJsonAsync(string url, object body, CancellationToken ct)
+        {
+            var token = await GetAccessTokenAsync();
+            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Content = JsonContent.Create(body, options: JsonOptions);
+
+            var response = await _httpClient.SendAsync(request, ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogError("Vertex AI API error. Status: {StatusCode}, Body: {Body}",
+                    (int)response.StatusCode, errorBody[..Math.Min(500, errorBody.Length)]);
+                throw new HttpRequestException(
+                    $"Vertex AI request failed with {(int)response.StatusCode}: {errorBody[..Math.Min(500, errorBody.Length)]}",
+                    null,
+                    response.StatusCode);
+            }
+
+            await using var stream = await response.Content.ReadAsStreamAsync(ct);
+            return await JsonSerializer.DeserializeAsync<JsonElement>(stream, cancellationToken: ct);
+        }
+
+        private static string ExtractText(JsonElement response)
+        {
+            // With thinking models, the actual output is in the last text part
+            // (thinking parts come first, then the real response)
+            var parts = response
+                .GetProperty("candidates")[0]
+                .GetProperty("content")
+                .GetProperty("parts");
+
+            // Walk parts in reverse to find the last text part
+            for (int i = parts.GetArrayLength() - 1; i >= 0; i--)
+            {
+                if (parts[i].TryGetProperty("text", out var textProp))
+                {
+                    var text = textProp.GetString();
+                    if (!string.IsNullOrWhiteSpace(text))
+                        return text;
+                }
+            }
+
+            throw new InvalidOperationException(
+                "Response contained no text in candidates[0].content.parts");
+        }
+
+        // ── Safety settings (all off for martial arts content) ────────────
+
+        private static object[] AllSafetyOff() =>
+        [
+            new { category = "HARM_CATEGORY_HATE_SPEECH", threshold = "OFF" },
+            new { category = "HARM_CATEGORY_DANGEROUS_CONTENT", threshold = "OFF" },
+            new { category = "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold = "OFF" },
+            new { category = "HARM_CATEGORY_HARASSMENT", threshold = "OFF" },
+        ];
+
+        // ── Prompt builders ───────────────────────────────────────────────
+
         private static string BuildVisionAnalysisPrompt(string martialArt, string studentIdentifier, string videoDescription, string skillLevel, string trainingGoal)
         {
-            // Comprehensive list of BJJ weakness categories, useful for the AI's selection process.
             const string bjjWeaknessCategories = "'Takedown Defense/Offense', 'Guard Passing/Retention', 'Sweep', 'Submission', 'Posture Control', 'Grip Strength', 'Timing', 'Stamina'";
-            // Technique types and positional scenarios for the AI to select from.
             const string techniqueTypes = "'Takedown', 'Submission', 'Sweep', 'Pass', 'Escape', 'Transition', 'Control', 'Defense'";
             const string positionalScenarios = "'Standing', 'Guard', 'Half Guard', 'Side Control', 'Mount', 'Back Control', 'Knee on Belly', 'Turtle'";
 
@@ -426,33 +414,9 @@ namespace VideoSharing.Server.Domain.GeminiService
             ";
         }
 
-        private string DetermineMimeType(string pathOrUri)
-        {
-            string extension;
-            if (pathOrUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                pathOrUri.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-                pathOrUri.StartsWith("gs://", StringComparison.OrdinalIgnoreCase))
-            {
-                var uri = new Uri(pathOrUri);
-                extension = Path.GetExtension(uri.AbsolutePath);
-            }
-            else
-            {
-                extension = Path.GetExtension(pathOrUri);
-            }
-
-            var provider = new FileExtensionContentTypeProvider();
-            if (string.IsNullOrEmpty(extension) || !provider.TryGetContentType(extension, out var contentType))
-            {
-                _logger.LogWarning("Could not determine MIME type for '{PathOrUri}'. Defaulting to 'video/mp4'.", pathOrUri);
-                contentType = "video/mp4"; // Default to mp4 if unknown or no extension
-            }
-            return contentType;
-        }
-
         private static string BuildCurriculumPrompt(List<string>? weaknesses, List<Fighter>? students, TrainingSession classSession)
         {
-            var studentDetails = students != null && students.Any()
+            var studentDetails = students != null && students.Count > 0
                 ? students.Select(s =>
                     $"- Student: Belt Rank - {s.BelkRank}, Height - {s.Height:F1} ft, Weight - {s.Weight} lbs, Training Experience - {s.Experience}"
                   ).Aggregate((a, b) => $"{a}\n{b}")
@@ -469,29 +433,29 @@ namespace VideoSharing.Server.Domain.GeminiService
             }
             else
             {
-                weaknessInstruction = $"- For the {classSession.TargetLevel.ToString()} level, determine the 2-3 most common and impactful weakness categories from the following general BJJ weakness categories: [{comprehensiveBjjWeaknessList}]. Focus the curriculum on addressing these determined weaknesses.";
+                weaknessInstruction = $"- For the {classSession.TargetLevel} level, determine the 2-3 most common and impactful weakness categories from the following general BJJ weakness categories: [{comprehensiveBjjWeaknessList}]. Focus the curriculum on addressing these determined weaknesses.";
                 addressingClause = "the determined weaknesses";
             }
 
-            return $@"You are an expert {classSession.MartialArt.ToString()} instructor. Design a {classSession.Duration}-hour class session curriculum based on the following:
+            return $@"You are an expert {classSession.MartialArt} instructor. Design a {classSession.Duration}-hour class session curriculum based on the following:
             {weaknessInstruction}
             - Students:
                 {studentDetails}
 
             Create a curriculum that includes:
             - A 10-minute warm-up drill.
-            - 1-2 {classSession.TargetLevel.ToString()} techniques.
+            - 1-2 {classSession.TargetLevel} techniques.
             - 3-5 specific drills.
             - Controlled positional sparring with guidelines (emphasizing safety and technique over power).
             - A 10-minute cool-down drill.
 
             The curriculum should:
-            - Be clear, easy to understand, and reflect professional training structures used in top {classSession.MartialArt.ToString()} gyms.
-            - Be engaging for {classSession.TargetLevel.ToString()} target level, focusing on situational drilling (positional sparring) of a specific technique weakness instead of full-on rolling until submission.
+            - Be clear, easy to understand, and reflect professional training structures used in top {classSession.MartialArt} gyms.
+            - Be engaging for {classSession.TargetLevel} target level, focusing on situational drilling (positional sparring) of a specific technique weakness instead of full-on rolling until submission.
 
             Return the curriculum as a JSON object with the following format:
             {{
-                ""session_title"": ""e.g., Guard Passing sequence or {classSession.TargetLevel.ToString()} Level Weakness Focus"",
+                ""session_title"": ""e.g., Guard Passing sequence or {classSession.TargetLevel} Level Weakness Focus"",
                 ""duration"": ""{(int)(classSession.Duration * 60)} minutes"",
                 ""target_level_specific_weaknesses_identified"": [""If AI determined weaknesses, list them here, e.g., Guard Retention, Takedown Defense""],
                 ""warm_up"": {{
@@ -542,7 +506,7 @@ namespace VideoSharing.Server.Domain.GeminiService
             {
                 foreach (var student in fighters)
                 {
-                    studentDetailsSb.AppendLine($"- ID: {student.Id}, Name: {student.FighterName}, Belt: {student.BelkRank.ToString()}, Weight: {student.Weight:F1} kg, Height: {student.Height:F0} cm, Birtdate: {student.Birthdate.ToString("d")}, Experience: {student.Experience.ToString()}");
+                    studentDetailsSb.AppendLine($"- ID: {student.Id}, Name: {student.FighterName}, Belt: {student.BelkRank}, Weight: {student.Weight:F1} kg, Height: {student.Height:F0} cm, Birtdate: {student.Birthdate:d}, Experience: {student.Experience}");
                 }
             }
 
@@ -557,7 +521,6 @@ namespace VideoSharing.Server.Domain.GeminiService
                 instructorInfo = "No Class Instructor details provided for this session.";
             }
 
-            // Determine if the number of students is odd
             bool isOddNumberOfStudents = fighters != null && fighters.Count % 2 != 0;
             string oddNumberRule = "";
             if (isOddNumberOfStudents)
@@ -572,8 +535,8 @@ namespace VideoSharing.Server.Domain.GeminiService
                 }
             }
 
-            return $@"You are an expert {classSession.MartialArt.ToString()} instructor. Your task is to pair up students for training based on their compatibility, considering skill level, size, and age.
-            {studentDetailsSb.ToString()}
+            return $@"You are an expert {classSession.MartialArt} instructor. Your task is to pair up students for training based on their compatibility, considering skill level, size, and age.
+            {studentDetailsSb}
 
             {instructorInfo}
 
@@ -606,38 +569,51 @@ namespace VideoSharing.Server.Domain.GeminiService
             ";
         }
 
-        /// <summary>
-        /// Cleans a JSON string that might be wrapped in Markdown code fences.
-        /// </summary>
-        /// <param name="rawJson">The raw string from the LLM.</param>
-        /// <returns>A cleaned JSON string, or the original string if no fences are detected.</returns>
+        // ── Utilities ─────────────────────────────────────────────────────
+
+        private string DetermineMimeType(string pathOrUri)
+        {
+            string extension;
+            if (pathOrUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                pathOrUri.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+                pathOrUri.StartsWith("gs://", StringComparison.OrdinalIgnoreCase))
+            {
+                var uri = new Uri(pathOrUri);
+                extension = Path.GetExtension(uri.AbsolutePath);
+            }
+            else
+            {
+                extension = Path.GetExtension(pathOrUri);
+            }
+
+            var provider = new FileExtensionContentTypeProvider();
+            if (string.IsNullOrEmpty(extension) || !provider.TryGetContentType(extension, out var contentType))
+            {
+                _logger.LogWarning("Could not determine MIME type for '{PathOrUri}'. Defaulting to 'video/mp4'.", pathOrUri);
+                contentType = "video/mp4";
+            }
+            return contentType;
+        }
+
         private static string CleanJsonFromMarkdown(string rawJson)
         {
             if (string.IsNullOrWhiteSpace(rawJson)) return string.Empty;
 
             string trimmedJson = rawJson.Trim();
 
-            // Remove ```json ... ```
             if (trimmedJson.StartsWith("```json", StringComparison.OrdinalIgnoreCase) && trimmedJson.EndsWith("```"))
             {
-                // Length of "```json" is 7, "```" is 3
-                if (trimmedJson.Length > 7 + 3)
-                {
-                    return trimmedJson.Substring(7, trimmedJson.Length - 7 - 3).Trim();
-                }
-                return string.Empty; // Avoid issues with very short strings
+                if (trimmedJson.Length > 10)
+                    return trimmedJson[7..^3].Trim();
+                return string.Empty;
             }
-            // Remove ``` ... ``` (generic markdown code block)
-            else if (trimmedJson.StartsWith("```") && trimmedJson.EndsWith("```"))
+            if (trimmedJson.StartsWith("```") && trimmedJson.EndsWith("```"))
             {
-                // Length of "```" is 3
-                if (trimmedJson.Length > 3 + 3)
-                {
-                    return trimmedJson.Substring(3, trimmedJson.Length - 3 - 3).Trim();
-                }
-                return string.Empty; // Avoid issues with very short strings
+                if (trimmedJson.Length > 6)
+                    return trimmedJson[3..^3].Trim();
+                return string.Empty;
             }
-            return trimmedJson; // Return the original (trimmed) if no fences found
+            return trimmedJson;
         }
     }
 }
