@@ -36,7 +36,7 @@ public class FighterRegistrationServiceTests
     {
         FighterName = "Test Fighter",
         Email = "fighter@codejitsu.com",
-        Password = "Password123!",
+        Password = "TestPass123",
         Height = 175,
         Weight = 75,
         Gender = "Male",

@@ -188,7 +188,7 @@ public class FighterControllerTests
         {
             FighterName = "New Fighter",
             Email = "new@codejitsu.com",
-            Password = "P@ssw0rd!",
+            Password = "TestPass123",
             Height = 175,
             Weight = 75,
             Gender = "Male",
@@ -266,7 +266,7 @@ public class FighterControllerTests
         {
             FighterName = "Bad Enum",
             Email = "badenum@codejitsu.com",
-            Password = "P@ssw0rd!",
+            Password = "TestPass123",
             Height = 175,
             Weight = 75,
             Gender = "InvalidGender",
@@ -465,7 +465,7 @@ public class FighterControllerTests
     {
         // Arrange
         var appUser = TestFixtures.CreateAppUser();
-        var loginRequest = new CustomLoginRequest { Email = "testuser@codejitsu.com", Password = "P@ssw0rd!" };
+        var loginRequest = new CustomLoginRequest { Email = "testuser@codejitsu.com", Password = "TestPass123" };
 
         var unitMock = new Mock<IUnitOfWork>();
         var mapperMock = new Mock<IMapper>();
