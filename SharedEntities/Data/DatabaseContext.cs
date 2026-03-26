@@ -56,8 +56,11 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var connectionString = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.AppDb);
-        optionsBuilder.UseNpgsql(connectionString);
+        if (!optionsBuilder.IsConfigured)
+        {
+            var connectionString = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.AppDb);
+            optionsBuilder.UseNpgsql(connectionString);
+        }
     }
 
     /// <inheritdoc />

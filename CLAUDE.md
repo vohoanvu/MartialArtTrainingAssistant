@@ -137,7 +137,6 @@ This project uses a multi-agent development workflow. Five specialized agents ar
 Configured in `.claude/.mcp.json`:
 - **GitHub** — PR workflows, issue management, code review
 - **Supabase** — Database management and queries
-- **PostgreSQL** (@bytebase/dbhub) — Direct database inspection
 
 To authenticate MCP servers, use `/mcp` in a Claude Code session.
 

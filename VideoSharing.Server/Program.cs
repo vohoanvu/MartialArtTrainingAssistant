@@ -3,7 +3,7 @@ using Asp.Versioning;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using VideoSharing.Server.Domain.YoutubeSharingService;
 using VideoSharing.Server.Helpers;
 using VideoSharing.Server.Repository;
@@ -55,7 +55,7 @@ namespace VideoSharing.Server
             });
             builder.Services.AddScoped<IYoutubeDataService, YoutubeDataService>();
             builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
-            builder.Services.AddAutoMapper(typeof(Program));
+            builder.Services.AddAutoMapper(cfg => {}, typeof(Program).Assembly);
 
             builder.Services.AddHttpClient<IGeminiVisionService, GeminiVisionService>();
             builder.Services.AddScoped<AiAnalysisProcessorService>();

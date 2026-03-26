@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using FighterManager.Server.Domain.FighterService;
 using FighterManager.Server.Helpers;
 using Serilog;
@@ -33,7 +33,7 @@ namespace FighterManager.Server
             // Add services to the container.
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<FighterRegistrationService>();
-            builder.Services.AddAutoMapper(typeof(Program));
+            builder.Services.AddAutoMapper(cfg => {}, typeof(Program).Assembly);
             builder.Services.AddScoped<IIdentityResponseEnhancer, IdentityResponseEnhancer>();
             builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
             builder.Services.AddScoped<IAttendanceService, AttendanceService>();
