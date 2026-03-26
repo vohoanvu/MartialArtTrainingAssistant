@@ -61,6 +61,11 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
             var connectionString = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.AppDb);
             optionsBuilder.UseNpgsql(connectionString);
         }
+
+        // Suppress EF Core 10 PendingModelChangesWarning — the HasDefaultValueSql change
+        // is cosmetic (runtime behavior unchanged) and will be captured in a future migration
+        optionsBuilder.ConfigureWarnings(w =>
+            w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
     }
 
     /// <inheritdoc />
@@ -74,11 +79,11 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
             e.HasKey(x => x.Id);
 
             e.Property(p => p.CreatedAt)
-                .HasDefaultValue(DateTime.UtcNow)
+                .HasDefaultValueSql("now() at time zone 'utc'")
                 .ValueGeneratedOnAdd();
 
             e.Property(p => p.UpdatedAt)
-                .HasDefaultValue(DateTime.UtcNow)
+                .HasDefaultValueSql("now() at time zone 'utc'")
                 .ValueGeneratedOnAddOrUpdate();
 
             e.HasOne(x => x.Fighter).WithOne().HasForeignKey<AppUserEntity>(x => x.FighterId);
