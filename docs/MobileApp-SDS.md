@@ -1,4 +1,4 @@
-# Software Design Specification (SDS)
+# Software Design Specification (SDS) (OUTDATED! IGNORED!)
 
 ## Martial Art Training Assistant Mobile App
 

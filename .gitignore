@@ -438,3 +438,6 @@ Runtime/Logs/**/*
 /MatchMaker.Server/appsettings.Development.json
 /VideoSharing.Server/appsettings.Development.json
 .github/instructions/codejitsu-repo.instructions.md
+
+# Claude Code local MCP config (contains tokens)
+.claude/.mcp.json

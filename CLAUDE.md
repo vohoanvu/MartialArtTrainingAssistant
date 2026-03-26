@@ -106,3 +106,46 @@ If you need to run steps individually:
 **Secrets** are stored in GCP Secret Manager and pulled to the VM's `.env` file via `refresh-env-secret-manager.sh`. The GCS service account key is also fetched to `./secrets/gcs-key.json`.
 
 See `manual-vm-deployment-steps.md` for full troubleshooting guide (container crashes, connection errors, Nginx config issues, auth failures).
+
+## Agentic Development Team
+
+This project uses a multi-agent development workflow. Five specialized agents are defined in `.claude/agents/`:
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `project-manager` | opus | Task decomposition, coordination, code review, quality gates |
+| `frontend-developer` | sonnet | React/TypeScript UI, components, state, i18n, styling |
+| `backend-developer` | sonnet | .NET 8 APIs, services, repositories, EF Core migrations |
+| `devops-engineer` | sonnet | Docker, GCP, Nginx, CI/CD, deployment |
+| `qa-tester` | sonnet | Manual/automated testing, verification, bug hunting |
+
+### How It Works
+
+1. **Default behavior**: When you assign a task, I act as the `project-manager` — analyzing scope, breaking it down, and delegating to the right agents.
+2. **Parallel execution**: Independent subtasks are assigned to agents concurrently for speed.
+3. **Quality gates**: After implementation, `qa-tester` verifies and `project-manager` reviews.
+4. **Memory persists**: Project context and decisions carry across sessions via the memory system.
+
+### Invoking Specific Agents
+
+- Natural language: "Use the backend-developer agent to add a new endpoint"
+- Direct: `@backend-developer add a GET endpoint for training session stats`
+- Or let the project-manager decide which agent(s) to use
+
+### MCP Servers
+
+Configured in `.claude/.mcp.json`:
+- **GitHub** — PR workflows, issue management, code review
+- **Supabase** — Database management and queries
+- **PostgreSQL** (@bytebase/dbhub) — Direct database inspection
+
+To authenticate MCP servers, use `/mcp` in a Claude Code session.
+
+### Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `.claude/agents/*.md` | Agent role definitions with tools and instructions |
+| `.claude/.mcp.json` | MCP server configurations |
+| `.claude/settings.json` | Project-wide permissions and environment |
+| `.claude/settings.local.json` | Local overrides (gitignored) |
