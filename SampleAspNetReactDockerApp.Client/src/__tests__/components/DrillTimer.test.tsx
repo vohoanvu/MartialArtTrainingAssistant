@@ -6,13 +6,6 @@ import DrillTimer from '@/components/ClassSessionManagement/DrillTimer';
 const mockAudioPlay = vi.fn().mockResolvedValue(undefined);
 const mockAudioPause = vi.fn();
 const mockAudioLoad = vi.fn();
-const mockAudio = {
-  play: mockAudioPlay,
-  pause: mockAudioPause,
-  load: mockAudioLoad,
-  currentTime: 0,
-};
-
 vi.stubGlobal('Audio', class { play = mockAudioPlay; pause = mockAudioPause; load = mockAudioLoad; currentTime = 0; });
 
 beforeEach(() => {

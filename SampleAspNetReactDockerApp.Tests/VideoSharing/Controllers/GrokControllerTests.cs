@@ -6,12 +6,13 @@ using SampleAspNetReactDockerApp.Tests.Helpers;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using System.Security.Claims;
+using System.Text.Json;
 using VideoSharing.Server.Controllers;
-using VideoSharing.Server.Domain.AIServices;
+using VideoSharing.Server.Domain.YoutubeSharingService;
 
 namespace SampleAspNetReactDockerApp.Tests.VideoSharing.Controllers;
 
-public class GrokControllerTests
+public class YoutubeSearchControllerTests
 {
     // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -23,15 +24,15 @@ public class GrokControllerTests
         return services.BuildServiceProvider();
     }
 
-    private static GrokController CreateController(
+    private static YoutubeSearchController CreateController(
         MyDatabaseContext db,
-        Mock<IXAIService>? searchMock = null,
+        Mock<IYoutubeDataService>? youtubeMock = null,
         string? authUserId = "test-user-id")
     {
-        searchMock ??= new Mock<IXAIService>();
+        youtubeMock ??= new Mock<IYoutubeDataService>();
         var serviceProvider = BuildServiceProvider(db);
 
-        var controller = new GrokController(searchMock.Object, serviceProvider);
+        var controller = new YoutubeSearchController(youtubeMock.Object, serviceProvider);
 
         var claims = new List<Claim>();
         if (authUserId != null)
@@ -51,7 +52,7 @@ public class GrokControllerTests
     // ── SearchVideos ───────────────────────────────────────────────────────
 
     [Fact]
-    public async Task Should_ReturnOkWithMarkdown_When_SearchSucceeds()
+    public async Task Should_ReturnOkWithYoutubeVideos_When_SearchSucceeds()
     {
         // Arrange
         var db = InMemoryDbContextFactory.Create();
@@ -61,21 +62,36 @@ public class GrokControllerTests
         db.TrainingSessions.Add(session);
         db.SaveChanges();
 
-        var expectedMarkdown = "## Armbar Videos\n- [Tutorial](https://youtube.com/example)";
+        var expectedResults = new List<YoutubeSearchResult>
+        {
+            new YoutubeSearchResult
+            {
+                VideoId = "abc123",
+                Title = "Armbar Tutorial",
+                Description = "Learn the armbar",
+                EmbedLink = "https://www.youtube.com/embed/abc123",
+                PublishedAt = "2024-01-01T00:00:00+00:00",
+                ThumbnailUrl = "https://img.youtube.com/vi/abc123/mqdefault.jpg"
+            }
+        };
 
-        var searchMock = new Mock<IXAIService>();
-        searchMock.Setup(s => s.SearchVideosAsync("armbar", It.IsAny<TrainingSession>()))
-                  .ReturnsAsync(expectedMarkdown);
+        var youtubeMock = new Mock<IYoutubeDataService>();
+        youtubeMock.Setup(s => s.SearchVideosAsync(It.IsAny<string>(), It.IsAny<int>()))
+                   .ReturnsAsync(expectedResults);
 
-        var controller = CreateController(db, searchMock);
-        var request = new GrokLiveSearchRequest { TechniqueName = "armbar", TrainingSessionId = 1 };
+        var controller = CreateController(db, youtubeMock);
+        var request = new VideoSearchRequest { TechniqueName = "armbar", TrainingSessionId = 1 };
 
         // Act
         var result = await controller.SearchVideos(request);
 
         // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
-        Assert.Equal(expectedMarkdown, ok.Value);
+        var json = Assert.IsType<string>(ok.Value);
+        using var doc = JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.TryGetProperty("youtube_videos", out var videos));
+        Assert.Equal(1, videos.GetArrayLength());
+        Assert.Equal("abc123", videos[0].GetProperty("video_id").GetString());
     }
 
     [Fact]
@@ -84,7 +100,7 @@ public class GrokControllerTests
         // Arrange
         var db = InMemoryDbContextFactory.Create();
         var controller = CreateController(db);
-        var request = new GrokLiveSearchRequest { TechniqueName = "guard pass", TrainingSessionId = 999 };
+        var request = new VideoSearchRequest { TechniqueName = "guard pass", TrainingSessionId = 999 };
 
         // Act
         var result = await controller.SearchVideos(request);
@@ -104,12 +120,12 @@ public class GrokControllerTests
         db.TrainingSessions.Add(session);
         db.SaveChanges();
 
-        var searchMock = new Mock<IXAIService>();
-        searchMock.Setup(s => s.SearchVideosAsync(It.IsAny<string>(), It.IsAny<TrainingSession>()))
-                  .ThrowsAsync(new InvalidOperationException("API key is not configured."));
+        var youtubeMock = new Mock<IYoutubeDataService>();
+        youtubeMock.Setup(s => s.SearchVideosAsync(It.IsAny<string>(), It.IsAny<int>()))
+                   .ThrowsAsync(new InvalidOperationException("YouTube API key is not configured."));
 
-        var controller = CreateController(db, searchMock);
-        var request = new GrokLiveSearchRequest { TechniqueName = "triangle", TrainingSessionId = 1 };
+        var controller = CreateController(db, youtubeMock);
+        var request = new VideoSearchRequest { TechniqueName = "triangle", TrainingSessionId = 1 };
 
         // Act
         var result = await controller.SearchVideos(request);

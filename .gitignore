@@ -441,4 +441,4 @@ Runtime/Logs/**/*
 /MatchMaker.Server/appsettings.Development.json
 /VideoSharing.Server/appsettings.Development.json
 .github/instructions/codejitsu-repo.instructions.md
-
+/secrets/

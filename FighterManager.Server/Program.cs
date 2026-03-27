@@ -211,13 +211,20 @@ namespace FighterManager.Server
             forwardedHeadersOptions.KnownNetworks.Clear();
             app.UseForwardedHeaders(forwardedHeadersOptions);
 
-            await using (var serviceScope = app.Services.CreateAsyncScope())
+            try
             {
-                await DbHelper.EnsureDbIsCreatedAndSeededAsync(
-                    serviceScope,
-                    app.Environment.IsDevelopment() &&
-                    Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
-                );
+                await using (var serviceScope = app.Services.CreateAsyncScope())
+                {
+                    await DbHelper.EnsureDbIsCreatedAndSeededAsync(
+                        serviceScope,
+                        app.Environment.IsDevelopment() &&
+                        Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.DeleteDbIfExistsOnStartup) == "true"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Database migration/seeding failed on startup — continuing without it (DB may already be migrated)");
             }
 
             app.UseDefaultFiles();

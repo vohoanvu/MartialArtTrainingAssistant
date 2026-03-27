@@ -4,16 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Martial Art Training Assistant ("CodeJitsu") — a fullstack web app with .NET 8.0 microservices, React/Vite frontend, PostgreSQL, and Docker orchestration.
+Martial Art Training Assistant ("CodeJitsu") — a fullstack web app with .NET 10 microservices, React 19/Vite 7 frontend, Supabase PostgreSQL, and Docker orchestration.
 
 ## Build & Run Commands
 
 ```bash
-# Full stack via Docker (recommended)
+# Full stack via Docker — mimics production VM environment (recommended)
 docker compose --env-file ./.env up -d --build
 
-# Hybrid: start only DB, run services locally
-docker compose --env-file ./.env up -d app-db
+# This starts all 4 containers: fighter-manager, video-sharing, match-maker, app-client (Nginx)
+# Access the app at http://localhost:3000
+# Nginx proxies: /api → fighter-manager, /vid/api → video-sharing, /pair/api → match-maker
+
+# Alternative: run .NET services and React client locally (without Docker)
 cd FighterManager.Server && dotnet run --launch-profile http   # Port 5136
 cd VideoSharing.Server && dotnet run --launch-profile http     # Port 5137
 cd MatchMaker.Server && dotnet run --launch-profile http       # Port 5138
@@ -22,10 +25,14 @@ cd SampleAspNetReactDockerApp.Client && npm run dev            # Port 5173
 # Build all backend projects
 dotnet build
 
-# NOTE: Do NOT run tests (dotnet test / npm test) — the test suite is outdated and broken.
+# Run tests
+dotnet test                                                    # Backend: 141 tests (135 pass, 6 skipped)
+cd SampleAspNetReactDockerApp.Client && npx vitest run         # Frontend: 99 tests
 ```
 
-## Database Migrations
+## Database
+
+**No local PostgreSQL** — both local development and production connect to **Supabase** (hosted PostgreSQL). The connection string in `.env` (`ASPNETCORE_APP_DB`) must use the Supabase **session pooler** (port 5432) with `No Reset On Close=true`. The transaction pooler (port 6543) times out from Docker networking.
 
 Migrations live in `SharedEntities` but require a startup project:
 
@@ -36,51 +43,57 @@ dotnet ef database update --project SharedEntities --startup-project FighterMana
 
 ## Architecture
 
-**Microservices** sharing a single PostgreSQL database via a common EF Core library:
+**Microservices** sharing a single Supabase PostgreSQL database via a common EF Core library:
 
 - **FighterManager.Server** (port 5136/8081) — User profiles, fighters, training sessions, attendance, curriculum. Main service with Controllers → Domain services → Repository pattern.
-- **VideoSharing.Server** (port 5137/8082) — YouTube video sharing, Google Cloud Storage uploads, Gemini Vision AI analysis. Uses Hangfire for background jobs.
+- **VideoSharing.Server** (port 5137/8082) — YouTube video sharing & search, Google Cloud Storage uploads, Gemini Vision AI analysis. Uses Hangfire for background jobs.
 - **MatchMaker.Server** (port 5138/8083) — Fighter pairing/matching logic.
 - **SharedEntities** (class library) — `DatabaseContext`, domain models, EF Core migrations. All services reference this. Auth (JWT + ASP.NET Identity) is configured here.
-- **SampleAspNetReactDockerApp.Client** — React 18 + Vite + TypeScript frontend served via Nginx in Docker.
+- **SampleAspNetReactDockerApp.Client** — React 19 + Vite 7 + TypeScript frontend served via Nginx in Docker.
 
-**Nginx reverse proxy** routes: `/` → React client, `/api/` → backend microservices.
+**Nginx reverse proxy** routes: `/` → React client, `/api/` → fighter-manager, `/vid/api/` → video-sharing, `/pair/api/` → match-maker.
 
 ## Backend Patterns
 
-- .NET 8.0 targeting `net8.0`
+- .NET 10.0 targeting `net10.0`
 - Controllers → Domain services → Repositories (GenericRepository base in `FighterManager.Server/Helpers/`)
-- DTOs in `Models/` folders for API contracts, mapped via AutoMapper to SharedEntities domain models
+- DTOs in `Models/` folders for API contracts, mapped via AutoMapper 16 to SharedEntities domain models
 - Serilog for structured logging
-- Swagger/Swashbuckle for API docs (enabled via config)
+- Swagger/Swashbuckle v10 for API docs (enabled via config)
 - API versioning via `Asp.Versioning`
-- SignalR for real-time notifications
-- Testing: xUnit + Moq + EF Core InMemory provider (currently outdated/broken — do not run)
+- SignalR 10 for real-time notifications
+- YouTube Data API v3 for video search (replaced Grok live search)
+- Testing: xUnit + Moq + EF Core InMemory provider
 
 ## Frontend Patterns
 
-- React 18 + TypeScript + Vite
+- React 19 + TypeScript + Vite 7
 - **UI**: Shadcn (Radix UI) + Tailwind CSS + Lucide React icons
-- **State**: Zustand
+- **State**: Zustand 5
 - **Routing**: React Router DOM v6
 - **i18n**: i18next — all user-facing strings must use translation keys
 - **Validation**: Zod
-- **Real-time**: @microsoft/signalr
-- **Testing**: Jest + React Testing Library (currently outdated/broken — do not run)
+- **Real-time**: @microsoft/signalr 10
+- **Testing**: Vitest + React Testing Library + MSW (Mock Service Worker)
 
 ## Environment Configuration
 
 Copy `.env.example` to `.env`. Key variables: database connection string (`ASPNETCORE_APP_DB`), service ports, YouTube/GCP API keys, JWT settings, Gemini Vision config. Never commit secrets or `gcp-key.json`.
 
+The GCS service account key must be placed at `./secrets/gcs-key.json` for the video-sharing container volume mount.
+
 ## Docker Services
+
+There is **no local PostgreSQL container** — all services connect directly to Supabase.
 
 | Service | Container Port | Host Port |
 |---------|---------------|-----------|
-| app-db (PostgreSQL) | 5432 | 5430 |
 | fighter-manager | 8081 | 8081 |
 | video-sharing | 8082 | 8082 |
 | match-maker | 8083 | 8083 |
 | app-client (Nginx) | 80 | 3000 |
+
+The `app-client` container uses `default.local.conf` (HTTP-only, no SSL) for local testing. Production uses `default.conf` with Let's Encrypt SSL.
 
 ## Deployment
 
@@ -115,7 +128,7 @@ This project uses a multi-agent development workflow. Five specialized agents ar
 |-------|-------|------|
 | `project-manager` | opus | Task decomposition, coordination, code review, quality gates |
 | `frontend-developer` | sonnet | React/TypeScript UI, components, state, i18n, styling |
-| `backend-developer` | sonnet | .NET 8 APIs, services, repositories, EF Core migrations |
+| `backend-developer` | sonnet | .NET 10 APIs, services, repositories, EF Core migrations |
 | `devops-engineer` | sonnet | Docker, GCP, Nginx, CI/CD, deployment |
 | `qa-tester` | sonnet | Manual/automated testing, verification, bug hunting |
 

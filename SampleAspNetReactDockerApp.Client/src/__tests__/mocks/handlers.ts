@@ -282,8 +282,19 @@ export const handlers = [
     });
   }),
 
-  // xAI Grok: POST technique search
-  http.post('/vid/api/grok/search', () => {
-    return HttpResponse.text('Guard passing involves controlling the hips and breaking posture...');
+  // YouTube: POST technique search
+  http.post('/vid/api/youtube/search', () => {
+    return HttpResponse.text(JSON.stringify({
+      youtube_videos: [
+        {
+          video_id: 'abc123',
+          title: 'Guard Passing Tutorial',
+          description: 'Learn guard passing techniques',
+          embed_link: 'https://www.youtube.com/embed/abc123',
+          published_at: '2024-01-01T00:00:00+00:00',
+          thumbnail_url: 'https://i.ytimg.com/vi/abc123/mqdefault.jpg',
+        },
+      ],
+    }));
   }),
 ];

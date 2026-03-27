@@ -15,7 +15,7 @@ import {
   getClassCurriculum,
   joinWailList,
   takeWalkInAttendance,
-  xAIGrokSearch,
+  youtubeSearch,
   getVideoFeedback,
 } from '@/services/api';
 
@@ -248,9 +248,9 @@ describe('takeWalkInAttendance', () => {
   });
 });
 
-describe('xAIGrokSearch', () => {
+describe('youtubeSearch', () => {
   it('should return a text response', async () => {
-    const result = await xAIGrokSearch({
+    const result = await youtubeSearch({
       techniqueName: 'guard pass',
       trainingSessionId: 1,
       jwtToken: 'token',
