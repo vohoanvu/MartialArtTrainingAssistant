@@ -1,4 +1,4 @@
-﻿services:
+services:
   fighter-manager:
     image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:latest
     ports:
@@ -19,6 +19,15 @@
       - ./secrets/gcs-key.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro
     networks:
       - appnet
+  match-maker:
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/match-maker:latest
+    ports:
+      - "7082:7082"
+    env_file: .env
+    environment:
+      - ASPNETCORE_APP_DB=${SUPABASE_APP_DB}
+    networks:
+      - appnet
   app-client:
     image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/app-client:latest
     ports:
@@ -33,6 +42,7 @@
     depends_on:
       - fighter-manager
       - video-analysis
+      - match-maker
     networks:
       - appnet
 networks:

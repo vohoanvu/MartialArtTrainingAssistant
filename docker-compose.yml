@@ -1,4 +1,4 @@
-﻿services:
+services:
   # Backend of the application (ASP.NET Core)
   fighter-manager:
     build:
