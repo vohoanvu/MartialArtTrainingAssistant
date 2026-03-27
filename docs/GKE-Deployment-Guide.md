@@ -1,8 +1,8 @@
-# Google Kubernetes Engine (GKE) Deployment Guide (OUTDATED! IGNORED!)
+﻿# Google Kubernetes Engine (GKE) Deployment Guide (OUTDATED! IGNORED!)
 
 ## Overview
 
-This guide describes the process to deploy the Martial Art Training Assistant application to a Google Kubernetes Engine (GKE) cluster. The application consists of four services: `fighter-manager`, `video-sharing`, `match-maker`, and `frontend`, each running in a separate pod. The database is hosted externally on Supabase (PostgreSQL), and the deployment uses Google Container Registry (GCR) for image storage and Kubernetes for orchestration.
+This guide describes the process to deploy the Martial Art Training Assistant application to a Google Kubernetes Engine (GKE) cluster. The application consists of four services: `fighter-manager`, `video-analysis`, `match-maker`, and `frontend`, each running in a separate pod. The database is hosted externally on Supabase (PostgreSQL), and the deployment uses Google Container Registry (GCR) for image storage and Kubernetes for orchestration.
 
 ## Prerequisites
 
@@ -64,7 +64,7 @@ Before starting, ensure you have the following:
    - In Google Cloud Console, navigate to IAM & Admin > Service Accounts.
    - Create or select a service account with permissions for Google Cloud Storage and Vertex AI.
    - Generate a JSON key and save it securely (e.g., `./secrets/gcp-key.json`).
-   - **Do not commit this file to Git**. Ensure it’s in `.gitignore`.
+   - **Do not commit this file to Git**. Ensure itâ€™s in `.gitignore`.
 
 2. **Create Kubernetes Secrets**:
    - Update `k8s/prod/secrets.yaml` with base64-encoded values for sensitive data (e.g., `ASPNETCORE_APP_DB`, `JWT_KEY`, etc.).
@@ -86,7 +86,7 @@ Before starting, ensure you have the following:
        JWT_KEY: <base64-encoded-jwt-key>
        # Add other secrets as needed
      ```
-   - Mount the secret in `video-sharing-deployment.yaml`:
+   - Mount the secret in `video-analysis-deployment.yaml`:
      ```yaml
      volumes:
        - name: gcp-key
@@ -153,10 +153,10 @@ Before starting, ensure you have the following:
    ```
    - Access the application at `http://<ingress-ip>`.
    - Routes:
-     - `/` → Frontend
-     - `/swagger` → FighterManager API
-     - `/vid/swagger` → VideoSharing API
-     - `/pair/swagger` → MatchMaker API
+     - `/` â†’ Frontend
+     - `/swagger` â†’ FighterManager API
+     - `/vid/swagger` â†’ VideoAnalysis API
+     - `/pair/swagger` â†’ MatchMaker API
 
 4. **Monitor Logs** (if needed):
    ```bash
@@ -204,7 +204,7 @@ Before starting, ensure you have the following:
   - Ensure the Ingress controller is running: `kubectl get pods -n ingress-nginx`.
 - **Database Connection Issues**:
   - Verify the Supabase connection string in `secrets.yaml`.
-  - Ensure Supabase allows connections from the GKE cluster’s IP range.
+  - Ensure Supabase allows connections from the GKE clusterâ€™s IP range.
 - **Image Pull Errors**:
   - Confirm images exist in GCR: `gcloud container images list-tags us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo`.
   - Check GKE service account permissions for GCR.
@@ -224,6 +224,6 @@ gcloud container clusters delete codejitsu-cluster --zone us-central1-a
 ## Notes
 
 - **Security**: Ensure `secrets.yaml` is not committed to Git. Use a secret management tool (e.g., Google Secret Manager) for production.
-- **Cost**: Monitor GKE and GCR usage to avoid unexpected charges. Use Google Cloud’s cost calculator.
+- **Cost**: Monitor GKE and GCR usage to avoid unexpected charges. Use Google Cloudâ€™s cost calculator.
 - **Scaling**: For high traffic, consider horizontal pod autoscaling or increasing node count.
 - **Mobile Application**: The deployment supports backend APIs for both web and mobile (React Native Expo) applications, with the same Ingress routing.

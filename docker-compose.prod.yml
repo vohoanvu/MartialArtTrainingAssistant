@@ -8,8 +8,8 @@
       - ASPNETCORE_APP_DB=${SUPABASE_APP_DB}
     networks:
       - appnet
-  video-sharing:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-sharing:latest
+  video-analysis:
+    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-analysis:latest
     ports:
       - "7081:7081"
     env_file: .env
@@ -26,13 +26,13 @@
       - "443:443"
     env_file: .env
     volumes:
-      - ./SampleAspNetReactDockerApp.Client/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./CodeJitsu.Client/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./CodeJitsu.Client/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./letsencrypt/config:/etc/letsencrypt
       - ./letsencrypt/webroot:/var/www/certbot
     depends_on:
       - fighter-manager
-      - video-sharing
+      - video-analysis
     networks:
       - appnet
 networks:

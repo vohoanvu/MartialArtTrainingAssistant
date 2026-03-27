@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Configuration
 GCR_HOST="us-central1-docker.pkg.dev"
@@ -10,9 +10,9 @@ REPO_DIR="."
 TAG=$(git rev-parse --short HEAD) # Use short SHA as tag
 SERVICES=(
   "fighter-manager:FighterManager.Server"
-  "video-sharing:VideoSharing.Server"
+  "video-analysis:VideoAnalysis.Server"
   "match-maker:MatchMaker.Server"
-  "frontend:SampleAspNetReactDockerApp.Client"
+  "frontend:CodeJitsu.Client"
 )
 K8S_DIR="k8s/prod"
 GENERATED_DIR="k8s/prod/generated"
@@ -97,7 +97,7 @@ log "${YELLOW}Applying Kubernetes manifests...${NC}"
 kubectl apply -f "$GENERATED_DIR/secrets.yaml" --namespace="$NAMESPACE" || handle_error "Failed to apply secrets.yaml"
 kubectl apply -f "$GENERATED_DIR/db-migration-job.yaml" --namespace="$NAMESPACE" || handle_error "Failed to apply db-migration-job.yaml"
 kubectl apply -f "$GENERATED_DIR/fighter-manager-deployment.yaml" --namespace="$NAMESPACE" || handle_error "Failed to apply fighter-manager-deployment.yaml"
-kubectl apply -f "$GENERATED_DIR/video-sharing-deployment.yaml" --namespace="$NAMESPACE" || handle_error "Failed to apply video-sharing-deployment.yaml"
+kubectl apply -f "$GENERATED_DIR/video-analysis-deployment.yaml" --namespace="$NAMESPACE" || handle_error "Failed to apply video-analysis-deployment.yaml"
 kubectl apply -f "$GENERATED_DIR/match-maker-deployment.yaml" --namespace="$NAMESPACE" || handle_error "Failed to apply match-maker-deployment.yaml"
 kubectl apply -f "$GENERATED_DIR/frontend-deployment.yaml" --namespace="$NAMESPACE" || handle_error "Failed to apply frontend-deployment.yaml"
 kubectl apply -f "$GENERATED_DIR/ingress.yaml" --namespace="$NAMESPACE" || handle_error "Failed to apply ingress.yaml"
@@ -112,7 +112,7 @@ kubectl get ingress --namespace="$NAMESPACE"
 # Wait for pods to be ready
 log "${YELLOW}Waiting for pods to be ready...${NC}"
 kubectl wait --for=condition=ready pod -l app=fighter-manager --namespace="$NAMESPACE" --timeout=300s || handle_error "Fighter-manager pods not ready"
-kubectl wait --for=condition=ready pod -l app=video-sharing --namespace="$NAMESPACE" --timeout=300s || handle_error "Video-sharing pods not ready"
+kubectl wait --for=condition=ready pod -l app=video-analysis --namespace="$NAMESPACE" --timeout=300s || handle_error "Video-sharing pods not ready"
 kubectl wait --for=condition=ready pod -l app=match-maker --namespace="$NAMESPACE" --timeout=300s || handle_error "Match-maker pods not ready"
 kubectl wait --for=condition=ready pod -l app=frontend --namespace="$NAMESPACE" --timeout=300s || handle_error "Frontend pods not ready"
 log "${GREEN}All pods are ready${NC}"

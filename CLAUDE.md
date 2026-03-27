@@ -1,38 +1,38 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-Martial Art Training Assistant ("CodeJitsu") — a fullstack web app with .NET 10 microservices, React 19/Vite 7 frontend, Supabase PostgreSQL, and Docker orchestration.
+Martial Art Training Assistant ("CodeJitsu") â€” a fullstack web app with .NET 10 microservices, React 19/Vite 7 frontend, Supabase PostgreSQL, and Docker orchestration.
 
 ## Build & Run Commands
 
 ```bash
-# Full stack via Docker — mimics production VM environment (recommended)
+# Full stack via Docker â€” mimics production VM environment (recommended)
 docker compose --env-file ./.env up -d --build
 
-# This starts all 4 containers: fighter-manager, video-sharing, match-maker, app-client (Nginx)
+# This starts all 4 containers: fighter-manager, video-analysis, match-maker, app-client (Nginx)
 # Access the app at http://localhost:3000
-# Nginx proxies: /api → fighter-manager, /vid/api → video-sharing, /pair/api → match-maker
+# Nginx proxies: /api â†’ fighter-manager, /vid/api â†’ video-analysis, /pair/api â†’ match-maker
 
 # Alternative: run .NET services and React client locally (without Docker)
 cd FighterManager.Server && dotnet run --launch-profile http   # Port 5136
-cd VideoSharing.Server && dotnet run --launch-profile http     # Port 5137
+cd VideoAnalysis.Server && dotnet run --launch-profile http     # Port 5137
 cd MatchMaker.Server && dotnet run --launch-profile http       # Port 5138
-cd SampleAspNetReactDockerApp.Client && npm run dev            # Port 5173
+cd CodeJitsu.Client && npm run dev            # Port 5173
 
 # Build all backend projects
 dotnet build
 
 # Run tests
 dotnet test                                                    # Backend: 141 tests (135 pass, 6 skipped)
-cd SampleAspNetReactDockerApp.Client && npx vitest run         # Frontend: 99 tests
+cd CodeJitsu.Client && npx vitest run         # Frontend: 99 tests
 ```
 
 ## Database
 
-**No local PostgreSQL** — both local development and production connect to **Supabase** (hosted PostgreSQL). The connection string in `.env` (`ASPNETCORE_APP_DB`) must use the Supabase **session pooler** (port 5432) with `No Reset On Close=true`. The transaction pooler (port 6543) times out from Docker networking.
+**No local PostgreSQL** â€” both local development and production connect to **Supabase** (hosted PostgreSQL). The connection string in `.env` (`ASPNETCORE_APP_DB`) must use the Supabase **session pooler** (port 5432) with `No Reset On Close=true`. The transaction pooler (port 6543) times out from Docker networking.
 
 Migrations live in `SharedEntities` but require a startup project:
 
@@ -45,18 +45,18 @@ dotnet ef database update --project SharedEntities --startup-project FighterMana
 
 **Microservices** sharing a single Supabase PostgreSQL database via a common EF Core library:
 
-- **FighterManager.Server** (port 5136/8081) — User profiles, fighters, training sessions, attendance, curriculum. Main service with Controllers → Domain services → Repository pattern.
-- **VideoSharing.Server** (port 5137/8082) — YouTube video sharing & search, Google Cloud Storage uploads, Gemini Vision AI analysis. Uses Hangfire for background jobs.
-- **MatchMaker.Server** (port 5138/8083) — Fighter pairing/matching logic.
-- **SharedEntities** (class library) — `DatabaseContext`, domain models, EF Core migrations. All services reference this. Auth (JWT + ASP.NET Identity) is configured here.
-- **SampleAspNetReactDockerApp.Client** — React 19 + Vite 7 + TypeScript frontend served via Nginx in Docker.
+- **FighterManager.Server** (port 5136/8081) â€” User profiles, fighters, training sessions, attendance, curriculum. Main service with Controllers â†’ Domain services â†’ Repository pattern.
+- **VideoAnalysis.Server** (port 5137/8082) â€” YouTube video sharing & search, Google Cloud Storage uploads, Gemini Vision AI analysis. Uses Hangfire for background jobs.
+- **MatchMaker.Server** (port 5138/8083) â€” Fighter pairing/matching logic.
+- **SharedEntities** (class library) â€” `DatabaseContext`, domain models, EF Core migrations. All services reference this. Auth (JWT + ASP.NET Identity) is configured here.
+- **CodeJitsu.Client** â€” React 19 + Vite 7 + TypeScript frontend served via Nginx in Docker.
 
-**Nginx reverse proxy** routes: `/` → React client, `/api/` → fighter-manager, `/vid/api/` → video-sharing, `/pair/api/` → match-maker.
+**Nginx reverse proxy** routes: `/` â†’ React client, `/api/` â†’ fighter-manager, `/vid/api/` â†’ video-analysis, `/pair/api/` â†’ match-maker.
 
 ## Backend Patterns
 
 - .NET 10.0 targeting `net10.0`
-- Controllers → Domain services → Repositories (GenericRepository base in `FighterManager.Server/Helpers/`)
+- Controllers â†’ Domain services â†’ Repositories (GenericRepository base in `FighterManager.Server/Helpers/`)
 - DTOs in `Models/` folders for API contracts, mapped via AutoMapper 16 to SharedEntities domain models
 - Serilog for structured logging
 - Swagger/Swashbuckle v10 for API docs (enabled via config)
@@ -71,7 +71,7 @@ dotnet ef database update --project SharedEntities --startup-project FighterMana
 - **UI**: Shadcn (Radix UI) + Tailwind CSS + Lucide React icons
 - **State**: Zustand 5
 - **Routing**: React Router DOM v6
-- **i18n**: i18next — all user-facing strings must use translation keys
+- **i18n**: i18next â€” all user-facing strings must use translation keys
 - **Validation**: Zod
 - **Real-time**: @microsoft/signalr 10
 - **Testing**: Vitest + React Testing Library + MSW (Mock Service Worker)
@@ -80,16 +80,16 @@ dotnet ef database update --project SharedEntities --startup-project FighterMana
 
 Copy `.env.example` to `.env`. Key variables: database connection string (`ASPNETCORE_APP_DB`), service ports, YouTube/GCP API keys, JWT settings, Gemini Vision config. Never commit secrets or `gcp-key.json`.
 
-The GCS service account key must be placed at `./secrets/gcs-key.json` for the video-sharing container volume mount.
+The GCS service account key must be placed at `./secrets/gcs-key.json` for the video-analysis container volume mount.
 
 ## Docker Services
 
-There is **no local PostgreSQL container** — all services connect directly to Supabase.
+There is **no local PostgreSQL container** â€” all services connect directly to Supabase.
 
 | Service | Container Port | Host Port |
 |---------|---------------|-----------|
 | fighter-manager | 8081 | 8081 |
-| video-sharing | 8082 | 8082 |
+| video-analysis | 8082 | 8082 |
 | match-maker | 8083 | 8083 |
 | app-client (Nginx) | 80 | 3000 |
 
@@ -99,7 +99,7 @@ The `app-client` container uses `default.local.conf` (HTTP-only, no SSL) for loc
 
 The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-c`, project `codejitsu`) with Nginx as reverse proxy and Let's Encrypt SSL.
 
-**CI/CD is partial** — GitHub Actions (`.github/workflows/deploy-to-vm.yml`) only builds Docker images and pushes to GCP Artifact Registry (`us-central1-docker.pkg.dev/codejitsu/codejitsu-repo`). Actual deployment requires manual SSH into the VM.
+**CI/CD is partial** â€” GitHub Actions (`.github/workflows/deploy-to-vm.yml`) only builds Docker images and pushes to GCP Artifact Registry (`us-central1-docker.pkg.dev/codejitsu/codejitsu-repo`). Actual deployment requires manual SSH into the VM.
 
 **Manual deploy workflow:**
 1. SSH: `gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=codejitsu`
@@ -134,7 +134,7 @@ This project uses a multi-agent development workflow. Five specialized agents ar
 
 ### How It Works
 
-1. **Default behavior**: When you assign a task, I act as the `project-manager` — analyzing scope, breaking it down, and delegating to the right agents.
+1. **Default behavior**: When you assign a task, I act as the `project-manager` â€” analyzing scope, breaking it down, and delegating to the right agents.
 2. **Parallel execution**: Independent subtasks are assigned to agents concurrently for speed.
 3. **Quality gates**: After implementation, `qa-tester` verifies and `project-manager` reviews.
 4. **Memory persists**: Project context and decisions carry across sessions via the memory system.
@@ -148,8 +148,8 @@ This project uses a multi-agent development workflow. Five specialized agents ar
 ### MCP Servers
 
 Configured in `.claude/.mcp.json`:
-- **GitHub** — PR workflows, issue management, code review
-- **Supabase** — Database management and queries
+- **GitHub** â€” PR workflows, issue management, code review
+- **Supabase** â€” Database management and queries
 
 To authenticate MCP servers, use `/mcp` in a Claude Code session.
 
@@ -161,3 +161,4 @@ To authenticate MCP servers, use `/mcp` in a Claude Code session.
 | `.claude/.mcp.json` | MCP server configurations |
 | `.claude/settings.json` | Project-wide permissions and environment |
 | `.claude/settings.local.json` | Local overrides (gitignored) |
+

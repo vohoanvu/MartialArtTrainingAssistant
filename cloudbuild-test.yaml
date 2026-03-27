@@ -1,4 +1,4 @@
-steps:
+﻿steps:
   - name: 'gcr.io/cloud-builders/git'
     args: ['clone', 'https://github.com/vohoanvu/MartialArtTrainingAssistant.git']
   - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
@@ -9,10 +9,10 @@ steps:
     args: ['dotnet', 'build', '--no-restore', 'FighterManager.Server/FighterManager.Server.csproj']
   - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
     dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'restore', 'VideoSharing.Server/VideoSharing.Server.csproj']
+    args: ['dotnet', 'restore', 'VideoAnalysis.Server/VideoAnalysis.Server.csproj']
   - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
     dir: 'MartialArtTrainingAssistant'
-    args: ['dotnet', 'build', '--no-restore', 'VideoSharing.Server/VideoSharing.Server.csproj']
+    args: ['dotnet', 'build', '--no-restore', 'VideoAnalysis.Server/VideoAnalysis.Server.csproj']
   # - name: 'mcr.microsoft.com/dotnet/sdk:8.0'
   #   dir: 'MartialArtTrainingAssistant'
   #   args: ['dotnet', 'restore', 'MatchMaker.Server/MatchMaker.Server.csproj']
@@ -20,17 +20,17 @@ steps:
   #   dir: 'MartialArtTrainingAssistant'
   #   args: ['dotnet', 'build', '--no-restore', 'MatchMaker.Server/MatchMaker.Server.csproj']
   - name: 'node:18'
-    dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
+    dir: 'MartialArtTrainingAssistant/CodeJitsu.Client'
     args: ['npm', 'install']
   - name: 'node:18'
-    dir: 'MartialArtTrainingAssistant/SampleAspNetReactDockerApp.Client'
+    dir: 'MartialArtTrainingAssistant/CodeJitsu.Client'
     args: ['npm', 'run', 'build']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/frontend:$SHORT_SHA', '-f', 'SampleAspNetReactDockerApp.Client/Dockerfile', 'SampleAspNetReactDockerApp.Client']
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/frontend:$SHORT_SHA', '-f', 'CodeJitsu.Client/Dockerfile', 'CodeJitsu.Client']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/fighter-manager:$SHORT_SHA', '-f', 'FighterManager.Server/Dockerfile', '.']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA', '-f', 'VideoSharing.Server/Dockerfile', '.']
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-analysis:$SHORT_SHA', '-f', 'VideoAnalysis.Server/Dockerfile', '.']
   # - name: 'gcr.io/cloud-builders/docker'
   #   args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA', '-f', 'MatchMaker.Server/Dockerfile', '.']
   - name: 'gcr.io/cloud-builders/docker'
@@ -38,7 +38,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/fighter-manager:$SHORT_SHA']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-sharing:$SHORT_SHA']
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/video-analysis:$SHORT_SHA']
   # - name: 'gcr.io/cloud-builders/docker'
   #   args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/codejitsu-repo/match-maker:$SHORT_SHA']
   - name: 'busybox'
@@ -123,7 +123,7 @@ steps:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'k8s/test/generated/video-sharing-deployment.yaml', '--namespace=test']
+    args: ['apply', '-f', 'k8s/test/generated/video-analysis-deployment.yaml', '--namespace=test']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=codejitsu-cluster'

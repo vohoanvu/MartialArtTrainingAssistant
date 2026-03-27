@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1
+﻿apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: codejitsu-ingress-api-rewrite
@@ -27,7 +27,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: video-sharing
+                name: video-analysis
                 port:
                   number: 7081
           # - path: /pair/api/(.*)
@@ -37,3 +37,4 @@ spec:
           #       name: match-maker
           #       port:
           #         number: 7082
+

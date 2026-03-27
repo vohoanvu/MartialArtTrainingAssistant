@@ -1,4 +1,4 @@
-# Software Requirements Specification
+﻿# Software Requirements Specification
 
 ## CodeJitsu: a BJJ Martial Art Training Assistant SaaS
 
@@ -52,7 +52,7 @@ The MVP focuses on delivering value to instructors through video analysis and cl
 
 ### 2.1 Product Perspective
 
-The Martial Art Training Assistant is a web-based SaaS platform integrating AI-driven video analysis, class management, and curriculum planning. It interfaces with Google Cloud Storage for video storage, Vertex AI Gemini Vision for analysis, and PostgreSQL for data persistence. The platform operates on a Freemium model, offering basic features for free and premium features for instructors at $15–20/month.
+The Martial Art Training Assistant is a web-based SaaS platform integrating AI-driven video analysis, class management, and curriculum planning. It interfaces with Google Cloud Storage for video storage, Vertex AI Gemini Vision for analysis, and PostgreSQL for data persistence. The platform operates on a Freemium model, offering basic features for free and premium features for instructors at $15â€“20/month.
 
 ### 2.2 Product Functions
 
@@ -60,7 +60,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 - **Class Session Management:** Instructors create and manage sessions; Instructor taking walk-in attendance, students check in; automatic student pairing based on size and skill.
 - **Video Upload and Analysis:** Students upload videos to GCS or share YouTube URLs for AI analysis, generating techniques, strengths, and improvement areas.
 - **Video Analysis Editor:** Instructors refine AI analysis, saving edits to PostgreSQL for feedback and model improvement.
-- **Single-Session Curriculum Recommendation:** Generates class drill plans based on aggregated student weaknesses, tailored to the class’s skill level.
+- **Single-Session Curriculum Recommendation:** Generates class drill plans based on aggregated student weaknesses, tailored to the classâ€™s skill level.
 - **Mobile access:** The system will support a mobile application for instructors and students to access features conveniently during in-class sessions, while the web application will primarily serve instructors for reviewing and editing feedback on student-uploaded videos.
 
 ### 2.3 User Classes and Characteristics
@@ -77,7 +77,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 ### 2.4 Operating Environment
 
 - **Frontend:** React with Vite, TailwindCSS, hosted via Nginx (Dockerized).
-- **Backend:** .NET 8.0 Web API (FighterManager.Server, VideoSharing.Server), Dockerized.
+- **Backend:** .NET 8.0 Web API (FighterManager.Server, VideoAnalysis.Server), Dockerized.
 - **Database:** PostgreSQL, Dockerized.
 - **Cloud Services:** Google Cloud Storage, Vertex AI Gemini Vision.
 - **Deployment:** Docker Compose for development and production.
@@ -85,7 +85,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 
 ### 2.5 Design and Implementation Constraints
 
-- **Budget:** Limited due to solo developer’s financial situation; prioritize low-cost cloud services.
+- **Budget:** Limited due to solo developerâ€™s financial situation; prioritize low-cost cloud services.
 - **Timeline:** MVP launch ASAP to generate cash flow.
 - **Scalability:** Must handle up to 100 concurrent users initially, with plans for growth.
 - **Security:** Encrypt video storage and comply with GDPR/CCPA for user data.
@@ -93,7 +93,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 ### 2.6 Assumptions and Dependencies
 
 - **Assumptions:**
-  - Instructors are willing to pay $15–20/month for premium features.
+  - Instructors are willing to pay $15â€“20/month for premium features.
   - Students will use free tier initially, with potential for premium upgrades.
 - **Dependencies:**
   - Google Cloud services (GCS, Vertex AI) for video storage and analysis.
@@ -136,9 +136,9 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 
 ### 3.5 Single-Session Curriculum Recommendation
 
-- **FR5.1:** System shall generate a curriculum for a single class session based on checked-in students’ data (age,height,weight,belk-rank,gender), or based on the analyzed weaknesses from uploaded videos, if such students have used video analysis feature.
+- **FR5.1:** System shall generate a curriculum for a single class session based on checked-in studentsâ€™ data (age,height,weight,belk-rank,gender), or based on the analyzed weaknesses from uploaded videos, if such students have used video analysis feature.
 - **FR5.2:** Curriculum shall include 5-7 drills addressing common weaknesses (e.g., takedown defense, guard retention for BJJ).
-- **FR5.3:** Drills shall be tailored to the class’s average skill level (based on belt ranks, and current class' target level).
+- **FR5.3:** Drills shall be tailored to the classâ€™s average skill level (based on belt ranks, and current class' target level).
 - **FR5.4:** Instructors shall view the today lesson's curriculum with drill names, descriptions, and related weakness categories, in an intuitive UI.
 - **FR5.5:** System shall allow instructors to provide feedback on the curriculum for future improvements.
 - **FR5.6:** For each recommend drill/exercise, the system should provide a Time tracker to manage each students pair sparring.
@@ -212,7 +212,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 
 ### 5.2 Premium Tier
 
-- **FRM2.1:** Instructors shall access unlimited video analysis, full editing, and curriculum recommendations for $15–20/month.
+- **FRM2.1:** Instructors shall access unlimited video analysis, full editing, and curriculum recommendations for $15â€“20/month.
 - **FRM2.2:** System shall offer one-time payments ($5 for 3 analyses or 1 curriculum suggestion).
 - **FRM2.3:** Payment processing shall integrate with Stripe for subscriptions and one-time payments.
 
@@ -223,7 +223,7 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 ### 6.1 Overview
 
 - **Frontend:** React with Vite, TailwindCSS, hosted via Nginx.
-- **Backend:** .NET 8.0 Web API (FighterManager.Server, VideoSharing.Server).
+- **Backend:** .NET 8.0 Web API (FighterManager.Server, VideoAnalysis.Server).
 - **Database:** PostgreSQL with JSONB for flexible analysis storage.
 - **Cloud Services:** Google Cloud Storage, Vertex AI Gemini Vision.
 - **Deployment:** Docker Compose, with separate containers for frontend, backend, and database.
@@ -310,10 +310,10 @@ The Martial Art Training Assistant is a web-based SaaS platform integrating AI-d
 
 ### 9.1 Pricing Context
 
-- **US BJJ Gyms:** $100–$200/month (average $160–$195).
-- **Europe BJJ Gyms:** £80–£120 (\~$100–$150 USD).
-- **Asia BJJ Gyms:** $70–$130 USD.
-- **Implication:** $15–$20/month for instructors and $5–$10/month for students are competitive.
+- **US BJJ Gyms:** $100â€“$200/month (average $160â€“$195).
+- **Europe BJJ Gyms:** Â£80â€“Â£120 (\~$100â€“$150 USD).
+- **Asia BJJ Gyms:** $70â€“$130 USD.
+- **Implication:** $15â€“$20/month for instructors and $5â€“$10/month for students are competitive.
 
 ### 9.2 Market Context
 
