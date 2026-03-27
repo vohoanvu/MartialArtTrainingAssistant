@@ -31,7 +31,7 @@ const DrillTimer: React.FC<DrillTimerProps> = ({
     const [isRunning, setIsRunning] = useState<boolean>(false);
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const soundTimeoutRef = useRef<NodeJS.Timeout | null>(null); // To stop playback after segment duration
+    const soundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // To stop playback after segment duration
 
     useEffect(() => {
         if (timerSoundSrc) {

@@ -1,7 +1,7 @@
 using System.Reflection;
 using Asp.Versioning;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using MatchMaker.Server.Helpers;
 using Serilog;
 using Serilog.Events;
@@ -28,7 +28,7 @@ namespace MatchMaker.Server
             Global.Configuration = builder.Configuration;
 
             // Add services to the container.
-            builder.Services.AddAutoMapper(typeof(Program));
+            builder.Services.AddAutoMapper(cfg => {}, typeof(Program).Assembly);
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

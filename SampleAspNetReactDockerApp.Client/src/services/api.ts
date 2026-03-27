@@ -806,7 +806,7 @@ export const takeWalkInAttendance = async (
 };
 
 
-export const xAIGrokSearch = async ({
+export const youtubeSearch = async ({
     techniqueName,
     trainingSessionId,
     jwtToken,
@@ -822,7 +822,7 @@ export const xAIGrokSearch = async ({
     currentTry?: number;
 }): Promise<string> => {
     try {
-        const response = await fetch('/vid/api/grok/search', {
+        const response = await fetch('/vid/api/youtube/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -838,7 +838,7 @@ export const xAIGrokSearch = async ({
             return await response.text();
         } else if (response.status === 401 && currentTry === 0) {
             await hydrate();
-            return await xAIGrokSearch({
+            return await youtubeSearch({
                 techniqueName,
                 trainingSessionId,
                 jwtToken,
@@ -848,10 +848,10 @@ export const xAIGrokSearch = async ({
             });
         } else {
             const errorText = await response.text();
-            throw new Error(`Grok search failed: ${errorText}`);
+            throw new Error(`YouTube search failed: ${errorText}`);
         }
     } catch (error) {
-        console.error("Error in xAIGrokSearch:", error);
+        console.error("Error in youtubeSearch:", error);
         throw error;
     }
 };

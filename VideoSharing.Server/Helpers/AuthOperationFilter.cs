@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 
@@ -23,14 +23,7 @@ namespace VideoSharing.Server.Helpers
                 {
                     operation.Security.Add(new OpenApiSecurityRequirement
                     {
-                        [new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            },
-                        }] = Array.Empty<string>()
+                        [new OpenApiSecuritySchemeReference("Bearer", ctx.Document)] = new List<string>()
                     });
                 }
             }

@@ -1,7 +1,7 @@
 import { CurriculumDto } from '@/types/global';
 import DrillTimer from './DrillTimer';
 import { useState } from 'react';
-import { xAIGrokSearch } from '@/services/api';
+import { youtubeSearch } from '@/services/api';
 import LiveSearchResults from './LiveSearchResults';
 
 interface CurriculumSectionProps {
@@ -26,7 +26,7 @@ const CurriculumSection = ({ curriculum, trainingSessionId, jwtToken, refreshTok
     const handleSearchVideos = async (id: string, techniqueName: string) => {
         setLoading((prev) => ({ ...prev, [id]: true }));
         try {
-            const response = await xAIGrokSearch({ techniqueName, trainingSessionId, jwtToken, refreshToken, hydrate });
+            const response = await youtubeSearch({ techniqueName, trainingSessionId, jwtToken, refreshToken, hydrate });
             setVideoResults((prev) => ({ ...prev, [id]: response }));
         } catch (error) {
             console.error('Search failed:', error);
@@ -126,12 +126,12 @@ const CurriculumSection = ({ curriculum, trainingSessionId, jwtToken, refreshTok
                                     onClick={() => handleSearchVideos(`tech-${index}`, tech.name)}
                                     disabled={loading[`tech-${index}`]}
                                 >
-                                    {loading[`tech-${index}`] ? 'Searching...' : 'Search Videos'}
+                                    {loading[`tech-${index}`] ? 'Searching YouTube...' : 'Search YouTube'}
                                 </button>
                                 {loading[`tech-${index}`] && (
                                     <div className="mt-2 flex items-center space-x-2">
                                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                                        <p className="text-blue-500">Searching the web for relevant videos and resources...</p>
+                                        <p className="text-blue-500">Searching YouTube for relevant videos...</p>
                                     </div>
                                 )}
                             </div>
