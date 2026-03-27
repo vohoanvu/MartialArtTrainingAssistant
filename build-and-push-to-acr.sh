@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Script to build Docker images locally and push them to Azure Container Registry (ACR)
 # for the MartialArtTrainingAssistant project.
@@ -10,9 +10,9 @@ TAG="2ec73e4ffe87bf6f7577d700709fa6d0f12b83b6"
 REPO_DIR="." # Replace with your repository path
 SERVICES=(
   "fightermanager:FighterManager.Server"
-  "videosharing:VideoSharing.Server"
+  "videoanalysis:VideoAnalysis.Server"
   "matchmaker:MatchMaker.Server"
-  "client:SampleAspNetReactDockerApp.Client"
+  "client:CodeJitsu.Client"
 )
 AZURE_RESOURCE_GROUP="vu-test-resource-group" # Replace with your resource group
 AZURE_APP_SERVICE="mycodejitsu"

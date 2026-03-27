@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <SpaRoot>..\SampleAspNetReactDockerApp.Client</SpaRoot>
+    <SpaRoot>..\CodeJitsu.Client</SpaRoot>
     <!--<SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>-->
     <SpaProxyServerUrl>https://localhost:5173</SpaProxyServerUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\sampleaspnetreactdockerapp.client\SampleAspNetReactDockerApp.Client.esproj">
+    <ProjectReference Include="..\CodeJitsu.Client\CodeJitsu.Client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\SharedEntities\SharedEntities.csproj" />
@@ -50,3 +50,4 @@
   </ItemGroup>
 
 </Project>
+

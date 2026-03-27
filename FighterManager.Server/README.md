@@ -1,6 +1,6 @@
-﻿# SampleAspNetReactDockerApp.Server
+﻿# CodeJitsu.Server
 
-This is the server side of the SampleAspNetReactDockerApp. It is a .NET 8.0 Web API project.
+This is the server side of the CodeJitsu. It is a .NET 8.0 Web API project.
 
 ## Table of Contents
 

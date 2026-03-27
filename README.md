@@ -1,4 +1,4 @@
-# CodeJitsu: AI-Powered Martial Art Training Assistant
+﻿# CodeJitsu: AI-Powered Martial Art Training Assistant
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ This project is a sample .Net 8.0 web API with React and Docker support project 
 It was made to demonstrate how to create a fullstack application with .Net and React, and how to run the application in a Docker environment.
 
 ### Credit Acknowledgement:
-The original starting template was forked from this public repository **[SampleAspNetReactDockerApp](https://github.com/SirCypkowskyy/SampleAspNetReactDockerApp)** by **Cyprian Gburek**
+The original starting template was forked from this public repository **[CodeJitsu](https://github.com/SirCypkowskyy/CodeJitsu)** by **Cyprian Gburek**
 
 ## Getting Started
 
@@ -50,7 +50,7 @@ Open the `.env` file in the project root and configure the following variables. 
 -   `CLIENT_APP_PORTS`: Defines the host-to-container port mapping for the frontend Nginx container (e.g., `3000:80` maps host port 3000 to container port 80).
 -   `POSTGRES_PORT`: Sets the host port mapping for the PostgreSQL database container (e.g., `5430:5430`).
 -   `ASPNETCORE_APP_PORT_1`: Host port for the `FighterManager.Server` API container (e.g., `8081`). This will map to the container's internal port (7080/8080).
--   `ASPNETCORE_APP_PORT_2`: Host port for the `VideoSharing.Server` API container (e.g., `8082`). This will map to the container's internal port (7081/8081).
+-   `ASPNETCORE_APP_PORT_2`: Host port for the `VideoAnalysis.Server` API container (e.g., `8082`). This will map to the container's internal port (7081/8081).
 -   `ASPNETCORE_APP_PORT_3`: Host port for the `MatchMaker.Server` API container (e.g., `8083`). This will map to the container's internal port (7082/8082).
 -   `YOUTUBE_API_KEY`: **Required** if using YouTube video sharing features. Obtain from [Google Cloud Console](https://cloud.google.com/docs/authentication/api-keys).
 -   `GOOGLE_CLOUD_PROJECT_ID`: Your Google Cloud Project ID (if using GCS features).
@@ -80,7 +80,7 @@ This approach runs the entire application stack (APIs, React Client via Nginx, D
     * **Frontend:** `http://localhost:<HOST_PORT>` (where `<HOST_PORT>` is the host port specified in `CLIENT_APP_PORTS`, e.g., `http://localhost:3000`).
     * **Swagger UIs** (if `ASPNETCORE_SHOW_SWAGGER_IN_PRODUCTION=true`):
         * FighterManager API: `http://localhost:<HOST_PORT>/swagger`
-        * VideoSharing API: `http://localhost:<HOST_PORT>/vid/swagger`
+        * VideoAnalysis API: `http://localhost:<HOST_PORT>/vid/swagger`
         * MatchMaker API: `http://localhost:<HOST_PORT>/pair/swagger`
 5.  **Stopping:**
     ```bash
@@ -96,7 +96,7 @@ Run the database in Docker, but the .NET APIs and React client directly on your 
     ```bash
     docker compose --env-file ./.env up -d app-db
     ```
-3.  **Verify API Connection Strings:** Ensure `AppDb` connection string in `FighterManager.Server/appsettings.json`, `VideoSharing.Server/appsettings.json`, `MatchMaker.Server/appsettings.json`, and `SharedEntities/appsettings.json` points to `localhost:<POSTGRES_PORT>` (e.g., `localhost:5430`).
+3.  **Verify API Connection Strings:** Ensure `AppDb` connection string in `FighterManager.Server/appsettings.json`, `VideoAnalysis.Server/appsettings.json`, `MatchMaker.Server/appsettings.json`, and `SharedEntities/appsettings.json` points to `localhost:<POSTGRES_PORT>` (e.g., `localhost:5430`).
 4.  **Run Backend APIs (.NET):**
   - Since SharedEntities is a class library, migrations require a startup project (e.g., FighterManager.Server) that configures the DbContext and provides the runtime environment.
     * **Create/Update Db Schema** Run the following command from the root directory to create a new migration:
@@ -113,8 +113,8 @@ Run the database in Docker, but the .NET APIs and React client directly on your 
         cd FighterManager.Server
         dotnet run --launch-profile http # Runs on http://localhost:5136
 
-        # Terminal 2: VideoSharing API
-        cd VideoSharing.Server
+        # Terminal 2: VideoAnalysis API
+        cd VideoAnalysis.Server
         dotnet run --launch-profile http # Runs on http://localhost:5137
 
         # Terminal 3: MatchMaker API
@@ -124,7 +124,7 @@ Run the database in Docker, but the .NET APIs and React client directly on your 
 5.  **Run Frontend (React):**
     * Open another terminal:
         ```bash
-        cd SampleAspNetReactDockerApp.Client
+        cd CodeJitsu.Client
         npm install
         npm run dev # Runs on https://localhost:5173 by default
         ```
@@ -132,7 +132,7 @@ Run the database in Docker, but the .NET APIs and React client directly on your 
     * **Frontend:** `https://localhost:5173` (or the URL provided by `npm run dev`).
     * **Swagger UIs:**
         * FighterManager API: `http://localhost:5136/swagger`
-        * VideoSharing API: `http://localhost:5137/swagger`
+        * VideoAnalysis API: `http://localhost:5137/swagger`
         * MatchMaker API: `http://localhost:5138/swagger`
 7.  **Stopping:**
     * Stop each `dotnet run` and `npm run dev` process (`Ctrl+C`).
@@ -140,7 +140,7 @@ Run the database in Docker, but the .NET APIs and React client directly on your 
 
 ### Google Cloud Service Account Key Configuration
 
-If using Google Cloud Storage features in the `VideoSharing.Server`, you need to configure the path to your service account key JSON file.
+If using Google Cloud Storage features in the `VideoAnalysis.Server`, you need to configure the path to your service account key JSON file.
 
 1.  **Obtain Key File:**
     * You cannot re-download an existing key file's private key.
@@ -149,7 +149,7 @@ If using Google Cloud Storage features in the `VideoSharing.Server`, you need to
 
 2.  **Configuration for Local Setup (Approach 2):**
     * **Place the key file** securely outside your project directory (e.g., `~/secrets/gcp-key.json`).
-    * **Configure the path** in `VideoSharing.Server/appsettings.Development.json` (create this file if it doesn't exist; it overrides `appsettings.json` locally):
+    * **Configure the path** in `VideoAnalysis.Server/appsettings.Development.json` (create this file if it doesn't exist; it overrides `appsettings.json` locally):
         ```json
         {
           // ... other settings ...
@@ -159,7 +159,7 @@ If using Google Cloud Storage features in the `VideoSharing.Server`, you need to
         }
         ```
         (Replace `<your-username>` with your macOS username)
-    * Alternatively, set an environment variable in your terminal *before* running `dotnet run` for `VideoSharing.Server`:
+    * Alternatively, set an environment variable in your terminal *before* running `dotnet run` for `VideoAnalysis.Server`:
         ```bash
         export GOOGLECLOUD__SERVICEACCOUNTKEYPATH="/Users/<your-username>/secrets/gcp-key.json"
         dotnet run --launch-profile http
@@ -191,7 +191,7 @@ Or you run test suite via Visual Studio GUI
 #### frontend unit test
 - From the repository root:
 ```bash
-cd SampleAspNetReactDockerApp.Client
+cd CodeJitsu.Client
 ```
 ```bash
 npm test
@@ -216,3 +216,4 @@ npm test
 - [Nginx](https://www.nginx.com/) - for routing between the React and .Net applications
 - [PostgreSQL](https://www.postgresql.org/) - for the database used by the .Net application
 - [Jest](https://jestjs.io/docs/getting-started) - for frontend unit testing
+

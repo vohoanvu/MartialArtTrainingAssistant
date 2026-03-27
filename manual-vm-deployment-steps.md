@@ -1,4 +1,4 @@
-### **Report: Manual Deployment & Troubleshooting Guide for TheCodeJitsu App to GCP VM**
+﻿### **Report: Manual Deployment & Troubleshooting Guide for TheCodeJitsu App to GCP VM**
 
 *   **Date:** 2025-07-07
 *   **Author:** VU VO
@@ -257,7 +257,7 @@ This is a syntax error in your web server's configuration file.
 *   **Action:** Edit the NGINX configuration file and look for syntax mistakes. The most common error is forgetting to wrap your `server` block inside an `http` block.
 
     ```bash
-    sudo vim ./SampleAspNetReactDockerApp.Client/nginx.conf
+    sudo vim ./CodeJitsu.Client/nginx.conf
     ```
 
 **Symptom 4: The `docker-compose pull` command fails with "pull access denied".**
@@ -319,3 +319,4 @@ This requires updates in 4 places. **Do not skip validation.**
     *   Push this code change and wait for the new image build.
 4.  **Application Code (Logic):**
     *   Ensure your C# code (`Global.cs`) handles reading this variable, ideally with a fallback or check for `RunsInContainer`.
+

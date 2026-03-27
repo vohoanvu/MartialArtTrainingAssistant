@@ -1,4 +1,4 @@
-# System Flow Documentation: CodeJitsu BJJ Martial Art Training Assistant
+﻿# System Flow Documentation: CodeJitsu BJJ Martial Art Training Assistant
 
 **Version:** 1.0
 **Date:** July 24, 2024
@@ -80,12 +80,12 @@ sequenceDiagram
     Frontend->>Instructor: Displays Generated Pairs
 
     Instructor->>Frontend (Session Details): Clicks "Generate Today's Lessons"
-    Frontend->>Backend (VideoSharing.Server): GET /api/video/session/{sessionId}/generate
-    Backend (VideoSharing.Server)->>Backend (VideoSharing.Server): (CurriculumRecommendationService) Fetches student data, weaknesses
-    Backend (VideoSharing.Server)->>AI Service (Gemini): Sends prompt for curriculum
-    AI Service (Gemini)-->>Backend (VideoSharing.Server): Curriculum JSON
-    Backend (VideoSharing.Server)->>Database: Stores RawCurriculumJson in TrainingSession
-    Backend (VideoSharing.Server)-->>Frontend: CurriculumResponse
+    Frontend->>Backend (VideoAnalysis.Server): GET /api/video/session/{sessionId}/generate
+    Backend (VideoAnalysis.Server)->>Backend (VideoAnalysis.Server): (CurriculumRecommendationService) Fetches student data, weaknesses
+    Backend (VideoAnalysis.Server)->>AI Service (Gemini): Sends prompt for curriculum
+    AI Service (Gemini)-->>Backend (VideoAnalysis.Server): Curriculum JSON
+    Backend (VideoAnalysis.Server)->>Database: Stores RawCurriculumJson in TrainingSession
+    Backend (VideoAnalysis.Server)-->>Frontend: CurriculumResponse
     Frontend->>Instructor: Displays AI-Generated Curriculum
 ```
 
@@ -95,18 +95,18 @@ sequenceDiagram
 sequenceDiagram
     actor Student
     Student->>Frontend (Share Video Page): Selects video file, enters description, student identifier, martial art
-    Frontend->>Backend (VideoSharing.Server): POST /api/video/upload-sparring (multipart/form-data)
-    Note over Backend (VideoSharing.Server): Calculates hash, checks for duplicates
-    Backend (VideoSharing.Server)->>Cloud Storage (GCS): Uploads video file
-    Cloud Storage (GCS)-->>Backend (VideoSharing.Server): File path (gs://...)
-    Backend (VideoSharing.Server)->>Database: Creates VideoMetadata record
-    Database-->>Backend (VideoSharing.Server): Video ID
-    Backend (VideoSharing.Server)-->>Frontend: Success (Video ID, Signed URL)
+    Frontend->>Backend (VideoAnalysis.Server): POST /api/video/upload-sparring (multipart/form-data)
+    Note over Backend (VideoAnalysis.Server): Calculates hash, checks for duplicates
+    Backend (VideoAnalysis.Server)->>Cloud Storage (GCS): Uploads video file
+    Cloud Storage (GCS)-->>Backend (VideoAnalysis.Server): File path (gs://...)
+    Backend (VideoAnalysis.Server)->>Database: Creates VideoMetadata record
+    Database-->>Backend (VideoAnalysis.Server): Video ID
+    Backend (VideoAnalysis.Server)-->>Frontend: Success (Video ID, Signed URL)
     Frontend->>Student: Shows upload success, progress for analysis
-    Backend (VideoSharing.Server)->>Backend (VideoSharing.Server): (Async) Calls GeminiController.AnalyzeVideoAsync(videoId)
+    Backend (VideoAnalysis.Server)->>Backend (VideoAnalysis.Server): (Async) Calls GeminiController.AnalyzeVideoAsync(videoId)
 
     Participant AI_Analysis_Process as "AI Analysis (Async)"
-    Backend (VideoSharing.Server)->>AI_Analysis_Process: Initiates
+    Backend (VideoAnalysis.Server)->>AI_Analysis_Process: Initiates
     AI_Analysis_Process->>AI Service (Gemini): Sends video and prompt
     AI Service (Gemini)-->>AI_Analysis_Process: Analysis JSON
     AI_Analysis_Process->>Database: Stores/Updates AiAnalysisResult, Techniques, Drills etc.
@@ -114,18 +114,18 @@ sequenceDiagram
 
     actor Instructor
     Instructor->>Frontend (Video Listing): Selects a video to review
-    Frontend->>Backend (VideoSharing.Server): GET /api/video/{videoId} (for details)
-    Frontend->>Backend (VideoSharing.Server): GET /api/video/{videoId}/feedback (for analysis)
-    Backend (VideoSharing.Server)-->>Frontend: VideoDetailsDto, AnalysisResultDto
+    Frontend->>Backend (VideoAnalysis.Server): GET /api/video/{videoId} (for details)
+    Frontend->>Backend (VideoAnalysis.Server): GET /api/video/{videoId}/feedback (for analysis)
+    Backend (VideoAnalysis.Server)-->>Frontend: VideoDetailsDto, AnalysisResultDto
     Frontend->>Instructor: Displays VideoReview page (Player + Editable Feedback)
     Instructor->>Frontend (VideoReview): Edits techniques, drills, overall analysis
     Frontend->>Frontend (VideoPlayer): Selects time segment for a new technique
     Frontend (VideoPlayer)-->>Frontend (TechniqueFeedback): Updates start/end timestamps for new/edited technique
     Instructor->>Frontend (VideoReview): Clicks "Save Changes"
-    Frontend->>Backend (VideoSharing.Server): PATCH /api/video/{videoId}/analysis (with PartialAnalysisResultDto)
-    Backend (VideoSharing.Server)->>Database: Updates AiAnalysisResult and related entities
-    Database-->>Backend (VideoSharing.Server): Confirmation
-    Backend (VideoSharing.Server)-->>Frontend: Updated AnalysisResultDto
+    Frontend->>Backend (VideoAnalysis.Server): PATCH /api/video/{videoId}/analysis (with PartialAnalysisResultDto)
+    Backend (VideoAnalysis.Server)->>Database: Updates AiAnalysisResult and related entities
+    Database-->>Backend (VideoAnalysis.Server): Confirmation
+    Backend (VideoAnalysis.Server)-->>Frontend: Updated AnalysisResultDto
     Frontend->>Instructor: Shows "Changes Saved" notification
 ```
 
@@ -134,28 +134,28 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    ClientApp[Client Application (React)] -- 1. Upload Video File & Metadata --> VideoSharingServer[VideoSharing.Server API]
-    VideoSharingServer -- 2. Store File --> GCS[Google Cloud Storage]
-    GCS -- 3. Return File Path --> VideoSharingServer
-    VideoSharingServer -- 4. Create VideoMetadata Record --> AppDB[PostgreSQL Database]
-    VideoSharingServer -- 5. Trigger Analysis (Async) --> GeminiVisionService[GeminiVisionService]
+    ClientApp[Client Application (React)] -- 1. Upload Video File & Metadata --> VideoAnalysisServer[VideoAnalysis.Server API]
+    VideoAnalysisServer -- 2. Store File --> GCS[Google Cloud Storage]
+    GCS -- 3. Return File Path --> VideoAnalysisServer
+    VideoAnalysisServer -- 4. Create VideoMetadata Record --> AppDB[PostgreSQL Database]
+    VideoAnalysisServer -- 5. Trigger Analysis (Async) --> GeminiVisionService[GeminiVisionService]
     GeminiVisionService -- 6. Send Video (GCS Path) & Prompt --> GeminiAPI[Google Vertex AI Gemini API]
     GeminiAPI -- 7. Return Analysis JSON --> GeminiVisionService
-    GeminiVisionService -- 8. Store Raw JSON & Parsed Data --> VideoSharingServer
-    VideoSharingServer -- 9. Store/Update AiAnalysisResult --> AppDB
-    VideoSharingServer -- 10. (Via AiAnalysisProcessorService) Create/Link Techniques, Drills, VideoSegmentFeedbacks --> AppDB
+    GeminiVisionService -- 8. Store Raw JSON & Parsed Data --> VideoAnalysisServer
+    VideoAnalysisServer -- 9. Store/Update AiAnalysisResult --> AppDB
+    VideoAnalysisServer -- 10. (Via AiAnalysisProcessorService) Create/Link Techniques, Drills, VideoSegmentFeedbacks --> AppDB
 ```
 
 ### 2.2 Curriculum Generation Data Flow
 
 ```mermaid
 graph TD
-    ClientApp[Client Application (React)] -- 1. Request Curriculum for SessionID --> VideoSharingServer[VideoSharing.Server API]
-    VideoSharingServer -- 2. (CurriculumRecommendationService) Fetch Session & Student Data --> AppDB[PostgreSQL Database]
-    AppDB -- 3. Return Session, Student Fighter Profiles --> VideoSharingServer
-    VideoSharingServer -- 4. Fetch Student AI Analyses (Weaknesses) --> AppDB
-    AppDB -- 5. Return Relevant AiAnalysisResults --> VideoSharingServer
-    VideoSharingServer -- 6. Construct Prompt (Weaknesses, Student Profiles, Session Info) --> GeminiVisionService[GeminiVisionService]
+    ClientApp[Client Application (React)] -- 1. Request Curriculum for SessionID --> VideoAnalysisServer[VideoAnalysis.Server API]
+    VideoAnalysisServer -- 2. (CurriculumRecommendationService) Fetch Session & Student Data --> AppDB[PostgreSQL Database]
+    AppDB -- 3. Return Session, Student Fighter Profiles --> VideoAnalysisServer
+    VideoAnalysisServer -- 4. Fetch Student AI Analyses (Weaknesses) --> AppDB
+    AppDB -- 5. Return Relevant AiAnalysisResults --> VideoAnalysisServer
+    VideoAnalysisServer -- 6. Construct Prompt (Weaknesses, Student Profiles, Session Info) --> GeminiVisionService[GeminiVisionService]
     GeminiVisionService -- 7. Send Prompt --> GeminiAPI[Google Vertex AI Gemini API]
     GeminiAPI -- 8. Return Curriculum JSON --> GeminiVisionService
     GeminiVisionService -- 9. Store RawCurriculumJson in TrainingSession --> AppDB
@@ -168,7 +168,7 @@ graph TD
 - RESTful HTTP/S calls for user registration, login, fighter profile management, training session creation/management, student check-in, walk-in attendance, student pairing requests
 - Authentication via JWT Bearer tokens
 
-### Frontend <-> VideoSharing.Server API
+### Frontend <-> VideoAnalysis.Server API
 - RESTful HTTP/S calls for YouTube video metadata sharing, GCS video uploads, triggering/retrieving AI analysis, editing AI analysis, curriculum generation/retrieval
 - Authentication via JWT Bearer tokens
 - SignalR for real-time notifications (e.g., video shared, analysis complete)
@@ -177,13 +177,13 @@ graph TD
 - RESTful HTTP/S calls for student pairing (if this remains a separate service)
 - Authentication via JWT Bearer tokens
 
-### VideoSharing.Server <-> Google Cloud Storage (GCS)
+### VideoAnalysis.Server <-> Google Cloud Storage (GCS)
 - API calls using Google Cloud client libraries to upload, delete, and generate signed URLs for video files
 
-### VideoSharing.Server <-> Google Vertex AI (Gemini)
+### VideoAnalysis.Server <-> Google Vertex AI (Gemini)
 - API calls using Google Cloud AI Platform client libraries to send video data/prompts and receive JSON-formatted analysis/curriculum
 
-### VideoSharing.Server <-> YouTube Data API v3
+### VideoAnalysis.Server <-> YouTube Data API v3
 - API calls using Google API client libraries to fetch video metadata (title, description) for shared YouTube URLs
 
 ### All Backend Servers <-> PostgreSQL Database
@@ -226,7 +226,7 @@ graph TD
 #### Business Logic Errors
 - Throw custom exceptions (e.g., VideoNotFoundException, DuplicateVideoException) or use a structured error response pattern
 - Catch specific exceptions in controllers and map them to appropriate HTTP status codes (e.g., NotFoundResult, ConflictResult)
-- The existing ErrorResponseException and BaseFilter in VideoSharing.Server/Helpers/ provide a good starting point for structured error responses. This pattern should be consistently applied across all backend services
+- The existing ErrorResponseException and BaseFilter in VideoAnalysis.Server/Helpers/ provide a good starting point for structured error responses. This pattern should be consistently applied across all backend services
 
 #### Database Errors
 - Catch DbUpdateException (e.g., for constraint violations) and translate to user-friendly errors or 409 Conflict

@@ -1,0 +1,33 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.OpenApi;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
+
+namespace VideoAnalysis.Server.Helpers
+{
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+    public class AuthOperationFilter : IOperationFilter
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public void Apply(OpenApiOperation operation, OperationFilterContext ctx)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+        {
+            if (ctx.ApiDescription.ActionDescriptor is ControllerActionDescriptor descriptor)
+            {
+                // If not [AllowAnonymous] and [Authorize] on either the endpoint or the controller...
+                if (!ctx.ApiDescription.CustomAttributes().Any((a) => a is AllowAnonymousAttribute)
+                    && (ctx.ApiDescription.CustomAttributes().Any((a) => a is AuthorizeAttribute)
+                        || descriptor.ControllerTypeInfo.GetCustomAttribute<AuthorizeAttribute>() != null))
+                {
+                    operation.Security.Add(new OpenApiSecurityRequirement
+                    {
+                        [new OpenApiSecuritySchemeReference("Bearer", ctx.Document)] = new List<string>()
+                    });
+                }
+            }
+        }
+    }
+}
+

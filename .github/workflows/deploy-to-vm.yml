@@ -1,4 +1,4 @@
-name: Build and Deploy to GCP VM
+﻿name: Build and Deploy to GCP VM
 
 on:
   push:
@@ -39,16 +39,16 @@ jobs:
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/fighter-manager:${{ github.sha }}
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/fighter-manager:latest
 
-      - name: Build and Push video-sharing
+      - name: Build and Push video-analysis
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }} -f VideoSharing.Server/Dockerfile .
-          docker tag us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:latest
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }}
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:latest
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-analysis:${{ github.sha }} -f VideoAnalysis.Server/Dockerfile .
+          docker tag us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-analysis:${{ github.sha }} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-analysis:latest
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-analysis:${{ github.sha }}
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-analysis:latest
 
       - name: Build and Push app-client
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }} -f SampleAspNetReactDockerApp.Client/Dockerfile ./SampleAspNetReactDockerApp.Client
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }} -f CodeJitsu.Client/Dockerfile ./CodeJitsu.Client
           docker tag us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:latest
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:${{ github.sha }}
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/app-client:latest
@@ -84,8 +84,8 @@ jobs:
       #           env_file: .env
       #           networks:
       #             - appnet
-      #         video-sharing:
-      #           image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-sharing:${{ github.sha }}
+      #         video-analysis:
+      #           image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/codejitsu-repo/video-analysis:${{ github.sha }}
       #           ports:
       #             - "7081:7081"
       #           env_file: .env
@@ -99,7 +99,7 @@ jobs:
       #             - "\${CLIENT_APP_PORTS}"
       #           env_file: .env
       #           volumes:
-      #             - ./SampleAspNetReactDockerApp.Client/nginx.conf:/etc/nginx/nginx.conf:ro
+      #             - ./CodeJitsu.Client/nginx.conf:/etc/nginx/nginx.conf:ro
       #           depends_on:
       #             - fighter-manager
       #           networks:

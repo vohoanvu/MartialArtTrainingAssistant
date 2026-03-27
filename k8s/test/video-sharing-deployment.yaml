@@ -1,21 +1,21 @@
-apiVersion: apps/v1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: video-sharing
+  name: video-analysis
   namespace: test
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: video-sharing
+      app: video-analysis
   template:
     metadata:
       labels:
-        app: video-sharing
+        app: video-analysis
     spec:
       containers:
-        - name: video-sharing
-          image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/video-sharing:${SHORT_SHA}"
+        - name: video-analysis
+          image: "us-central1-docker.pkg.dev/${PROJECT_ID}/codejitsu-repo/video-analysis:${SHORT_SHA}"
           ports:
             - containerPort: 7081
           env:
@@ -115,14 +115,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: video-sharing
+  name: video-analysis
   namespace: test
 spec:
   selector:
-    app: video-sharing
+    app: video-analysis
   ports:
   - port: 7081
     targetPort: 7081
     protocol: TCP
     name: http
   type: ClusterIP
+
