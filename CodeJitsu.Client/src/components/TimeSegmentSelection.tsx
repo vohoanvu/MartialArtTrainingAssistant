@@ -27,7 +27,7 @@ const TimeSegmentSelection: React.FC<TimeSegmentSelectionProps> = ({
     };
 
     return (
-        <div className="p-4 border rounded-md shadow-md">
+        <div className="p-4 border border-[rgba(60,50,40,0.10)] rounded-md shadow-zen-md">
             <h3 className="text-lg font-semibold mb-4">Selected Video Segment</h3>
             <div className="flex gap-4 mb-4">
                 <div className="flex-1">
@@ -64,7 +64,7 @@ const TimeSegmentSelection: React.FC<TimeSegmentSelectionProps> = ({
 
 
             <div className="flex justify-end gap-2">
-                <Button variant="default" onClick={onSave}>Save</Button>
+                <Button variant="primary" onClick={onSave}>Save</Button>
                 <Button variant="secondary" onClick={onCancel}>Cancel</Button>
             </div>
         </div>

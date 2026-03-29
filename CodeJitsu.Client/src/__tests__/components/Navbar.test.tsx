@@ -28,16 +28,6 @@ vi.mock('@/store/authStore', () => ({
   }),
 }));
 
-vi.mock('@/store/themeStore', () => ({
-  default: vi.fn((selector) => {
-    const state = {
-      theme: 'light',
-      setTheme: vi.fn(),
-    };
-    return selector(state);
-  }),
-}));
-
 const renderNavbar = () =>
   render(
     <MemoryRouter>

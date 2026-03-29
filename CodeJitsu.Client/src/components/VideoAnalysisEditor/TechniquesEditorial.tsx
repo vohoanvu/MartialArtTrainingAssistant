@@ -155,14 +155,14 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
             <Button
                 onClick={() => setShowCreateForm(!showCreateForm)}
                 className=""
-                variant="default"
+                variant="primary"
             >
                 <PlusIcon/>
             </Button>
 
             {showCreateForm && (
-                <div className="p-4 bg-background rounded-md space-y-4 border border-border">
-                    <p className="text-sm text-muted-foreground">
+                <div className="p-4 bg-parchment-100 rounded-md space-y-4 border border-[rgba(60,50,40,0.10)]">
+                    <p className="text-sm text-slate-zen400">
                         Please select a video segment from the video player timeline to set the
                         timestamps for this technique.
                     </p>
@@ -261,7 +261,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                     <div className="flex space-x-2">
                         <Button
                             onClick={addTechnique}
-                            variant="default"
+                            variant="primary"
                             className=""
                         >
                             Add Technique
@@ -269,7 +269,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                         <Button
                             onClick={() => setShowCreateForm(false)}
                             className=""
-                            variant="outline"
+                            variant="secondary"
                         >
                             Cancel
                         </Button>
@@ -280,10 +280,10 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
             {techniques.map((technique, index) => (
                 <div
                     key={index}
-                    className="border-b border-border pb-4"
+                    className="border-b border-[rgba(60,50,40,0.10)] pb-4"
                 >
                     <div
-                        className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40"
+                        className="flex justify-between items-center cursor-pointer p-2 hover:bg-parchment-200/40"
                         onClick={() => toggleTechniqueDetails(index)}
                     >
                         <div>
@@ -313,12 +313,12 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                                             title="Save"
                                         >
                                             <span className="sr-only">Save</span>
-                                            <Pencil className="w-4 h-4 text-primary" />
+                                            <Pencil className="w-4 h-4 text-samurai-400" />
                                         </Button>
                                     </>
                                 ) : (
                                     <>
-                                        <span className="text-foreground">{technique.name}</span>
+                                        <span className="text-ink-400">{technique.name}</span>
                                         <Button
                                             size="icon"
                                             variant="ghost"
@@ -330,16 +330,16 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                                             title="Edit"
                                         >
                                             <span className="sr-only">Edit</span>
-                                            <Pencil className="w-4 h-4 text-primary" />
+                                            <Pencil className="w-4 h-4 text-samurai-400" />
                                         </Button>
                                     </>
                                 )}
                             </p>
                             <p>
                                 <strong>Timestamp:</strong>{' '}
-                                <span className="px-1 rounded bg-muted text-muted-foreground">
+                                <span className="px-1 rounded bg-parchment-200 text-slate-zen400">
                                     <Button
-                                        variant="link"
+                                        variant="ghost"
                                         size="sm"
                                         className="p-0 h-auto align-baseline"
                                         aria-label={`Seek to technique at ${technique.startTimestamp}`}
@@ -352,9 +352,9 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                                     </Button>
                                 </span>
                                 {' '}-{' '}
-                                <span className="px-1 rounded bg-muted text-muted-foreground">
+                                <span className="px-1 rounded bg-parchment-200 text-slate-zen400">
                                     <Button
-                                        variant="link"
+                                        variant="ghost"
                                         size="sm"
                                         className="p-0 h-auto align-baseline"
                                         aria-label={`Seek to technique at ${technique.endTimestamp}`}
@@ -369,14 +369,14 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                             </p>
                         </div>
                         {expandedTechniques[index] ? (
-                            <ChevronUp className="text-primary" />
+                            <ChevronUp className="text-samurai-400" />
                         ) : (
-                            <ChevronDown className="text-primary" />
+                            <ChevronDown className="text-samurai-400" />
                         )}
                     </div>
 
                     {expandedTechniques[index] && (
-                        <div className="p-2 space-y-2 bg-background rounded-md border border-border">
+                        <div className="p-2 space-y-2 bg-parchment-100 rounded-md border border-[rgba(60,50,40,0.10)]">
                             <div>
                                 <label className="block text-sm font-medium">
                                     Technique Type
@@ -437,7 +437,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
                             <Button
                                 onClick={() => deleteTechnique(index)}
                                 className=""
-                                variant="destructive"
+                                variant="danger"
                                 size='sm'
                             >
                                 <TrashIcon/>
@@ -450,7 +450,7 @@ export const TechniquesEditorial: React.FC<TechniquesEditorialProps> = ({
             <Button
                 onClick={saveChanges}
                 className="mt-4"
-                variant="default"
+                variant="primary"
                 size='lg'
             >
                 {isAnalysisSaving ? "Saving changes..." : "Save Changes"}

@@ -39,6 +39,7 @@ namespace VideoAnalysis.Server.Domain.GeminiService
         private readonly HttpClient _httpClient;
         private readonly GoogleCredential _credential;
         private readonly string _projectId;
+        private readonly string _location;
         private readonly string _visionModel;
         private readonly string _textModel;
 
@@ -63,6 +64,7 @@ namespace VideoAnalysis.Server.Domain.GeminiService
             _logger = logger;
 
             _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId);
+            _location = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionLocation);
             _visionModel = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionModel);
             _textModel = Global.Configuration?["GeminiVision:TextModel"] ?? "gemini-3.1-flash-lite-preview";
 
@@ -294,7 +296,7 @@ namespace VideoAnalysis.Server.Domain.GeminiService
         }
 
         private string ModelPath(string modelId) =>
-            $"projects/{_projectId}/locations/global/publishers/google/models/{modelId}";
+            $"projects/{_projectId}/locations/{_location}/publishers/google/models/{modelId}";
 
         private string GenerateContentUrl(string modelId) =>
             $"/v1/{ModelPath(modelId)}:generateContent";

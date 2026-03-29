@@ -1,12 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-
 import useAuthStore from "@/store/authStore";
 import { useEffect, useState } from "react";
 import { Button } from './ui/button';
 
 const LandingPageForm = () => {
     const navigate = useNavigate();
-
     const login = useAuthStore((state) => state.login);
     const isLogged = useAuthStore((state) => state.loginStatus);
     const [errorMessage, setErrorMessage] = useState('');
@@ -33,7 +31,7 @@ const LandingPageForm = () => {
     useEffect(() => {
         switch (isLogged) {
             case "authenticated":
-                navigate("/class-session"); //go to ClassSession after login
+                navigate("/class-session");
                 break;
             case "unauthenticated":
                 navigate("/home");
@@ -43,20 +41,18 @@ const LandingPageForm = () => {
             default:
                 break;
         }
-
     }, [isLogged, navigate]);
 
     const handleSSOLogin = (provider: "google" | "facebook") => {
         setIsSSOloading(true);
-        // Use a relative path so Nginx proxies /api to the backend in production
         window.location.href = `/api/externalauth/signin-${provider}?returnUrl=${encodeURIComponent(window.location.origin + "/sso-callback")}`;
     };
 
     return (
-        <div className="flex flex-col items-center justify-center max-h-screen">
-            <h1 className="text-4xl font-bold mb-4">Train like a warrior</h1>
-            <div className="container mx-auto max-w-md p-8 shadow-lg rounded-lg">
-                <h1 className="text-3xl font-bold text-primary mb-6">Login</h1>
+        <div className="flex flex-col items-center justify-center">
+            <h2 className="font-serif text-2xl font-bold text-ink-400 mb-5">Train like a warrior</h2>
+            <div className="w-full max-w-md bg-parchment-50 border border-[rgba(60,50,40,0.10)] rounded-xl shadow-zen-sm p-6">
+                <h3 className="font-serif text-xl font-semibold text-ink-400 mb-4">Login</h3>
                 <form
                     className="space-y-4"
                     onSubmit={async (e) => {
@@ -67,97 +63,75 @@ const LandingPageForm = () => {
                         await loginActionForm(email, password);
                     }}
                 >
-                    {errorMessage &&
-                        <>
-                            <p className="text-red-500 line-clamp-5">{errorMessage}</p>
-                            <p className="text-red-300 text-xl font-bold">Check console for details</p>
-                        </>
-                    }
+                    {errorMessage && (
+                        <div className="bg-blood-100 border border-blood-200 rounded-md p-3">
+                            <p className="font-sans text-sm text-blood-400 line-clamp-5">{errorMessage}</p>
+                            <p className="font-sans text-xs text-blood-300 mt-1">Check console for details</p>
+                        </div>
+                    )}
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium">
+                        <label htmlFor="email" className="font-display text-label font-semibold uppercase tracking-[0.1em] text-slate-zen400 mb-1.5 block">
                             Email
                         </label>
                         <input
                             type="email"
                             id="email"
                             name="email"
-                            className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
-                            onChange={() => {
-                                if (errorMessage !== '')
-                                    setErrorMessage('');
-                            }}
+                            className="w-full bg-parchment-50 border-[1.5px] border-[rgba(60,50,40,0.18)] rounded-md px-3.5 py-2.5 font-sans text-sm text-ink-400 placeholder:text-slate-zen300 outline-none transition-all duration-fast ease-zen focus:border-samurai-400 focus:ring-2 focus:ring-samurai-400/10"
+                            onChange={() => { if (errorMessage !== '') setErrorMessage(''); }}
                             required
                         />
                     </div>
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium">
+                        <label htmlFor="password" className="font-display text-label font-semibold uppercase tracking-[0.1em] text-slate-zen400 mb-1.5 block">
                             Password
                         </label>
                         <input
                             type="password"
                             id="password"
                             name="password"
-                            className="mt-1 block w-full px-3 py-2 bg-input border rounded-md shadow-sm"
-                            onChange={() => {
-                                if (errorMessage !== '')
-                                    setErrorMessage('');
-                            }}
+                            className="w-full bg-parchment-50 border-[1.5px] border-[rgba(60,50,40,0.18)] rounded-md px-3.5 py-2.5 font-sans text-sm text-ink-400 placeholder:text-slate-zen300 outline-none transition-all duration-fast ease-zen focus:border-samurai-400 focus:ring-2 focus:ring-samurai-400/10"
+                            onChange={() => { if (errorMessage !== '') setErrorMessage(''); }}
                             required
                         />
                     </div>
-                    <Button type="submit"
-                        variant={"outline"}
-                        className="w-full"
-                        disabled={isLoading}
-                    >
+                    <Button type="submit" variant="dark" size="full" disabled={isLoading}>
                         {isLoading ? "Logging in..." : "Login"}
                     </Button>
                 </form>
-                <div className="flex flex-col gap-2 mt-6">
-                    <Button
+                <div className="flex flex-col items-center gap-2 mt-5">
+                    <button
                         type="button"
-                        variant="outline"
-                        className="w-full h-full p-0 relative overflow-hidden"
+                        className="relative cursor-pointer bg-transparent border-none p-0 rounded-full overflow-hidden hover:opacity-90 transition-opacity duration-fast ease-zen disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() => handleSSOLogin("google")}
                         disabled={isSSOloading}
                     >
-                        <div className="flex items-center justify-center relative z-10">
-                            <img
-                                src="/signin-assets/Web/svg/light/web_light_sq_na.svg"
-                                alt="Google"
-                                className="h-auto w-auto mr-4 dark:hidden"
-                            />
-                            <img
-                                src="/signin-assets/Web/svg/dark/web_dark_sq_na.svg"
-                                alt="Google"
-                                className="h-auto w-auto mr-4 hidden dark:block"
-                            />
-                            {isSSOloading ? "Signing in..." : "Sign in with Google"}
-                        </div>
+                        <img
+                            src="/signin-assets/Web/svg/light/web_light_rd_SI.svg"
+                            alt="Sign in with Google"
+                            className="h-11 w-auto"
+                        />
                         {isSSOloading && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-shimmer" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none animate-shimmer rounded-full" />
                         )}
-                    </Button>
+                    </button>
                 </div>
             </div>
 
-            <p className="mt-4">
+            <p className="font-sans text-sm text-slate-zen400 mt-5">
                 Want to start quickly?{' '}
-                {/* <Link to="/register" className="text-blue-500 hover:underline">
-                    Get started by either filling out our registration form or sign in with Google!
-                </Link> */}
-                <Link to="/register" className="text-blue-500 hover:underline">
+                <Link to="/register" className="text-samurai-400 hover:text-samurai-500 underline transition-colors duration-fast ease-zen">
                     Sign in with Google to start using our premium Instructor features!
                 </Link>
             </p>
-            <div className="flex flex-col items-center mt-8 space-y-4">
+            <div className="flex flex-col items-center mt-7 space-y-4 max-w-lg">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold">For Students</h2>
-                    <p>Upload training videos and access AI-driven feedback, join class sessions to get paired up with your ideal partner.</p>
+                    <h2 className="font-serif text-xl font-bold text-ink-400">For Students</h2>
+                    <p className="font-sans text-sm text-slate-zen400 mt-1">Upload training videos and access AI-driven feedback, join class sessions to get paired up with your ideal partner.</p>
                 </div>
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold">For Instructors</h2>
-                    <p>Create and manage training lessons, review Students training footage to provide feedback, and access to AI agent that organizes your class lessons.</p>
+                    <h2 className="font-serif text-xl font-bold text-ink-400">For Instructors</h2>
+                    <p className="font-sans text-sm text-slate-zen400 mt-1">Create and manage training lessons, review Students training footage to provide feedback, and access to AI agent that organizes your class lessons.</p>
                 </div>
             </div>
         </div>

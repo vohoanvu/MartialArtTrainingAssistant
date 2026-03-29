@@ -29,7 +29,7 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
     }
 
     return (
-        <div className="feedback-container p-4 rounded-md shadow-md border">
+        <div className="feedback-container p-4 rounded-md shadow-zen-md border border-[rgba(60,50,40,0.10)]">
             <div className="w-full">
                 {/* Tab List */}
                 <div className="flex space-x-2 border-b mb-4">
@@ -38,8 +38,8 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
                         className={
                             `shadcn-ui-tab px-4 py-2 rounded-t-md font-medium transition-colors duration-150 focus:outline-none ` +
                             (activeTab === 'techniques'
-                                ? 'bg-background border-b-2 border-primary text-primary shadow'
-                                : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent')
+                                ? 'bg-parchment-100 border-b-2 border-samurai-400 text-samurai-400 shadow-zen-sm'
+                                : 'bg-parchment-200 text-slate-zen400 hover:text-ink-400 hover:bg-parchment-300')
                         }
                         type="button"
                     >
@@ -50,8 +50,8 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
                         className={
                             `shadcn-ui-tab px-4 py-2 rounded-t-md font-medium transition-colors duration-150 focus:outline-none ` +
                             (activeTab === 'drills'
-                                ? 'bg-background border-b-2 border-primary text-primary shadow'
-                                : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent')
+                                ? 'bg-parchment-100 border-b-2 border-samurai-400 text-samurai-400 shadow-zen-sm'
+                                : 'bg-parchment-200 text-slate-zen400 hover:text-ink-400 hover:bg-parchment-300')
                         }
                         type="button"
                     >
@@ -62,8 +62,8 @@ const TechniqueFeedback: React.FC<TechniqueFeedbackProps> = ({
                         className={
                             `shadcn-ui-tab px-4 py-2 rounded-t-md font-medium transition-colors duration-150 focus:outline-none ` +
                             (activeTab === 'analysis'
-                                ? 'bg-background border-b-2 border-primary text-primary shadow'
-                                : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent')
+                                ? 'bg-parchment-100 border-b-2 border-samurai-400 text-samurai-400 shadow-zen-sm'
+                                : 'bg-parchment-200 text-slate-zen400 hover:text-ink-400 hover:bg-parchment-300')
                         }
                         type="button"
                     >

@@ -22,8 +22,8 @@ const DrillTimer: React.FC<DrillTimerProps> = ({
     initialDurationMinutes,
     drillName,
     onTimerFinish,
-    themeColor = 'bg-primary',
-    progressColor = 'bg-primary-foreground',
+    themeColor = 'bg-samurai-400',
+    progressColor = 'bg-samurai-500',
     timerSoundSrc = '/sounds/boxing-bell-signals-6115.mp3', // Your specified audio sprite
 }) => {
     const initialTotalSeconds = useMemo(() => initialDurationMinutes * 60, [initialDurationMinutes]);
@@ -152,23 +152,23 @@ const DrillTimer: React.FC<DrillTimerProps> = ({
 
     const timeDisplayColor = useMemo(() => {
         if (timeLeft !== null && timeLeft <= 10 && initialTotalSeconds > 10) {
-            return 'text-red-500 dark:text-red-400 animate-pulse';
+            return 'text-blood-300 animate-pulse';
         }
         if (timeLeft !== null && timeLeft <= Math.floor(initialTotalSeconds * 0.25) && initialTotalSeconds > 30) {
-            return 'text-yellow-500 dark:text-yellow-400';
+            return 'text-gold-400';
         }
-        return 'text-foreground';
+        return 'text-ink-400';
     }, [timeLeft, initialTotalSeconds]);
 
     return (
-        <div className="mt-3 p-4 border rounded-lg shadow-md bg-card w-full max-w-xs mx-auto sm:mx-0">
-            {drillName && <h4 className="text-sm font-medium text-muted-foreground mb-2 text-center">{drillName}</h4>}
+        <div className="mt-3 p-4 border border-[rgba(60,50,40,0.10)] rounded-lg shadow-zen-sm bg-parchment-50 w-full max-w-xs mx-auto sm:mx-0">
+            {drillName && <h4 className="text-sm font-medium text-slate-zen400 mb-2 text-center">{drillName}</h4>}
 
             <div className={`relative font-mono text-5xl font-bold p-3 rounded-md text-center mb-3 ${timeDisplayColor} transition-colors duration-300`}>
                 {formatTime(timeLeft)}
             </div>
 
-            <div className="w-full bg-muted rounded-full h-2.5 mb-4 dark:bg-background/30">
+            <div className="w-full bg-parchment-200 rounded-full h-2.5 mb-4">
                 <div 
                     className={`${progressColor} h-2.5 rounded-full transition-all duration-300 ease-linear`} 
                     style={{ width: `${progressPercentage}%` }} //progressPercentage handles null
@@ -183,12 +183,12 @@ const DrillTimer: React.FC<DrillTimerProps> = ({
                 )}
 
                 {isRunning && (
-                    <Button onClick={pauseTimerHandler} size="sm" variant="outline" className="w-1/2">
+                    <Button onClick={pauseTimerHandler} size="sm" variant="secondary" className="w-1/2">
                         <PauseIcon className="mr-2 h-4 w-4" /> Pause
                     </Button>
                 )}
                 {!isRunning && timeLeft !== null && timeLeft > 0 && timeLeft < initialTotalSeconds && (
-                     <Button onClick={resumeTimerHandler} size="sm" variant="outline" className="w-1/2">
+                     <Button onClick={resumeTimerHandler} size="sm" variant="secondary" className="w-1/2">
                         <PlayIcon className="mr-2 h-4 w-4" /> Resume
                     </Button>
                 )}

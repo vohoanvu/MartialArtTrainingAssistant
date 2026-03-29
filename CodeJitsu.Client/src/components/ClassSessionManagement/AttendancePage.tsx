@@ -183,7 +183,7 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                             className="w-full"
                             disabled={!isEditable}
                         />
-                        <div className="absolute -bottom-6 left-0 text-xs text-muted-foreground">
+                        <div className="absolute -bottom-6 left-0 text-xs text-slate-zen400">
                             Format: 70.5
                         </div>
                     </div>
@@ -206,7 +206,7 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                             className="w-full"
                             disabled={!isEditable}
                         />
-                        <div className="absolute -bottom-6 left-0 text-xs text-muted-foreground">
+                        <div className="absolute -bottom-6 left-0 text-xs text-slate-zen400">
                             Format: 175.0
                         </div>
                     </div>
@@ -316,16 +316,16 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
     return (
         <div className="container mx-auto p-6 max-w-7xl h-screen flex flex-col">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Walk-In Attendance</h1>
+                <h1 className="font-serif text-3xl font-bold text-ink-400">Walk-In Attendance</h1>
                 <div className="space-x-4">
                     <Button
-                        variant="outline"
+                        variant="secondary"
                         onClick={onCancel}
                     >
                         Go Back
                     </Button>
                     <Button
-                        variant="destructive"
+                        variant="danger"
                         onClick={handleClear}
                     >
                         Clear
@@ -338,7 +338,7 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                     </Button>
                     <Button
                         onClick={() => setIsFinalizeDialogOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                        className="bg-samurai-400 hover:bg-samurai-500 text-white"
                     >
                         {isAttendanceFinalizing ? "Finalizing..." : "Finalize Attendance"}
                     </Button>
@@ -355,16 +355,16 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                 onCancel={() => setIsFinalizeDialogOpen(false)}
             />
 
-            <div className="bg-card rounded-lg shadow-sm border">
+            <div className="bg-parchment-50 rounded-lg shadow-zen-sm border border-[rgba(60,50,40,0.10)]">
                 <div className="overflow-x-auto">
                     <table className="w-full h-full">
-                        <thead className="sticky top-0 bg-card z-10">
+                        <thead className="sticky top-0 bg-parchment-50 z-10">
                             {table.getHeaderGroups().map(headerGroup => (
                                 <tr key={headerGroup.id} className="border-b">
                                     {headerGroup.headers.map(header => (
                                         <th
                                             key={header.id}
-                                            className="px-4 py-3 text-left text-sm font-medium text-muted-foreground bg-card"
+                                            className="px-4 py-3 text-left text-sm font-medium text-slate-zen400 bg-parchment-50"
                                         >
                                             {flexRender(
                                                 header.column.columnDef.header,
@@ -379,9 +379,9 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
                             {table.getRowModel().rows.map(row => (
                                 <tr
                                     key={row.id}
-                                    className={`border-b hover:bg-muted/50 text-sm ${editableRowIndices.includes(row.index)
-                                            ? 'bg-background'
-                                            : 'bg-muted/30'
+                                    className={`border-b hover:bg-parchment-200/50 text-sm ${editableRowIndices.includes(row.index)
+                                            ? 'bg-parchment-100'
+                                            : 'bg-parchment-200/30'
                                         }`}
                                     style={{ height: '36px' }}
                                 >
@@ -401,14 +401,14 @@ export const AttendancePage = ({ trainingSessionId, sessionDetailsViewModel, onC
             </div>
 
             <div className="flex justify-between mt-4">
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-slate-zen400">
                     <p>* Data is automatically saved locally on blur for text fields</p>
                     <p>* Weight should be entered in kilograms (e.g., 70.5)</p>
                     <p>* Height should be entered in centimeters (e.g., 175.0)</p>
                     <p>* Up to {EDITABLE_EMPTY_ROWS_COUNT} empty rows are available for editing at a time</p>
                     <p>* Completed rows remain editable for updates</p>
                 </div>
-                <div className="text-sm text-muted-foreground text-right">
+                <div className="text-sm text-slate-zen400 text-right">
                     <h3 className="font-semibold mb-1">Metric Conversion Tool</h3>
                     <div className="flex flex-col space-y-2">
                         <div className="flex items-center justify-end">

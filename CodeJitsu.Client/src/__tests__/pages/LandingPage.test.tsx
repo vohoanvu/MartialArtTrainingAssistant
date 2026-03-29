@@ -18,10 +18,10 @@ describe('LandingPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the Get Beta Access CTA link', () => {
+  it('renders the Get Beta Access CTA button', () => {
     renderLandingPage();
     expect(
-      screen.getByRole('link', { name: /Join the AI Revolution/i })
+      screen.getByRole('button', { name: /Join the AI Revolution/i })
     ).toBeInTheDocument();
   });
 
@@ -35,7 +35,7 @@ describe('LandingPage', () => {
   it('renders the beta launch section heading', () => {
     renderLandingPage();
     expect(
-      screen.getByText(/CodeJitsu Beta is LIVE/i)
+      screen.getByText(/Ready to Transform Your BJJ Dojo/i)
     ).toBeInTheDocument();
   });
 });

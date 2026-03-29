@@ -28,7 +28,7 @@ const SsoCallback = () => {
         }
     }, [navigate, setTokens, setLoginStatus, getUserInfo]);
 
-    return <div>Signing you in...</div>;
+    return <div className="min-h-screen bg-parchment-100 flex items-center justify-center font-sans text-ink-400">Signing you in...</div>;
 };
 
 export default SsoCallback;

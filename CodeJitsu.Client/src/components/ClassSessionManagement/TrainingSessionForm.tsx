@@ -184,8 +184,8 @@ const TrainingSessionForm = () => {
     };
 
     return (
-        <div className="container mx-auto max-w-lg p-8 shadow-lg rounded-lg">
-            <h1 className="text-3xl font-bold mb-6">
+        <div className="container mx-auto max-w-lg p-8 shadow-zen-md rounded-lg bg-parchment-50 border border-[rgba(60,50,40,0.10)]">
+            <h1 className="font-serif text-3xl font-bold mb-6 text-ink-400">
                 {sessionId ? 'Update Session Details' : 'Create New Session'}
             </h1>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -311,7 +311,7 @@ const TrainingSessionForm = () => {
                     </Button>
                     <Button
                         type="button"
-                        variant="destructive"
+                        variant="danger"
                         onClick={() => setIsDeleteDialogOpen(true)}
                         disabled={isDeleting}
                     >

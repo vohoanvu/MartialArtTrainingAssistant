@@ -1,0 +1,85 @@
+/* ========================================
+   Zen Samurai Design System — Tokens
+   Single source of truth for all design values
+   ======================================== */
+
+:root {
+  /* === Color Ramps === */
+
+  /* Parchment White — Primary Background Ramp */
+  --parchment-50:  #FAF8F3;
+  --parchment-100: #F2EDE0;
+  --parchment-200: #E8DFC8;
+  --parchment-300: #D9CDAE;
+  --parchment-400: #C4B48C;
+
+  /* Slate Gray — Dark Surfaces & Text Hierarchy */
+  --slate-zen300: #9E9A93;
+  --slate-zen400: #6E6A63;
+  --slate-zen500: #4A4640;
+  --slate-zen600: #322F2B;
+  --slate-zen700: #1E1C19;
+  --slate-zen800: #111009;
+
+  /* Samurai Blue — Primary Action & Accent */
+  --samurai-100: #D4E3F5;
+  --samurai-200: #A3C3E8;
+  --samurai-300: #6897CC;
+  --samurai-400: #2D5FA0;
+  --samurai-500: #1A3E72;
+  --samurai-600: #0F2651;
+
+  /* Blood Red — Destructive & Hero CTA */
+  --blood-100: #F5D3CC;
+  --blood-200: #E8998A;
+  --blood-300: #C45A47;
+  --blood-400: #8C2D1F;
+  --blood-500: #5C1812;
+
+  /* Ink — Primary Text */
+  --ink-300: #3A3830;
+  --ink-400: #1A1916;
+
+  /* Gold — Status & Belt Ranks */
+  --gold-accent: #C4920A;
+  --gold-bg:     #F5EAC8;
+  --gold-text:   #7A5A0A;
+
+  /* === Semantic Aliases === */
+
+  /* Backgrounds */
+  --bg-page:      var(--parchment-100);
+  --bg-surface:   var(--parchment-50);
+  --bg-card:      #FFFFFF;
+  --bg-dark:      var(--slate-zen700);
+  --bg-dark-card: var(--slate-zen600);
+
+  /* Text */
+  --text-primary:       var(--ink-400);
+  --text-secondary:     var(--slate-zen400);
+  --text-muted:         var(--slate-zen300);
+  --text-on-dark:       var(--parchment-100);
+  --text-on-dark-muted: var(--parchment-300);
+
+  /* Borders */
+  --border-light:  rgba(60, 50, 40, 0.10);
+  --border-medium: rgba(60, 50, 40, 0.18);
+  --border-strong: rgba(60, 50, 40, 0.30);
+
+  /* Accents */
+  --accent-blue: var(--samurai-400);
+  --accent-red:  var(--blood-300);
+  --accent-gold: var(--gold-accent);
+
+  /* === Font Families === */
+  --font-display: 'Cinzel', serif;
+  --font-serif:   'Noto Serif', Georgia, serif;
+  --font-sans:    'Noto Sans', 'Helvetica Neue', sans-serif;
+  --font-mono:    'SF Mono', Consolas, monospace;
+
+  /* === Transitions === */
+  --ease-zen:         cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-fast:  120ms var(--ease-zen);
+  --transition-base:  220ms var(--ease-zen);
+  --transition-slow:  400ms var(--ease-zen);
+}

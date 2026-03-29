@@ -1,96 +1,70 @@
-﻿import {ReactElement} from "react";
-import {ModeToggle} from "@/components/mode-toggle.tsx";
-import {cn} from "@/lib/utils.ts";
-import {useTranslation} from "react-i18next";
-import {Link} from "react-router-dom";
+import { ReactElement } from "react";
+import { cn } from "@/lib/utils.ts";
+import { useTranslation } from "react-i18next";
+import { Link, useLocation } from "react-router-dom";
 import useAuthStore from "@/store/authStore.ts";
-import {Button} from "@/components/ui/button.tsx";
 
-/**
- * Navbar component
- */
-export default function Navbar(
-    {
-        className = "",
-    }
-): ReactElement {
-
-    const {t} = useTranslation();
+export default function Navbar(): ReactElement {
+    const { t } = useTranslation();
     const authStatus = useAuthStore((state) => state.loginStatus);
     const logout = useAuthStore((state) => state.logout);
     const authUser = useAuthStore((state) => state.user);
-    
-    return (
-        <div className={cn(className)}>
-            <nav className="bg-background text-foreground p-4">
-                <div className="container mx-auto flex justify-between items-center">
-                    <Link to="/" className="text-lg font-bold flex items-center space-x-2">
-                        <img src="/codejitsu-logo-2-round.png"alt="CodeJitsu Logo" className="h-12 w-12"/>
-                        <span className="text-primary">CodeJitsu</span>
-                    </Link>
-                    <ul className="flex space-x-4 md:space-x-5 items-center">
-                        <li className="hidden">
-                            <Link to="/pricing" className="hover:text-primary">
-                                Pricing
-                            </Link>
-                        </li>
-                        {authStatus === "authenticated" ?
-                            (
-                                <>
-                                    <li className="">
-                                        <Link to="/video-analysis">
-                                            <Button size="sm" variant="outline" className="w-full">
-                                                Video Analysis
-                                            </Button>
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/class-session">
-                                            <Button size="sm" variant="outline" className="w-full">
-                                                Manage Classes
-                                            </Button>
-                                        </Link>
-                                    </li>
-                                    <li className="hidden md:block">
-                                        Welcome <strong>{authUser?.email}!</strong>
-                                    </li>
-                                    <li>
-                                        <button onClick={() => { logout(); }}>
-                                            {t("navbar.logout")}
-                                        </button>
-                                    </li>
-                                </>
-                            )
-                            : (
-                                <>
-                                    <li>
-                                        <Link to="/home" className="hover:text-primary">
-                                            {t("navbar.login")}
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/register" className="hover:text-primary">
-                                            {t("navbar.register")}
-                                        </Link>
-                                    </li>
-                                    {/* <li>
-                                        <Link to="/contact" className="hover:text-primary">
-                                            {t("navbar.contact")}
-                                        </Link>
-                                    </li> */}
-                                </>
-                            )
-                        }
+    const location = useLocation();
 
-                        <li>
-                            <ModeToggle className={cn("h-8 w-8")}/>
-                        </li>
-                        {/* <li>
-                            <LangToggle className={cn("h-8")}/>
-                        </li> */}
-                    </ul>
+    const isActive = (path: string) => location.pathname === path;
+
+    const linkClass = (path: string) =>
+        cn(
+            'font-sans text-sm transition-colors duration-fast ease-zen',
+            isActive(path)
+                ? 'text-parchment-100 border-b border-samurai-300 pb-0.5'
+                : 'text-parchment-300 hover:text-parchment-100'
+        );
+
+    return (
+        <nav className="bg-slate-zen700 border-b border-white/5 sticky top-0 z-50">
+            <div className="max-w-[1120px] mx-auto px-5 flex items-center justify-between h-14">
+                {/* Brand */}
+                <Link to="/" className="flex items-center gap-2">
+                    <img src="/codejitsu-favicon.png" alt="CodeJitsu" className="w-7 h-7" />
+                    <span className="font-display text-base font-semibold text-parchment-100 tracking-wider">
+                        CodeJitsu
+                    </span>
+                </Link>
+
+                {/* Links */}
+                <div className="flex items-center gap-5">
+                    {authStatus === "authenticated" ? (
+                        <>
+                            <Link to="/video-analysis" className={linkClass('/video-analysis')}>
+                                Video Analysis
+                            </Link>
+                            <Link to="/class-session" className={linkClass('/class-session')}>
+                                Manage Classes
+                            </Link>
+                            <span className="hidden md:block font-sans text-sm text-parchment-300">
+                                Welcome <strong className="text-parchment-100 font-medium">{authUser?.email}</strong>
+                            </span>
+                            <button
+                                onClick={() => { logout(); }}
+                                className="font-sans text-sm text-parchment-200 border border-parchment-300/30 rounded-md px-3 py-1.5 hover:bg-parchment-300/10 hover:text-parchment-100 transition-all duration-fast ease-zen"
+                            >
+                                {t("navbar.logout")}
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/home" className={linkClass('/home')}>
+                                {t("navbar.login")}
+                            </Link>
+                            <Link to="/register" className={linkClass('/register')}>
+                                {t("navbar.register")}
+                            </Link>
+                        </>
+                    )}
+
                 </div>
-            </nav>
-        </div>
+            </div>
+        </nav>
     );
 }

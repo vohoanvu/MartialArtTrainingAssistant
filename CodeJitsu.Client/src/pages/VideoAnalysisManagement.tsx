@@ -85,7 +85,7 @@ const VideoAnalysisManagement: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-8">
                 {user && accessToken && (user.fighterInfo?.role === 0 || user.fighterInfo?.role === 1) && (
                     <div className="lg:w-1/3 w-full">
-                        <div className="rounded-lg dark:shadow-accent p-4 bg-background">
+                        <div className="rounded-lg p-4 bg-parchment-50 shadow-zen-sm border border-[rgba(60,50,40,0.10)]">
                             <VideoUploadForm
                                 fighterRole={user.fighterInfo?.role}
                                 jwtToken={accessToken}
@@ -97,8 +97,8 @@ const VideoAnalysisManagement: React.FC = () => {
                         </div>
                         {isAnalyzing && (
                             <div className="mt-4 flex items-center space-x-2">
-                                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                                <p className="text-primary">AI is analyzing the video. This may take a few minutes...</p>
+                                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-samurai-400"></div>
+                                <p className="text-samurai-400">AI is analyzing the video. This may take a few minutes...</p>
                             </div>
                         )}
                     </div>

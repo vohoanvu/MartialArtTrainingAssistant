@@ -1,34 +1,52 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import {cn} from "@/lib/utils.ts";
-
+import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  'inline-flex items-center justify-center gap-2 font-sans text-sm font-medium rounded-md border transition-all duration-fast ease-zen cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:pointer-events-none',
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        primary: [
+          'bg-samurai-400 text-white border-samurai-500',
+          'hover:bg-samurai-500 hover:shadow-zen-md hover:-translate-y-px',
+        ],
+        dark: [
+          'bg-slate-zen700 text-parchment-100 border-slate-zen800',
+          'font-display tracking-[0.05em]',
+          'hover:bg-slate-zen800',
+        ],
+        cta: [
+          'bg-blood-300 text-white border-blood-400',
+          'font-serif italic font-semibold text-base',
+          'hover:bg-blood-400 hover:-translate-y-px hover:shadow-zen-md',
+          'shadow-[0_2px_12px_rgba(196,90,71,0.30)]',
+        ],
+        secondary: [
+          'bg-parchment-100 text-ink-400 border-[rgba(60,50,40,0.18)]',
+          'hover:bg-parchment-200',
+        ],
+        ghost: [
+          'bg-transparent text-slate-zen400 border-[rgba(60,50,40,0.10)]',
+          'hover:bg-parchment-100 hover:text-ink-400',
+        ],
+        danger: [
+          'bg-blood-400 text-white border-blood-500',
+          'hover:bg-blood-500',
+        ],
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        sm:   'h-8  px-3  text-xs',
+        md:   'h-10 px-5  text-sm',
+        lg:   'h-12 px-8  text-base',
+        icon: 'h-10 w-10',
+        full: 'w-full h-12 px-8 text-base',
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: 'primary',
+      size: 'md',
     },
   }
 )
@@ -40,9 +58,7 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-      { className, variant, size, asChild = false, ...props }
-      , ref) => {
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
       <Comp

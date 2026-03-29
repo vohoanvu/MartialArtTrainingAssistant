@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import './index.css'
+import './styles/tokens.css'
+import './styles/globals.css'
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import {Home} from "@/pages/Home.tsx";
 import {Layout} from "@/components/layouts/Layout.tsx";

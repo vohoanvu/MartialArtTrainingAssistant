@@ -117,13 +117,13 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
             <Button
                 onClick={() => setShowCreateForm(!showCreateForm)}
                 className=""
-                variant="default"
+                variant="primary"
             >
                 <PlusIcon/>
             </Button>
 
             {showCreateForm && (
-                <div className="p-4 bg-background rounded-md space-y-4 border border-border">
+                <div className="p-4 bg-parchment-100 rounded-md space-y-4 border border-[rgba(60,50,40,0.10)]">
                     <div>
                         <label className="block text-sm font-medium">
                             Drill Name
@@ -202,13 +202,13 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                     <div className="flex space-x-2">
                         <Button
                             onClick={addDrill}
-                            className="bg-gray-800 text-white hover:bg-gray-700"
+                            className="bg-ink-400 text-white hover:bg-ink-300"
                         >
                             Add Drill
                         </Button>
                         <Button
                             onClick={() => setShowCreateForm(false)}
-                            className="bg-gray-600 text-white hover:bg-gray-500"
+                            className="bg-slate-zen400 text-white hover:bg-slate-zen300"
                         >
                             Cancel
                         </Button>
@@ -226,8 +226,8 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                 const selectValue = relatedTechnique?.name || '__none__';
 
                 return (
-                    <div key={index} className="border-b border-border pb-4">
-                        <div className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40" onClick={() => toggleDrillDetails(index)}>
+                    <div key={index} className="border-b border-[rgba(60,50,40,0.10)] pb-4">
+                        <div className="flex justify-between items-center cursor-pointer p-2 hover:bg-parchment-200/40" onClick={() => toggleDrillDetails(index)}>
                             <p className="flex items-center gap-2">
                                 <strong>Drill Name:</strong>
                                 {editingNameIndex === index ? (
@@ -254,12 +254,12 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                                             title="Save"
                                         >
                                             <span className="sr-only">Save</span>
-                                            <Pencil className="w-4 h-4 text-primary" />
+                                            <Pencil className="w-4 h-4 text-samurai-400" />
                                         </Button>
                                     </>
                                 ) : (
                                     <>
-                                        <span className="text-foreground">{drill.name}</span>
+                                        <span className="text-ink-400">{drill.name}</span>
                                         <Button
                                             size="icon"
                                             variant="ghost"
@@ -271,19 +271,19 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                                             title="Edit"
                                         >
                                             <span className="sr-only">Edit</span>
-                                            <Pencil className="w-4 h-4 text-primary" />
+                                            <Pencil className="w-4 h-4 text-samurai-400" />
                                         </Button>
                                     </>
                                 )}
                             </p>
                             {expandedDrills[index] ? (
-                                <ChevronUp className="text-primary" />
+                                <ChevronUp className="text-samurai-400" />
                             ) : (
-                                <ChevronDown className="text-primary" />
+                                <ChevronDown className="text-samurai-400" />
                             )}
                         </div>
                         {expandedDrills[index] && (
-                            <div className="p-2 space-y-2 bg-background rounded-md border border-border">
+                            <div className="p-2 space-y-2 bg-parchment-100 rounded-md border border-[rgba(60,50,40,0.10)]">
                                 <div>
                                     <label className="block text-sm font-medium">
                                         Focus
@@ -352,7 +352,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
                                 </div>
                                 <Button
                                     onClick={() => deleteDrill(index)}
-                                    className="bg-red-500 text-white hover:bg-red-600"
+                                    className="bg-blood-500 text-white hover:bg-blood-600"
                                 >
                                     <TrashIcon/>
                                 </Button>
@@ -366,7 +366,7 @@ export const DrillsEditorial: React.FC<DrillsEditorialProps> = ({
             <Button
                 onClick={saveChanges}
                 className="mt-4"
-                variant="default"
+                variant="primary"
                 size='lg'
             >
                 {isAnalysisSaving ? "Saving changes..." : "Save Changes"}

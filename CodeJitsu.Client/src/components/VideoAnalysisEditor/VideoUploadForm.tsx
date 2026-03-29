@@ -90,11 +90,11 @@ const VideoUploadForm = ({
     };
 
     return (
-        <div className="w-full max-w p-4 bg-background rounded-lg shadow-md border border-border">
-            <h2 className="text-xl font-bold mb-4 text-foreground">{title}</h2>
+        <div className="w-full max-w p-4 bg-parchment-100 rounded-lg shadow-zen-md border border-[rgba(60,50,40,0.10)]">
+            <h2 className="text-xl font-bold mb-4 font-serif text-ink-400">{title}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="videoFile" className="block text-sm font-medium text-foreground">
+                    <label htmlFor="videoFile" className="block text-sm font-medium text-ink-400">
                         Video File (MP4 or AVI)
                     </label>
                     <Input
@@ -107,7 +107,7 @@ const VideoUploadForm = ({
                     />
                 </div>
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-foreground">
+                    <label htmlFor="description" className="block text-sm font-medium text-ink-400">
                         Description
                     </label>
                     <Input
@@ -121,7 +121,7 @@ const VideoUploadForm = ({
                     />
                 </div>
                 <div>
-                    <label htmlFor="studentIdentifier" className="block text-sm font-medium text-foreground">
+                    <label htmlFor="studentIdentifier" className="block text-sm font-medium text-ink-400">
                         Specify which fighter in the video you want the AI to analyze!
                     </label>
                     <Textarea
@@ -135,7 +135,7 @@ const VideoUploadForm = ({
                     />
                 </div>
                 <div>
-                    <label htmlFor="martialArt" className="block text-sm font-medium text-foreground">
+                    <label htmlFor="martialArt" className="block text-sm font-medium text-ink-400">
                         Martial Art
                     </label>
                     <Select
@@ -166,13 +166,13 @@ const VideoUploadForm = ({
             {isUploading && (
                 <div className="mt-4">
                     <progress value={progress} max="100" className="w-full" />
-                    <p className="text-center mt-1 text-muted-foreground">{progress}%</p>
+                    <p className="text-center mt-1 text-slate-zen400">{progress}%</p>
                 </div>
             )}
-            {error && <p className="text-destructive mt-2">{error}</p>}
+            {error && <p className="text-blood-500 mt-2">{error}</p>}
             {signedUrl && (
                 <div className="mt-4">
-                    <p className="text-green-500">Upload successful!</p>
+                    <p className="text-samurai-500">Upload successful!</p>
                     {/* <video src={signedUrl} controls className="w-full mt-2" /> */}
                 </div>
             )}

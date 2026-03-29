@@ -31,7 +31,7 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({
 }) => {
 
     return (
-        <div id="studentDetails" className="grid grid-cols-2 gap-4 p-4 m-2 shadow-md border">
+        <div id="studentDetails" className="grid grid-cols-2 gap-4 p-4 m-2 shadow-zen-md border border-[rgba(60,50,40,0.10)]">
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Student Name</label>
                 <Input

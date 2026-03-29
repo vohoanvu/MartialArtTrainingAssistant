@@ -163,16 +163,16 @@ const TrainingSessionDetails = () => {
         alert(`Feedback recorded: ${helpful ? 'Helpful' : 'Not Helpful'}`);
     };
 
-    if (loading) return <p className="text-center text-lg text-muted-foreground">Loading...</p>;
-    if (error) return <p className="text-center text-lg text-destructive">{error}</p>;
+    if (loading) return <p className="text-center text-lg text-slate-zen400">Loading...</p>;
+    if (error) return <p className="text-center text-lg text-blood-300">{error}</p>;
 
     return (
-        <div className="container mx-auto max-w-6xl p-8 shadow-lg rounded-lg bg-card text-card-foreground transition-colors duration-300">
-            <h1 className="text-3xl font-bold mb-6 text-center">Class Session Details</h1>
+        <div className="container mx-auto max-w-6xl p-8 shadow-zen-md rounded-lg bg-parchment-50 text-ink-400 transition-colors duration-300 border border-[rgba(60,50,40,0.10)]">
+            <h1 className="font-serif text-3xl font-bold mb-6 text-center text-ink-400">Class Session Details</h1>
             <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex-1">
                     {sessionDetails?.instructor ? (
-                        <div className="border border-border p-4 rounded-lg mb-6 bg-accent transition-colors">
+                        <div className="border border-[rgba(60,50,40,0.10)] p-4 rounded-lg mb-6 bg-parchment-200 transition-colors">
                             <p><strong>Instructor Name:</strong> {sessionDetails.instructor.fighterName}</p>
                             <p><strong>Training Date:</strong> {sessionDetails.trainingDate}</p>
                             <p><strong>Capacity:</strong> {sessionDetails.capacity}</p>
@@ -190,12 +190,12 @@ const TrainingSessionDetails = () => {
                                     <Button
                                         type="button"
                                         onClick={() => setShowAttendanceForm(true)}
-                                        variant='default'
+                                        variant='primary'
                                         disabled={isLessonloading || isPairingLoading}
                                     >
                                         Take Attendance
                                     </Button>
-                                    <Button type="button" variant='outline'
+                                    <Button type="button" variant='secondary'
                                         onClick={() =>
                                             openConfirmationDialog(
                                                 "Pairing up the students",
@@ -211,13 +211,13 @@ const TrainingSessionDetails = () => {
                                     </Button>
                                     {isPairingLoading && (
                                         <div className="flex items-center space-x-2">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent-foreground"></div> {/* Use a different color if needed, e.g., border-secondary */}
-                                            <p className="text-accent-foreground">AI is matching fighters...</p>
+                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-samurai-400"></div>
+                                            <p className="text-samurai-400">AI is matching fighters...</p>
                                         </div>
                                     )}
                                     <Button
                                         type="button"
-                                        variant='default'
+                                        variant='primary'
                                         onClick={() =>
                                             openConfirmationDialog(
                                                 "Generate AI Lesson Plan",
@@ -233,15 +233,15 @@ const TrainingSessionDetails = () => {
                                     </Button>
                                     {isLessonloading && (
                                         <div className="mt-4 flex items-center space-x-2">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                                            <p className="text-primary">The AI is designing the curriculum for you. This may take a few minutes...</p>
+                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-samurai-400"></div>
+                                            <p className="text-samurai-400">The AI is designing the curriculum for you. This may take a few minutes...</p>
                                         </div>
                                     )}
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <p className="text-muted-foreground">No session details available.</p>
+                        <p className="text-slate-zen400">No session details available.</p>
                     )}
                     <ConfirmationDialog
                         title={confirmationOptions.title}
@@ -258,8 +258,8 @@ const TrainingSessionDetails = () => {
                 </div>
 
                 <div className="flex-1 md:max-w-xs">
-                    <div className="border border-border p-4 rounded-lg bg-accent transition-colors">
-                        <h2 className="text-1xl font-bold">Students Roster</h2>
+                    <div className="border border-[rgba(60,50,40,0.10)] p-4 rounded-lg bg-parchment-200 transition-colors">
+                        <h2 className="text-1xl font-bold text-ink-400">Students Roster</h2>
                         {sessionDetails && sessionDetails.students.length > 0 ? (
                             <ul className="list-disc pl-5 mt-2">
                                 {sessionDetails.students.map((student) => (
@@ -269,13 +269,13 @@ const TrainingSessionDetails = () => {
                                             <button
                                                 onClick={() => handleRemoveStudent(student.id)}
                                                 disabled={isRemoving === student.id}
-                                                className="p-1 hover:bg-destructive/20 rounded-full transition-colors"
+                                                className="p-1 hover:bg-blood-300/20 rounded-full transition-colors"
                                                 title="Remove student from session"
                                             >
                                                 {isRemoving === student.id ? (
                                                     <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
                                                 ) : (
-                                                    <Trash2 className="h-4 w-4 text-destructive hover:text-destructive/80" />
+                                                    <Trash2 className="h-4 w-4 text-blood-300 hover:text-blood-400" />
                                                 )}
                                             </button>
                                         )}
@@ -283,7 +283,7 @@ const TrainingSessionDetails = () => {
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-muted-foreground">No students enrolled in this session.</p>
+                            <p className="text-slate-zen400">No students enrolled in this session.</p>
                         )}
                     </div>
                 </div>
@@ -295,8 +295,8 @@ const TrainingSessionDetails = () => {
 
             {/* Attendance Taking layover */}
             {showAttendanceForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-                    <div className="bg-background p-6 rounded-lg w-[95vw] max-w-[1500px] max-h-[90vh] overflow-y">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+                    <div className="bg-parchment-50 p-6 rounded-lg w-[95vw] max-w-[1500px] max-h-[90vh] overflow-y shadow-zen-lg">
                         <AttendancePage 
                             trainingSessionId={sessionIdNumber}
                             sessionDetailsViewModel={sessionDetails}
@@ -336,7 +336,7 @@ const FighterPairs = ({ pairingData }: FighterPairsProps) => {
             <h2 className="text-2xl font-bold">Fighter Pairs</h2>
             <ul className="mt-4 space-y-2">
                 {pairingData.pairs.map((pair, index) => (
-                    <li key={index} className="p-4 border border-border rounded-lg shadow-sm bg-background">
+                    <li key={index} className="p-4 border border-[rgba(60,50,40,0.10)] rounded-lg shadow-zen-sm bg-parchment-50">
                         <p>
                             <strong>{pair.fighter1_name}</strong> VS <strong>{pair.fighter2_name}</strong>
                         </p>
@@ -344,22 +344,22 @@ const FighterPairs = ({ pairingData }: FighterPairsProps) => {
                 ))}
             </ul>
             {pairingData.unpaired_student ? (
-                <div className="mt-2 p-4 bg-background border border-border rounded-md shadow-md">
-                    <span className="text-xl font-bold mb-4 text-foreground">Unpaired Students</span>
-                    <div className="bg-muted p-4 rounded-md overflow-auto">
+                <div className="mt-2 p-4 bg-parchment-50 border border-[rgba(60,50,40,0.10)] rounded-md shadow-zen-sm">
+                    <span className="text-xl font-bold mb-4 text-ink-400">Unpaired Students</span>
+                    <div className="bg-parchment-200 p-4 rounded-md overflow-auto">
                         <span className="font-semibold">
                             {pairingData.unpaired_student.studentId} : {pairingData.unpaired_student.studentName}
                         </span>
-                        <pre className="text-sm text-foreground whitespace-pre-wrap">
+                        <pre className="text-sm text-ink-400 whitespace-pre-wrap">
                             {pairingData.unpaired_student.reason}
                         </pre>
                     </div>
                 </div>
             ) : (
-                <div className="mt-2 p-4 bg-background border border-border rounded-md shadow-md">
-                    <span className="text-xl font-bold mb-4 text-foreground">Rationale</span>
-                    <div className="bg-muted p-4 rounded-md overflow-auto">
-                        <pre className="text-sm text-foreground whitespace-pre-wrap">
+                <div className="mt-2 p-4 bg-parchment-50 border border-[rgba(60,50,40,0.10)] rounded-md shadow-zen-sm">
+                    <span className="text-xl font-bold mb-4 text-ink-400">Rationale</span>
+                    <div className="bg-parchment-200 p-4 rounded-md overflow-auto">
+                        <pre className="text-sm text-ink-400 whitespace-pre-wrap">
                             {pairingData.pairing_rationale}
                         </pre>
                     </div>

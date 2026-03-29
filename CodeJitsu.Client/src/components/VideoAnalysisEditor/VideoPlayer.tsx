@@ -274,7 +274,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
             <div className="timeline-container mt-2 relative">
                 <div
                     ref={timelineRef}
-                    className="timeline w-full h-10 bg-muted dark:bg-neutral-800 relative rounded-md cursor-pointer border border-border"
+                    className="timeline w-full h-10 bg-parchment-200 relative rounded-md cursor-pointer border border-[rgba(60,50,40,0.10)]"
                     onClick={handleTimelineClick}
                     onContextMenu={handleRightClick}
                     onMouseDown={handleMouseDown}
@@ -305,7 +305,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                         return (
                             <div
                                 key={technique.id}
-                                className="marker absolute top-0 h-full cursor-pointer bg-yellow-400 dark:bg-yellow-300"
+                                className="marker absolute top-0 h-full cursor-pointer bg-yellow-400"
                                 style={{
                                     left: `${leftPercent}%`, // Use calculated percent
                                     width: '5px',
@@ -321,14 +321,14 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 </div>
                 {selectedSegment && (
                     <div className="mt-2 flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-slate-zen400">
                             Selected Segment: {selectedSegment.start} - {selectedSegment.end}
                         </p>
                         <Button
                             onClick={handleClearSelection}
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
-                            className="text-destructive"
+                            className="text-blood-500"
                         >
                             Clear Selection
                         </Button>

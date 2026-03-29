@@ -20,25 +20,25 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-            <Card className="w-[400px] shadow-lg">
+        <div className="fixed inset-0 bg-parchment-100/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <Card className="w-[400px] shadow-zen-lg bg-parchment-50 border-[rgba(60,50,40,0.10)]">
                 <CardHeader>
-                    <CardTitle>{title}</CardTitle>
+                    <CardTitle className="font-serif text-ink-400">{title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">{message}</p>
+                    <p className="text-slate-zen400 font-sans">{message}</p>
                 </CardContent>
                 <CardFooter className="flex justify-end space-x-2">
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         onClick={onCancel}
                     >
                         Cancel
                     </Button>
                     <Button
                         type="button"
-                        variant="default"
+                        variant="primary"
                         onClick={onConfirm}
                     >
                         Confirm

@@ -123,11 +123,11 @@ const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageL
     // };
 
     return (
-        <div className="max-w-6xl mx-auto my-5 p-4 border border-border rounded-lg shadow-md bg-background">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">Uploaded Videos</h2>
-            {isLoading && <p className="text-muted-foreground">Loading...</p>}
-            {error && <p className="text-destructive">{error}</p>}
-            {!isLoading && !error && videos.length === 0 && <p className="text-muted-foreground">No videos uploaded.</p>}
+        <div className="max-w-6xl mx-auto my-5 p-4 border border-[rgba(60,50,40,0.10)] rounded-lg shadow-zen-sm bg-parchment-50">
+            <h2 className="text-xl font-serif font-semibold mb-4 text-ink-400">Uploaded Videos</h2>
+            {isLoading && <p className="text-slate-zen400">Loading...</p>}
+            {error && <p className="text-blood-300">{error}</p>}
+            {!isLoading && !error && videos.length === 0 && <p className="text-slate-zen400">No videos uploaded.</p>}
             {!isLoading && videos.length > 0 && (
                 <Table className="w-full">
                     <TableHeader>
@@ -148,7 +148,7 @@ const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageL
                                 <TableCell>{video.fighterName}</TableCell>
                                 <TableCell className="flex space-x-2">
                                     <Button
-                                        variant="destructive"
+                                        variant="danger"
                                         size="icon"
                                         onClick={() => handleDelete(video.id)}
                                         disabled={isLoading}
@@ -156,14 +156,14 @@ const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageL
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                     <Button
-                                        variant="default"
+                                        variant="primary"
                                         size="sm"
                                         onClick={() => handleReview(video.id)}
                                     >
                                         View Analysis Results
                                     </Button>
                                     <Button
-                                        variant="outline"
+                                        variant="secondary"
                                         size="sm"
                                         onClick={() => handleViewAnalysis(video.id, video.aiAnalysisResult)}
                                     >
@@ -177,14 +177,14 @@ const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageL
             )}
 
             {selectedAnalysis && (
-                <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center z-50">
-                    <div className="bg-background p-6 rounded-lg shadow-lg max-w-6xl w-full max-h-[80vh] overflow-y-auto border border-border">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                    <div className="bg-parchment-50 p-6 rounded-lg shadow-zen-lg max-w-6xl w-full max-h-[80vh] overflow-y-auto border border-[rgba(60,50,40,0.10)]">
                         <AiAnalysisResults analysisJson={selectedAnalysis.aiAnalysisResult} />
                         <div className="flex justify-between mt-4">
                             {/* <Button variant="default" onClick={onImportAIAnalysis}>Import AI Analysis</Button> */}
                             <Button variant="secondary" onClick={closeDialog}>Close</Button>
                         </div>
-                        {error && <p className="text-destructive mt-2">{error}</p>}
+                        {error && <p className="text-blood-300 mt-2">{error}</p>}
                     </div>
                 </div>
             )}

@@ -112,10 +112,10 @@ const VideoReview: React.FC = () => {
 
     return (
         <div className="w-full">
-            <h1 className="text-3xl font-bold text-center mt-3">Review and edit this tape</h1>
+            <h1 className="font-serif text-3xl font-bold text-center mt-3 text-ink-400">Review and edit this tape</h1>
             <div className="flex flex-col md:flex-row gap-4 md:p-4 m-0 md:m-2">
                 <div className="w-full md:w-1/2 flex flex-col gap-4">
-                    <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
+                    <div className="rounded-lg shadow-zen-sm bg-parchment-50 border border-[rgba(60,50,40,0.10)] p-2 md:p-4">
                         <VideoPlayer
                             ref={videoPlayerRef}
                             videoUrl={videoUrl}
@@ -127,12 +127,12 @@ const VideoReview: React.FC = () => {
                             onSegmentSelect={(start, end) => setSelectedSegment({ start, end })}
                         />
                     </div>
-                    <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4">
+                    <div className="rounded-lg shadow-zen-sm bg-parchment-50 border border-[rgba(60,50,40,0.10)] p-2 md:p-4">
                         <StudentDetails fighterDetails={fighterDetails} studentIdentifier={studentIdentifier} />
                     </div>
                 </div>
                 <div className="w-full md:w-1/2 mt-4 md:mt-0">
-                    <div className="rounded-lg shadow bg-background border border-border p-2 md:p-4 h-full">
+                    <div className="rounded-lg shadow-zen-sm bg-parchment-50 border border-[rgba(60,50,40,0.10)] p-2 md:p-4 h-full">
                         <TechniqueFeedback
                             feedbackData={feedbackList}
                             onSeek={handleSeek}

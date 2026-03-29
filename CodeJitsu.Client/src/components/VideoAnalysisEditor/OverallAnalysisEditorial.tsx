@@ -82,8 +82,8 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
 
     return (
         <div className="space-y-4">
-            <div className="p-4 bg-background rounded-md shadow border border-border">
-                <label className="block text-sm font-medium text-foreground">
+            <div className="p-4 bg-parchment-100 rounded-md shadow-zen-sm border border-[rgba(60,50,40,0.10)]">
+                <label className="block text-sm font-medium text-ink-400">
                     Overall Description
                 </label>
                 <Textarea
@@ -95,16 +95,16 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                 />
             </div>
 
-            <div className="p-4 bg-background rounded-md shadow border border-border">
+            <div className="p-4 bg-parchment-100 rounded-md shadow-zen-sm border border-[rgba(60,50,40,0.10)]">
                 <div
-                    className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40"
+                    className="flex justify-between items-center cursor-pointer p-2 hover:bg-parchment-200/40"
                     onClick={() => setShowStrengths(!showStrengths)}
                 >
-                    <h3 className="text-lg font-bold text-foreground">Strengths</h3>
+                    <h3 className="text-lg font-bold font-serif text-ink-400">Strengths</h3>
                     {showStrengths ? (
-                        <ChevronUp className="text-primary" />
+                        <ChevronUp className="text-samurai-400" />
                     ) : (
-                        <ChevronDown className="text-primary" />
+                        <ChevronDown className="text-samurai-400" />
                     )}
                 </div>
                 {showStrengths && (
@@ -115,8 +115,8 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                 const selectValue = relatedTechnique?.name || '__none__';
 
                                 return (
-                                    <div key={index} className="p-4 bg-background rounded-md border border-border">
-                                        <label className="block text-sm font-medium text-foreground">
+                                    <div key={index} className="p-4 bg-parchment-100 rounded-md border border-[rgba(60,50,40,0.10)]">
+                                        <label className="block text-sm font-medium text-ink-400">
                                             Strength {index + 1} Description
                                         </label>
                                         <Textarea
@@ -127,7 +127,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                             className="mt-1"
                                             placeholder="Enter strength description"
                                         />
-                                        <label className="block text-sm font-medium mt-2 text-foreground">
+                                        <label className="block text-sm font-medium mt-2 text-ink-400">
                                             Related Technique
                                         </label>
                                         <Select
@@ -152,7 +152,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                         <Button
                                             onClick={() => deleteStrength(index)}
                                             className="mt-2"
-                                            variant="destructive"
+                                            variant="danger"
                                         >
                                             <TrashIcon/>
                                         </Button>
@@ -163,7 +163,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                         <Button
                             onClick={addStrength}
                             className="mt-2"
-                            variant="outline"
+                            variant="secondary"
                         >
                             <PlusIcon/>
                         </Button>
@@ -171,16 +171,16 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                 )}
             </div>
 
-            <div className="p-4 bg-background rounded-md shadow border border-border">
+            <div className="p-4 bg-parchment-100 rounded-md shadow-zen-sm border border-[rgba(60,50,40,0.10)]">
                 <div
-                    className="flex justify-between items-center cursor-pointer p-2 hover:bg-accent/40"
+                    className="flex justify-between items-center cursor-pointer p-2 hover:bg-parchment-200/40"
                     onClick={() => setShowAreas(!showAreas)}
                 >
-                    <h3 className="text-lg font-bold text-foreground">Areas for Improvement</h3>
+                    <h3 className="text-lg font-bold font-serif text-ink-400">Areas for Improvement</h3>
                     {showAreas ? (
-                        <ChevronUp className="text-primary" />
+                        <ChevronUp className="text-samurai-400" />
                     ) : (
-                        <ChevronDown className="text-primary" />
+                        <ChevronDown className="text-samurai-400" />
                     )}
                 </div>
                 {showAreas && (
@@ -191,8 +191,8 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                 const selectImprovementTechniqueValue = relatedTechnique?.name || '__none__';
 
                                 return (
-                                    <div key={index} className="p-4 bg-background rounded-md border border-border">
-                                        <label className="block text-sm font-medium text-foreground">
+                                    <div key={index} className="p-4 bg-parchment-100 rounded-md border border-[rgba(60,50,40,0.10)]">
+                                        <label className="block text-sm font-medium text-ink-400">
                                             Area for Improvement {index + 1} Description
                                         </label>
                                         <Textarea
@@ -203,7 +203,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                             className="mt-1"
                                             placeholder="Enter area for improvement description"
                                         />
-                                        <label className="block text-sm font-medium mt-2 text-foreground">
+                                        <label className="block text-sm font-medium mt-2 text-ink-400">
                                             Related Technique
                                         </label>
                                         <Select
@@ -228,7 +228,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                                         <Button
                                             onClick={() => deleteArea(index)}
                                             className="mt-2"
-                                            variant="destructive"
+                                            variant="danger"
                                         >
                                             <TrashIcon/>
                                         </Button>
@@ -239,7 +239,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
                         <Button
                             onClick={addArea}
                             className="mt-2"
-                            variant="outline"
+                            variant="secondary"
                         >
                             <PlusIcon/>
                         </Button>
@@ -250,7 +250,7 @@ export const OverallAnalysisEditorial: React.FC<OverallAnalysisEditorialProps> =
             <Button
                 onClick={saveChanges}
                 className="mt-4"
-                variant="default"
+                variant="primary"
                 size='lg'
             >
                 {isAnalysisSaving ? "Saving changes..." : "Save Changes"}
