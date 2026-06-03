@@ -97,7 +97,18 @@ The `app-client` container uses `default.local.conf` (HTTP-only, no SSL) for loc
 
 ## Deployment
 
-The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-c`, project `project-afa815fe-26c6-40c3-a8b` / "MyCoach") with Nginx as reverse proxy and Let's Encrypt SSL. The site stays on `thecodejitsu.com`, fronted by Cloudflare (proxied). The VM authenticates to GCS + Vertex AI **keyless** via its attached service account `codejitsu-vm-runtime` (no mounted SA key — MyCoach enforces `constraints/iam.disableServiceAccountKeyCreation`). Migrated from the personal `codejitsu` project in June 2026; see `MIGRATION-PLAN-gcp-codejitsu-to-mycoach.md`.
+The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-c`, project `project-afa815fe-26c6-40c3-a8b` / "MyCoach") with Nginx as reverse proxy. The site stays on `thecodejitsu.com`, fronted by Cloudflare (proxied, **Full (Strict)** SSL) terminating at a **Cloudflare Origin CA cert** on the VM (15-yr, valid to 2041). The VM authenticates to GCS + Vertex AI **keyless** via its attached service account `codejitsu-vm-runtime` (no mounted SA key — MyCoach enforces `constraints/iam.disableServiceAccountKeyCreation`). Migrated from the personal `codejitsu` project in June 2026; see `MIGRATION-PLAN-gcp-codejitsu-to-mycoach.md`.
+
+### Current infrastructure (post-migration, June 2026)
+
+- **Project:** `project-afa815fe-26c6-40c3-a8b` ("MyCoach"), company-billed. Region `us-central1`, zone `us-central1-c`.
+- **VM:** `thecodejitsu-app-vm` (e2-small, Ubuntu 24.04), static IP **35.232.12.173**, app dir **`/home/vohoanvu/app`**.
+- **Keyless auth:** the VM's attached SA `codejitsu-vm-runtime` is the app's ADC identity (Secret Manager accessor [per-secret], Artifact Registry reader, `aiplatform.user`, Storage `objectAdmin` on the bucket, and Token-Creator-on-self for V4 signed-URL `signBlob`). **No SA key files** — `GoogleCloudStorageService`/`GeminiVisionService` fall back to ADC.
+- **docker-compose:** v2 standalone at `/usr/local/bin/docker-compose`. **Run it WITHOUT `sudo`** (the user is in the `docker` group; the gcloud credential helper is a snap at `/snap/bin` that `sudo`'s secure_path can't see — `sudo docker-compose pull` fails AR auth).
+- **TLS:** Cloudflare proxied + Full (Strict); Origin CA cert at `~/app/letsencrypt/config/live/thecodejitsu.com/` (private key generated on-VM, never left it). DNS is at **Cloudflare** (not Cloud DNS); cutover = flip the origin A record there.
+- **Secrets:** GCP Secret Manager in MyCoach, scoped per-secret to the VM SA. Refresh with `bash ~/app/refresh-env-secret-manager.sh` (keyless; no GCS key fetch).
+- **CI/CD:** WIF pool `github-pool` / provider `codejitsu-provider` + SA `codejitsu-cicd-deployer`; GitHub secrets `GCP_PROJECT_ID`, `GCP_SERVICE_ACCOUNT`, `GCP_WORKLOAD_IDENTITY_PROVIDER`.
+- See `HANDOFF.md` for outstanding work (old-project decommission, Vertex pipeline refactor).
 
 **CI/CD is partial** â€” GitHub Actions (`.github/workflows/deploy-to-vm.yml`) only builds Docker images and pushes to GCP Artifact Registry (`us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo`). Actual deployment requires manual SSH into the VM.
 
