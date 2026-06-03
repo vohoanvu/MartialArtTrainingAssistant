@@ -1,6 +1,6 @@
 services:
   fighter-manager:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/fighter-manager:latest
+    image: us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo/fighter-manager:latest
     ports:
       - "7080:7080"
     env_file: .env
@@ -9,18 +9,19 @@ services:
     networks:
       - appnet
   video-analysis:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/video-analysis:latest
+    image: us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo/video-analysis:latest
     ports:
       - "7081:7081"
     env_file: .env
     environment:
       - ASPNETCORE_APP_DB=${SUPABASE_APP_DB}
-    volumes:
-      - ./secrets/gcs-key.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro
+    # Keyless auth: the app uses Application Default Credentials from the VM's attached
+    # service account (codejitsu-vm-runtime). No mounted SA key (org policy
+    # constraints/iam.disableServiceAccountKeyCreation blocks key creation on MyCoach).
     networks:
       - appnet
   app-client:
-    image: us-central1-docker.pkg.dev/codejitsu/codejitsu-repo/app-client:latest
+    image: us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo/app-client:latest
     ports:
       - "80:80"
       - "443:443"

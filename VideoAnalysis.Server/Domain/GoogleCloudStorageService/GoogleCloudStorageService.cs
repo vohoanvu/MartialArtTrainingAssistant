@@ -17,12 +17,26 @@ namespace VideoAnalysis.Server.Domain.GoogleCloudStorageService
     {
         private readonly StorageClient _storageClient;
         private readonly string _bucketName;
+        private readonly GoogleCredential _credential;
 
         public GoogleCloudStorageService()
         {
-            var credential = GoogleCredential.FromFile(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath));
-            _storageClient = StorageClient.Create(credential);
+            _credential = ResolveCredential();
+            _storageClient = StorageClient.Create(_credential);
             _bucketName = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudBucketName);
+        }
+
+        // Use a mounted service-account key when one is present; otherwise fall back to
+        // Application Default Credentials (the GCE VM's attached service account). ADC keeps us
+        // compatible with the iam.disableServiceAccountKeyCreation org policy on the MyCoach project.
+        private static GoogleCredential ResolveCredential()
+        {
+            var keyPath = Environment.GetEnvironmentVariable("GoogleCloud__ServiceAccountKeyPath");
+            if (!string.IsNullOrEmpty(keyPath) && File.Exists(keyPath))
+            {
+                return GoogleCredential.FromFile(keyPath);
+            }
+            return GoogleCredential.GetApplicationDefault();
         }
 
         /// <inheritdoc/>
@@ -42,8 +56,10 @@ namespace VideoAnalysis.Server.Domain.GoogleCloudStorageService
         public async Task<string> GenerateSignedUrlAsync(string filePath, TimeSpan expiration)
         {
             var objectName = filePath.Replace($"gs://{_bucketName}/", "");
-            var urlSigner = UrlSigner.FromCredential(
-                await GoogleCredential.FromFileAsync(Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath), CancellationToken.None));
+            // FromCredential signs locally when the credential carries a private key, and via the
+            // IAM signBlob API when it does not (e.g. the VM's compute/ADC credential). The latter
+            // requires the iam.serviceAccounts.signBlob permission (roles/iam.serviceAccountTokenCreator).
+            var urlSigner = UrlSigner.FromCredential(_credential);
             return await urlSigner.SignAsync(_bucketName, objectName, expiration, HttpMethod.Get);
         }
         

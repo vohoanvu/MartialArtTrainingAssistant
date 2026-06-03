@@ -8,7 +8,7 @@
 
 This guide assumes the following conditions are met:
 1.  Application code changes have been pushed to your GitHub repository.
-2.  Your GitHub Actions workflow has successfully built the new Docker images and pushed them to Google Artifact Registry (`us-central1-docker.pkg.dev/codejitsu/codejitsu-repo`).
+2.  Your GitHub Actions workflow has successfully built the new Docker images and pushed them to Google Artifact Registry (`us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo`).
 3.  You have SSH access to the production VM (`thecodejitsu-app-vm`).
 
 ---
@@ -22,7 +22,7 @@ Follow these steps each time you want to deploy an update.
 Open a terminal on your local machine and SSH into the server.
 
 ```bash
-gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=codejitsu
+gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=project-afa815fe-26c6-40c3-a8b
 ```
 
 Ensure these steps are completed whenever VM restarts:
@@ -76,7 +76,7 @@ sudo docker-compose pull
 
 ```bash
 #!/bin/bash
-PROJECT_ID="codejitsu"
+PROJECT_ID="project-afa815fe-26c6-40c3-a8b"
 ENV_FILE=".env"
 # Add or remove secret names from this list as needed.
 SECRETS_TO_FETCH=(
@@ -190,7 +190,7 @@ gcloud compute firewall-rules create allow-http-80 \
     --source-ranges=0.0.0.0/0 \
     --target-tags=http-server \
     --description="Allow port 80 for Let's Encrypt and HTTP" \
-    --project=codejitsu
+    --project=project-afa815fe-26c6-40c3-a8b
 
 gcloud compute firewall-rules create allow-https-443 \
     --network=default \
@@ -198,14 +198,14 @@ gcloud compute firewall-rules create allow-https-443 \
     --source-ranges=0.0.0.0/0 \
     --target-tags=http-server \
     --description="Allow port 443 for SSL/TLS" \
-    --project=codejitsu
+    --project=project-afa815fe-26c6-40c3-a8b
 ```
 
 - Check public IP:
 ```shell
 gcloud compute instances describe thecodejitsu-app-vm \
     --zone=us-central1-c \
-    --project=codejitsu \
+    --project=project-afa815fe-26c6-40c3-a8b \
     --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
 ```
 

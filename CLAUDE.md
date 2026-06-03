@@ -97,12 +97,12 @@ The `app-client` container uses `default.local.conf` (HTTP-only, no SSL) for loc
 
 ## Deployment
 
-The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-c`, project `codejitsu`) with Nginx as reverse proxy and Let's Encrypt SSL.
+The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-c`, project `project-afa815fe-26c6-40c3-a8b` / "MyCoach") with Nginx as reverse proxy and Let's Encrypt SSL. The site stays on `thecodejitsu.com`, fronted by Cloudflare (proxied). The VM authenticates to GCS + Vertex AI **keyless** via its attached service account `codejitsu-vm-runtime` (no mounted SA key — MyCoach enforces `constraints/iam.disableServiceAccountKeyCreation`). Migrated from the personal `codejitsu` project in June 2026; see `MIGRATION-PLAN-gcp-codejitsu-to-mycoach.md`.
 
-**CI/CD is partial** â€” GitHub Actions (`.github/workflows/deploy-to-vm.yml`) only builds Docker images and pushes to GCP Artifact Registry (`us-central1-docker.pkg.dev/codejitsu/codejitsu-repo`). Actual deployment requires manual SSH into the VM.
+**CI/CD is partial** â€” GitHub Actions (`.github/workflows/deploy-to-vm.yml`) only builds Docker images and pushes to GCP Artifact Registry (`us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo`). Actual deployment requires manual SSH into the VM.
 
 **Manual deploy workflow:**
-1. SSH: `gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=codejitsu`
+1. SSH: `gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=project-afa815fe-26c6-40c3-a8b`
 2. Run the all-in-one deploy script: `bash ~/deploy-app.sh`
    - This handles: docker auth, pull, secret refresh, container restart, verification, and image cleanup
    - Use `bash` to invoke it (avoids `chmod` permission issues on the VM)

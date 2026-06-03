@@ -68,9 +68,11 @@ namespace VideoAnalysis.Server.Domain.GeminiService
             _visionModel = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionModel);
             _textModel = Global.Configuration?["GeminiVision:TextModel"] ?? "gemini-3.1-flash-lite-preview";
 
-            // Authenticate: try service account key file first, fall back to ADC
-            var keyPath = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudServiceAccountKeyPath);
-            if (File.Exists(keyPath))
+            // Authenticate: try service account key file first, fall back to ADC.
+            // Global.AccessAppEnvironmentVariable throws when the key path is unset/missing, so read
+            // the env var directly to allow a clean ADC fallback on keyless (org-policy) deployments.
+            var keyPath = Environment.GetEnvironmentVariable("GoogleCloud__ServiceAccountKeyPath");
+            if (!string.IsNullOrEmpty(keyPath) && File.Exists(keyPath))
             {
                 _credential = GoogleCredential.FromFile(keyPath)
                     .CreateScoped("https://www.googleapis.com/auth/cloud-platform");
