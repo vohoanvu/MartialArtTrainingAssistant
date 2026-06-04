@@ -43,8 +43,9 @@ public class GeminiControllerTests
         var loggerMock = new Mock<ILogger<GeminiController>>();
         var serviceProvider = BuildServiceProvider(db, geminiMock);
         var options = Options.Create(pipelineOptions ?? new VertexAiPipelineOptions());
+        var transcoderOptions = Options.Create(new TranscoderOptions());
 
-        var controller = new GeminiController(geminiMock.Object, serviceProvider, loggerMock.Object, options);
+        var controller = new GeminiController(geminiMock.Object, serviceProvider, loggerMock.Object, options, transcoderOptions);
 
         var claims = new List<Claim>();
         if (authUserId != null)

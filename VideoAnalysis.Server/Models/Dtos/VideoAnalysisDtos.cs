@@ -35,6 +35,9 @@ namespace VideoAnalysis.Server.Models.Dtos
         public string SignedUrl { get; set; }
         public string MartialArt { get; set; }
         public int FighterId { get; set; }
+
+        /// <summary>Playback-transcode lifecycle: None | Processing | Ready | Failed.</summary>
+        public string? TranscodeStatus { get; set; }
     }
 
     public class UploadVideoRequest

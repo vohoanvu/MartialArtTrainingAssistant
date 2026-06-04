@@ -4,8 +4,14 @@
       "page": { "title": "Przejrzyj i edytuj to nagranie" },
       "player": {
         "unsupportedTitle": "Podgląd niedostępny w przeglądarce",
-        "unsupportedBody": "To nagranie jest w formacie HEVC (H.265), którego większość przeglądarek nie odtwarza. Analiza AI została wykonana — pobierz oryginał, aby je obejrzeć.",
-        "download": "Pobierz wideo"
+        "unsupportedBody": "To nagranie jest w formacie HEVC (H.265), którego większość przeglądarek nie odtwarza. Analiza AI została wykonana — przekonwertuj je do odtwarzania w przeglądarce lub pobierz oryginał.",
+        "download": "Pobierz wideo",
+        "convert": "Przekonwertuj do odtwarzania",
+        "convertRetry": "Ponów konwersję",
+        "converting": "Konwertowanie do odtwarzania… może to potrwać kilka minut. Odtwarzacz odświeży się automatycznie po zakończeniu.",
+        "convertFailed": "Konwersja nie powiodła się. Możesz spróbować ponownie lub pobrać oryginał, aby go obejrzeć.",
+        "convertedUnsupported": "Przekonwertowanej kopii również nie można tu wyświetlić. Pobierz ją, aby obejrzeć.",
+        "convertError": "Nie udało się rozpocząć konwersji. Spróbuj ponownie za chwilę."
       },
       "saveChanges": "Zapisz zmiany",
       "saving": "Zapisywanie...",

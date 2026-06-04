@@ -617,6 +617,34 @@ export async function getVideoDetails({
     }
 }
 
+/**
+ * Requests a browser-playable (H.264/AAC) transcode of an uploaded video — used for HEVC tapes that
+ * won't render in-browser, or to retry a failed conversion. Returns the new transcode status.
+ */
+export async function requestTranscode({
+    videoId,
+    jwtToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    videoId: string;
+    jwtToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<{ videoId: number; transcodeStatus: string; message: string }> {
+    const response = await fetch(`/vid/api/video/${videoId}/transcode`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${jwtToken}` },
+    });
+    // 202 Accepted (enqueued) or 200 OK (already processing/ready) both carry a status body.
+    if (response.ok) return await response.json();
+    if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await requestTranscode({ videoId, jwtToken, hydrate, currentTry: 1 });
+    }
+    throw new Error(`Failed to request transcode: ${response.status} ${response.statusText}`);
+}
+
 export async function getVideoFeedback({
     videoId,
     jwtToken,

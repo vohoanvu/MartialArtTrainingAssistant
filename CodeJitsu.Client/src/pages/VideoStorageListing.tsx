@@ -20,6 +20,7 @@ export interface UploadedVideoDto {
     martialArt: MartialArt;
     fighterId: number;
     studentIdentifier: string | null;
+    transcodeStatus?: string; // None | Processing | Ready | Failed
 }
 
 interface VideoStorageListingProps {

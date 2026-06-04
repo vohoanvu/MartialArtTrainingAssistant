@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using CodeJitsu.Tests.Helpers;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using System.Security.Claims;
+using VideoAnalysis.Server.Configuration;
 using VideoAnalysis.Server.Controllers;
 using VideoAnalysis.Server.Domain.GoogleCloudStorageService;
 using VideoAnalysis.Server.Domain.YoutubeSharingService;
@@ -60,7 +62,8 @@ public class VideoControllerTests
             serviceProvider,
             gcsMock.Object,
             hubMock.Object,
-            loggerMock.Object);
+            loggerMock.Object,
+            Options.Create(new TranscoderOptions()));
 
         var claims = new List<Claim>();
         if (authUserId != null)

@@ -71,51 +71,55 @@ All landed on `feature/gcp-vm-deploy` and **deployed to the VM**.
 
 ## Next tasks
 
-### A. GCP Transcoder API — H.264 web-playable version (PRIMARY, started, not committed)
+### A. GCP Transcoder API — H.264 web-playable version ✅ CODE-COMPLETE (not yet deployed)
 **Goal:** make HEVC tapes viewable in-browser by transcoding each upload to H.264/AAC MP4 (managed,
-off-VM). Analysis already ingests HEVC fine — this is purely for playback. No code was written yet.
+off-VM). Analysis already ingests HEVC fine — this is purely for playback. **All code landed on
+`feature/gcp-vm-deploy`; backend `dotnet test` 151 pass / 0 fail, frontend 99 pass, tsc clean.**
 
-**Design (REST, consistent with `VertexRestClient` — ADC bearer to `transcoder.googleapis.com`):**
+**What shipped (REST, consistent with `VertexRestClient` — ADC bearer to `transcoder.googleapis.com`):**
 - **EF:** `VideoMetadata` += `PlaybackFilePath` (string?), `TranscodeStatus` enum
-  (`None/Processing/Ready/Failed`). New migration + apply to Supabase (same flow as
-  `AddAgenticPipelineEntities`: `dotnet ef migrations add … --project SharedEntities --startup-project
-  FighterManager.Server`, then `database update` with `ConnectionStrings__AppDb` from `.env`).
-- **`VideoTranscodeService`:** `CreateJobAsync(inputGcsUri, outputUriPrefix)` → `POST
-  https://transcoder.googleapis.com/v1/projects/{project}/locations/{location}/jobs` with JobConfig:
-  one H.264 video elementary stream (`heightPixels:720`, omit width = keep aspect, `bitrateBps`,
-  `frameRate:30`), one AAC audio stream, one `mp4` mux stream keyed `playback`; `inputUri` =
-  `gs://…/original.mp4`, `outputUri` = `gs://martial-art-demo-vids/transcoded/{videoId}/` → output
-  lands at `…/transcoded/{videoId}/playback.mp4`. `GetJobAsync(name)` polls `state`
-  (`PENDING/RUNNING/SUCCEEDED/FAILED`). Location `us-central1`.
-- **Hangfire `VideoTranscodeBackgroundJobService.ProcessTranscodeAsync(videoId)`:** set `Processing`
-  → create job → poll (`Task.Delay ~15s`, timeout ~30 min) → on success set `PlaybackFilePath` +
-  `Ready` + SignalR `TranscodeReady(videoId)`; on fail set `Failed`. (Own queue or default queue.)
-- **Triggers:** auto-enqueue in `analyze-v2` (new uploads) **and** a manual `POST
-  /api/video/{videoId}/transcode` (for already-uploaded videos like #10).
-- **Read path:** `VideoController.GetUploadedVideoAsync` returns the signed URL of `PlaybackFilePath`
-  when `Ready` (else original) and includes `transcodeStatus` in `UploadedVideoDto`.
-- **Frontend:** `requestTranscode(videoId)` API; `VideoReview` uses the returned signed URL (playback
-  when ready), shows "Converting…" + polls `getVideoDetails` (~10 s) while `Processing`, and the
-  `VideoPlayer` HEVC fallback gets a **"Convert for playback"** button (calls `requestTranscode`) when
-  `None/Failed`. en/pl i18n.
+  (`None/Processing/Ready/Failed`). Migration `20260604173101_AddVideoTranscodeFields` created
+  (additive: `text` col + `integer` col default 0). ⚠️ **NOT yet applied to Supabase** — see below.
+- **`VideoTranscodeService`** (`Domain/TranscodeService/`): `CreateJobAsync` → `POST …/jobs` with one
+  H.264 video stream (`heightPixels:720`, no width = keep aspect), one AAC stream, one `mp4` mux keyed
+  `playback` → output at `gs://martial-art-demo-vids/transcoded/{videoId}/playback.mp4`. `GetJobAsync`
+  polls `state`. Location `us-central1`.
+- **Hangfire `VideoTranscodeBackgroundJobService.ProcessTranscodeAsync(videoId)`** on a dedicated
+  `transcode` queue (added to the default Hangfire server's queue list in `Program.cs`): set
+  `Processing` → create job → poll (`Task.Delay`, configurable interval/timeout) → on success set
+  `PlaybackFilePath` + `Ready` + SignalR `TranscodeReady`; on fail/timeout set `Failed`. DB writes use
+  short scopes so the long poll loop never holds a pooled connection.
+- **Triggers:** auto-enqueue in `analyze-v2` (gated by `Transcoder:AutoTranscodeOnUpload`) **and**
+  manual `POST /api/video/{videoId}/transcode` (existing videos / retry; no-ops if Processing/Ready).
+- **Read path:** `VideoController.GetUploadedVideoAsync` serves the `PlaybackFilePath` signed URL when
+  `Ready` (else original) and returns `transcodeStatus` in `UploadedVideoDto` (also in `getall-uploaded`).
+  Delete now best-effort removes the transcoded copy too.
+- **Config:** `TranscoderOptions` (`Transcoder` section in appsettings; env overrides `Transcoder__*`).
+- **Frontend:** `requestTranscode(videoId)` in `api.ts`; `VideoReview` tracks `transcodeStatus`, polls
+  `getVideoDetails` (~10 s) while `Processing` and swaps in the playable URL on `Ready`; `VideoPlayer`
+  HEVC overlay shows **"Convert for playback"** (None) / **"Retry conversion"** (Failed) / a
+  **"Converting…"** message (Processing), plus Download. en/pl i18n under `videoReviewV2.player.*`.
 
-**Infra prerequisites (MUST run first — IAM/API; the assistant's sandbox blocks these, run manually):**
-```bash
-P=project-afa815fe-26c6-40c3-a8b
-gcloud services enable transcoder.googleapis.com --project=$P
-# let the VM SA create jobs:
-gcloud projects add-iam-policy-binding $P \
-  --member="serviceAccount:codejitsu-vm-runtime@$P.iam.gserviceaccount.com" \
-  --role="roles/transcoder.user"
-# let the Transcoder service agent read input + write output on the bucket:
-NUM=$(gcloud projects describe $P --format='value(projectNumber)')
-gcloud storage buckets add-iam-policy-binding gs://martial-art-demo-vids \
-  --member="serviceAccount:service-$NUM@gcp-sa-transcoder.iam.gserviceaccount.com" \
-  --role="roles/storage.objectAdmin"
-```
-**Cost:** ~$0.015/min (SD) – $0.06/min (HD) of *output*. **Decision to confirm:** transcode every
-upload (simple, uniform) vs only HEVC/on-demand (cheaper, needs the manual-trigger button). Started
-leaning: auto on `analyze-v2` + manual endpoint for existing videos. 720p is a sensible default res.
+**REMAINING — only the VM deploy is left; the DB migration + IAM/API prereqs are DONE:**
+
+- ✅ **Migration applied to Supabase** (2026-06-05, via Supabase MCP) — `Videos.PlaybackFilePath` (text
+  null) + `TranscodeStatus` (int NOT NULL default 0); EF `__EFMigrationsHistory` row inserted
+  (ProductVersion 10.0.5) so `dotnet ef database update` is a no-op for it.
+- ✅ **IAM/API prereqs applied** (2026-06-05) on project `project-afa815fe-26c6-40c3-a8b`:
+  - `transcoder.googleapis.com` enabled.
+  - VM SA `codejitsu-vm-runtime` → **`roles/transcoder.editor`** (NOT `roles/transcoder.user` — that
+    role does not exist; the create+get-job-capable least-privilege predefined role is
+    `transcoder.editor`).
+  - Transcoder service agent `service-81800761856@gcp-sa-transcoder.iam.gserviceaccount.com` →
+    `roles/storage.objectAdmin` on `gs://martial-art-demo-vids` (provisioned via
+    `gcloud beta services identity create --service=transcoder.googleapis.com`).
+- ⬜ **Remaining:** build/push images (CI) + manual VM deploy (see *Deploy reality*). No `.env` change
+  needed (Transcoder defaults are baked into appsettings; override with `Transcoder__*` if desired).
+
+**Cost / decision:** ~$0.015/min (SD) – $0.06/min (HD) of *output*. Shipped default = **auto-transcode
+every analyze-v2 upload** (`AutoTranscodeOnUpload:true`) + manual endpoint. Flip
+`Transcoder__AutoTranscodeOnUpload=false` to make it strictly on-demand (cheaper — only HEVC tapes the
+user explicitly converts) if the auto cost on already-H.264 uploads proves wasteful. 720p default res.
 
 ### B. Harden the VM `.env` against CR/LF  _(root cause of the `8d69829` 500)_
 The code now trims the GCS/Vertex values, but **other env values still carry `\r`** (e.g. JWT

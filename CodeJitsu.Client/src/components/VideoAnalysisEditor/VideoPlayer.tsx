@@ -21,6 +21,9 @@ interface VideoPlayerProps {
     // ── V2 (ms-based) additions; legacy callers omit these ──
     eventMarkers?: EventMarker[];
     onSegmentSelectMs?: (startMs: number, endMs: number) => void;
+    // ── Playback-transcode (HEVC fallback) additions; legacy callers omit these ──
+    transcodeStatus?: string; // None | Processing | Ready | Failed
+    onRequestTranscode?: () => void;
 }
 
 export interface VideoPlayerHandle {
@@ -55,6 +58,8 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     onSegmentSelect,
     eventMarkers,
     onSegmentSelectMs,
+    transcodeStatus,
+    onRequestTranscode,
 }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const timelineRef = useRef<HTMLDivElement>(null);
@@ -110,6 +115,13 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
             video.removeEventListener('timeupdate', handleTimeUpdate);
         };
     }, []);
+
+    // Clear the unsupported overlay whenever the source changes (e.g. swapping in the transcoded
+    // playback copy). Otherwise the prior video's overlay lingers over the freshly-loading playable
+    // source until its metadata loads; checkRenderable re-sets it true only if the new source fails.
+    useEffect(() => {
+        setVideoUnsupported(false);
+    }, [videoUrl]);
 
     const calculateTimestamp = (e: React.MouseEvent<HTMLDivElement> | MouseEvent) => {
         const timeline = timelineRef.current;
@@ -307,16 +319,37 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 {videoUnsupported && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center bg-black/80 text-white">
                         <p className="font-semibold text-lg">{t('videoReviewV2.player.unsupportedTitle')}</p>
-                        <p className="text-sm max-w-md opacity-90">{t('videoReviewV2.player.unsupportedBody')}</p>
-                        <a
-                            href={videoUrl}
-                            download
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-1 inline-flex items-center rounded-md bg-white/90 px-4 py-2 text-sm font-medium text-black hover:bg-white"
-                        >
-                            {t('videoReviewV2.player.download')}
-                        </a>
+                        <p className="text-sm max-w-md opacity-90">
+                            {transcodeStatus === 'Processing'
+                                // Conversion in flight — the parent polls and swaps in the playable URL.
+                                ? t('videoReviewV2.player.converting')
+                                : transcodeStatus === 'Failed'
+                                    ? t('videoReviewV2.player.convertFailed')
+                                    // 'Ready' but still unsupported: the converted copy itself won't preview here.
+                                    : transcodeStatus === 'Ready'
+                                        ? t('videoReviewV2.player.convertedUnsupported')
+                                        : t('videoReviewV2.player.unsupportedBody')}
+                        </p>
+                        <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+                            {/* Offer Convert only when there's nothing to play yet (None/Failed); when
+                                Ready or Processing a conversion exists or is running, so it'd be a no-op. */}
+                            {onRequestTranscode && (transcodeStatus === 'Failed' || transcodeStatus === 'None' || !transcodeStatus) && (
+                                <Button onClick={onRequestTranscode} variant="secondary" size="sm">
+                                    {transcodeStatus === 'Failed'
+                                        ? t('videoReviewV2.player.convertRetry')
+                                        : t('videoReviewV2.player.convert')}
+                                </Button>
+                            )}
+                            <a
+                                href={videoUrl}
+                                download
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center rounded-md bg-white/90 px-4 py-2 text-sm font-medium text-black hover:bg-white"
+                            >
+                                {t('videoReviewV2.player.download')}
+                            </a>
+                        </div>
                     </div>
                 )}
             </div>

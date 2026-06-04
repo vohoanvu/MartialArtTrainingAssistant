@@ -4,8 +4,14 @@
       "page": { "title": "Review and edit this tape" },
       "player": {
         "unsupportedTitle": "Preview not available in your browser",
-        "unsupportedBody": "This tape is encoded in HEVC (H.265), which most browsers can't play. The AI analysis still ran on it — download the original to watch it.",
-        "download": "Download video"
+        "unsupportedBody": "This tape is encoded in HEVC (H.265), which most browsers can't play. The AI analysis still ran on it — convert it for in-browser playback, or download the original.",
+        "download": "Download video",
+        "convert": "Convert for playback",
+        "convertRetry": "Retry conversion",
+        "converting": "Converting for playback… this can take a few minutes. The player will refresh automatically when it's ready.",
+        "convertFailed": "Conversion failed. You can retry, or download the original to watch it.",
+        "convertedUnsupported": "The converted copy still can't be previewed here. Please download it to watch.",
+        "convertError": "Couldn't start the conversion. Please try again in a moment."
       },
       "saveChanges": "Save Changes",
       "saving": "Saving...",

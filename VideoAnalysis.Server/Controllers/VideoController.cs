@@ -9,6 +9,10 @@ using SharedEntities.Models;
 using Microsoft.AspNetCore.SignalR;
 using VideoAnalysis.Server.Domain.GoogleCloudStorageService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Hangfire;
+using VideoAnalysis.Server.Configuration;
+using VideoAnalysis.Server.Helpers;
 using VideoAnalysis.Server.Models.Dtos;
 using VideoAnalysis.Server.Domain.GeminiService;
 
@@ -19,7 +23,8 @@ namespace VideoAnalysis.Server.Controllers
     public class VideoController(IYoutubeDataService youtubeDataService,
         ISharedVideoRepository sharedVideoRepository, IServiceProvider serviceProvider,
         IGoogleCloudStorageService googleCloudStorageService,
-        IHubContext<VideoShareHub> hubContext, ILogger<VideoController> logger) : ControllerBase
+        IHubContext<VideoShareHub> hubContext, ILogger<VideoController> logger,
+        IOptions<TranscoderOptions> transcoderOptions) : ControllerBase
     {
         private readonly IYoutubeDataService _youtubeDataService = youtubeDataService;
         private readonly ISharedVideoRepository _sharedVideoRepository = sharedVideoRepository;
@@ -27,6 +32,7 @@ namespace VideoAnalysis.Server.Controllers
         private readonly IGoogleCloudStorageService _gcsService = googleCloudStorageService;
         private readonly IHubContext<VideoShareHub> _hubContext = hubContext;
         private readonly ILogger<VideoController> _logger = logger;
+        private readonly TranscoderOptions _transcoderOptions = transcoderOptions.Value;
 
         [HttpPost("metadata")]
         [Authorize]
@@ -310,6 +316,13 @@ namespace VideoAnalysis.Server.Controllers
             // then delete from GCS, might throw exception if file was already deleted
             await _gcsService.DeleteFileAsync(video.FilePath!);
 
+            // Best-effort cleanup of the transcoded playback copy (don't fail the delete if it's missing).
+            if (!string.IsNullOrEmpty(video.PlaybackFilePath))
+            {
+                try { await _gcsService.DeleteFileAsync(video.PlaybackFilePath); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete transcoded copy for video {VideoId}", videoId); }
+            }
+
             return Ok(new { Message = $"Video with ID {videoId} deleted successfully" });
         }
 
@@ -335,7 +348,8 @@ namespace VideoAnalysis.Server.Controllers
                     UploadTimestamp = v.UploadedAt,
                     Description = v.Description,
                     AiAnalysisResult = aiGroup.Select(a => a.AnalysisJson).FirstOrDefault(),
-                    FighterName = v.AppUser.Fighter!.FighterName
+                    FighterName = v.AppUser.Fighter!.FighterName,
+                    TranscodeStatus = v.TranscodeStatus.ToString()
                 }
             ).ToListAsync();
 
@@ -360,7 +374,12 @@ namespace VideoAnalysis.Server.Controllers
                 .Select(a => a.AnalysisJson)
                 .FirstOrDefaultAsync();
 
-            var signedUrl = await _gcsService.GenerateSignedUrlAsync(video.FilePath!, TimeSpan.FromHours(1));
+            // Serve the H.264 playback copy when transcoding has completed (HEVC tapes only render in
+            // a browser once converted); otherwise fall back to the original upload.
+            var playbackSource = video.TranscodeStatus == TranscodeStatus.Ready && !string.IsNullOrEmpty(video.PlaybackFilePath)
+                ? video.PlaybackFilePath!
+                : video.FilePath!;
+            var signedUrl = await _gcsService.GenerateSignedUrlAsync(playbackSource, TimeSpan.FromHours(1));
 
             return Ok(new UploadedVideoDto
             {
@@ -373,8 +392,49 @@ namespace VideoAnalysis.Server.Controllers
                 SignedUrl = signedUrl,
                 FighterId = video.AppUser.FighterId,
                 FighterName = video.AppUser.Fighter?.FighterName ?? string.Empty,
-                StudentIdentifier = video.StudentIdentifier
+                StudentIdentifier = video.StudentIdentifier,
+                TranscodeStatus = video.TranscodeStatus.ToString()
             });
+        }
+
+        /// <summary>
+        /// Manually enqueues a playback transcode (H.264/AAC) for an already-uploaded video — used for
+        /// existing tapes or to retry a failed conversion. Returns 202 and the new status; no-ops with
+        /// 200 if a transcode is already in progress or complete.
+        /// </summary>
+        [HttpPost("{videoId}/transcode")]
+        [Authorize]
+        public async Task<IActionResult> RequestTranscodeAsync(int videoId)
+        {
+            if (!_transcoderOptions.Enabled)
+                return BadRequest(new { Message = "Playback transcoding is disabled." });
+
+            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
+            var video = await dbContext.Videos.AsNoTracking().FirstOrDefaultAsync(v => v.Id == videoId);
+            if (video == null)
+                return NotFound(new { Message = $"Video with ID {videoId} not found" });
+            if (string.IsNullOrEmpty(video.FilePath))
+                return BadRequest(new { Message = "Video has no uploaded file to transcode." });
+            if (video.TranscodeStatus == TranscodeStatus.Ready)
+                return Ok(new { Message = "A playback version is already available.", VideoId = videoId, TranscodeStatus = video.TranscodeStatus.ToString() });
+
+            // Atomically claim the transcode: a single conditional UPDATE flips None/Failed→Processing only
+            // if no transcode is already in flight/done. Concurrent requests (double-click, retry, or a race
+            // with the analyze-v2 auto-trigger) update 0 rows on all but the winner, so exactly one Hangfire
+            // job is enqueued — no duplicate, billable GCP Transcoder jobs writing the same output.
+            var claimed = await dbContext.Videos
+                .Where(v => v.Id == videoId
+                    && v.TranscodeStatus != TranscodeStatus.Processing
+                    && v.TranscodeStatus != TranscodeStatus.Ready)
+                .ExecuteUpdateAsync(s => s.SetProperty(v => v.TranscodeStatus, TranscodeStatus.Processing));
+            if (claimed == 0)
+                return Ok(new { Message = "Transcode already in progress.", VideoId = videoId, TranscodeStatus = TranscodeStatus.Processing.ToString() });
+
+            BackgroundJob.Enqueue<VideoTranscodeBackgroundJobService>(
+                job => job.ProcessTranscodeAsync(videoId));
+
+            _logger.LogInformation("Manual transcode enqueued for VideoId {VideoId}", videoId);
+            return Accepted(new { Message = "Playback conversion is processing", VideoId = videoId, TranscodeStatus = TranscodeStatus.Processing.ToString() });
         }
 
         [HttpGet("import-ai/{videoId}")]

@@ -17,6 +17,7 @@ using System.Text;
 using SharedEntities;
 using VideoAnalysis.Server.Domain.GoogleCloudStorageService;
 using VideoAnalysis.Server.Domain.GeminiService;
+using VideoAnalysis.Server.Domain.TranscodeService;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using VideoAnalysis.Server.Domain.AIServices;
@@ -72,6 +73,12 @@ namespace VideoAnalysis.Server
             builder.Services.AddScoped<AgenticAnalysisReadService>();
             builder.Services.AddScoped<AgenticAnalysisWriteService>();
             builder.Services.AddTransient<AgenticAnalysisBackgroundJobService>();
+
+            // Playback transcoding (GCP Transcoder API → H.264/AAC web-playable copy of HEVC tapes)
+            builder.Services.Configure<TranscoderOptions>(
+                builder.Configuration.GetSection(TranscoderOptions.SectionName));
+            builder.Services.AddHttpClient<IVideoTranscodeService, VideoTranscodeService>();
+            builder.Services.AddTransient<VideoTranscodeBackgroundJobService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -249,10 +256,11 @@ namespace VideoAnalysis.Server
                         SchemaName = "hangfire"
                     });
             });
-            // Default server handles the standard queue (single-shot v1 jobs).
+            // Default server handles the standard queue (single-shot v1 jobs) and the transcode queue
+            // (mostly idle poll loops — low CPU, so it shares the default server's workers).
             builder.Services.AddHangfireServer(opts =>
             {
-                opts.Queues = ["default"];
+                opts.Queues = ["default", "transcode"];
             });
             // Dedicated server caps concurrent agentic (v2) Vertex jobs to avoid quota/429s.
             var pipelineOptions = builder.Configuration

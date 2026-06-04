@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     getFighterDetails, getVideoDetails, getVideoFeedback, saveVideoAnalysisResult,
-    getVideoAnalysisV2, saveVideoAnalysisV2,
+    getVideoAnalysisV2, saveVideoAnalysisV2, requestTranscode,
 } from '@/services/api';
 import VideoPlayer, { VideoPlayerHandle, EventMarker } from '../components/VideoAnalysisEditor/VideoPlayer';
 import useAuthStore from '@/store/authStore';
@@ -21,6 +21,7 @@ const VideoReview: React.FC = () => {
     const [feedbackList, setFeedbackList] = useState<AnalysisResultDto | null>(null);
     const [analysisV2, setAnalysisV2] = useState<AnalysisV2Dto | null>(null);
     const [videoUrl, setVideoUrl] = useState('');
+    const [transcodeStatus, setTranscodeStatus] = useState<string>('None');
     const { accessToken, refreshToken, hydrate } = useAuthStore();
 
     const [selectedSegment, setSelectedSegment] = useState<{ start: string; end: string } | null>(null);
@@ -37,6 +38,7 @@ const VideoReview: React.FC = () => {
             try {
                 const videoDetails = await getVideoDetails({ videoId, jwtToken: accessToken, refreshToken, hydrate });
                 setVideoUrl(videoDetails.signedUrl);
+                setTranscodeStatus(videoDetails.transcodeStatus ?? 'None');
                 setStudentIdentifier(videoDetails.studentIdentifier);
 
                 // Prefer the richer v2 analysis; fall back to the legacy editor when absent.
@@ -63,6 +65,38 @@ const VideoReview: React.FC = () => {
 
         fetchData();
     }, [videoId, accessToken, refreshToken, hydrate]);
+
+    // While a playback transcode is running, poll for completion and swap in the playable URL.
+    useEffect(() => {
+        if (!videoId || transcodeStatus !== 'Processing') return;
+        const interval = setInterval(async () => {
+            try {
+                const details = await getVideoDetails({ videoId, jwtToken: accessToken, refreshToken, hydrate });
+                const next = details.transcodeStatus ?? 'None';
+                if (next !== 'Processing') {
+                    setTranscodeStatus(next);
+                    // On Ready the signed URL now points at the H.264 playback copy; refresh the player.
+                    if (next === 'Ready' && details.signedUrl) setVideoUrl(details.signedUrl);
+                }
+            } catch (e) {
+                console.warn('Transcode status poll failed:', e);
+            }
+        }, 10000);
+        return () => clearInterval(interval);
+    }, [videoId, transcodeStatus, accessToken, refreshToken, hydrate]);
+
+    const handleRequestTranscode = async () => {
+        if (!videoId) return;
+        try {
+            const res = await requestTranscode({ videoId, jwtToken: accessToken, hydrate });
+            setTranscodeStatus(res.transcodeStatus ?? 'Processing');
+        } catch (error) {
+            // Surface failures (e.g. backend 400 when transcoding is disabled) — otherwise the click
+            // silently no-ops and the Convert button keeps inviting a retry that always fails.
+            console.error('Transcode request failed:', error);
+            alert(t('videoReviewV2.player.convertError'));
+        }
+    };
 
     const handleInputChange = (section: string, index: string | number, field: string | number, value: any) => {
         const updatedAnalysis = { ...feedbackList } as any;
@@ -133,6 +167,8 @@ const VideoReview: React.FC = () => {
                             onSegmentSelect={(start, end) => setSelectedSegment({ start, end })}
                             eventMarkers={analysisV2 ? eventMarkers : undefined}
                             onSegmentSelectMs={(startMs, endMs) => setSelectedSegmentMs({ startMs, endMs })}
+                            transcodeStatus={transcodeStatus}
+                            onRequestTranscode={handleRequestTranscode}
                         />
                     </div>
                     <div className="rounded-lg shadow-zen-sm bg-parchment-50 border border-[rgba(60,50,40,0.10)] p-2 md:p-4">

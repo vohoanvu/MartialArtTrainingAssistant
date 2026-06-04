@@ -23,13 +23,15 @@ namespace VideoAnalysis.Server.Controllers
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<GeminiController> _logger;
         private readonly VertexAiPipelineOptions _pipelineOptions;
+        private readonly TranscoderOptions _transcoderOptions;
 
-        public GeminiController(IGeminiVisionService geminiService, IServiceProvider serviceProvider, ILogger<GeminiController> logger, IOptions<VertexAiPipelineOptions> pipelineOptions)
+        public GeminiController(IGeminiVisionService geminiService, IServiceProvider serviceProvider, ILogger<GeminiController> logger, IOptions<VertexAiPipelineOptions> pipelineOptions, IOptions<TranscoderOptions> transcoderOptions)
         {
             _geminiService = geminiService;
             _serviceProvider = serviceProvider;
             _logger = logger;
             _pipelineOptions = pipelineOptions.Value;
+            _transcoderOptions = transcoderOptions.Value;
         }
 
         // ── Agentic (v2) pipeline ─────────────────────────────────────────────
@@ -48,6 +50,25 @@ namespace VideoAnalysis.Server.Controllers
 
             BackgroundJob.Enqueue<AgenticAnalysisBackgroundJobService>(
                 job => job.ProcessAgenticAnalysisAsync(videoId));
+
+            // Also produce a browser-playable (H.264/AAC) copy so HEVC tapes are viewable in-review.
+            // Analysis ingests the original fine; this is purely for playback. Gated by config so it
+            // can be made strictly on-demand (the manual /transcode endpoint) to avoid needless cost.
+            // The same atomic claim as POST /transcode (conditional UPDATE) ensures auto + a racing
+            // manual request enqueue exactly one job rather than two duplicate, billable GCP jobs.
+            if (_transcoderOptions.Enabled && _transcoderOptions.AutoTranscodeOnUpload)
+            {
+                var claimed = await dbContext.Videos
+                    .Where(v => v.Id == videoId
+                        && v.TranscodeStatus != TranscodeStatus.Processing
+                        && v.TranscodeStatus != TranscodeStatus.Ready)
+                    .ExecuteUpdateAsync(s => s.SetProperty(v => v.TranscodeStatus, TranscodeStatus.Processing));
+                if (claimed > 0)
+                {
+                    BackgroundJob.Enqueue<VideoTranscodeBackgroundJobService>(
+                        job => job.ProcessTranscodeAsync(videoId));
+                }
+            }
 
             return Accepted(new { Message = "Agentic video analysis is processing", VideoId = videoId });
         }
