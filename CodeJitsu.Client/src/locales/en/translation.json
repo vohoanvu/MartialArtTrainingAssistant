@@ -1,5 +1,97 @@
 ﻿{
   "translation": {
+    "videoReviewV2": {
+      "page": { "title": "Review and edit this tape" },
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "unsavedChanges": "Unsaved changes",
+      "tabs": {
+        "timeline": "Match Timeline",
+        "coaching": "Coaching Report",
+        "drills": "Prescribed Drills"
+      },
+      "summary": {
+        "visualDnaTitle": "Athlete Profile (Visual DNA)",
+        "matchSummaryTitle": "Match Summary",
+        "gradeLabel": "Technical Grade",
+        "gradeLabelField": "Grade Label",
+        "eliteTipTitle": "Elite Tip"
+      },
+      "timeline": {
+        "addEvent": "Add Event",
+        "empty": "No match events were detected.",
+        "actionsTitle": "What happened"
+      },
+      "event": {
+        "category": "Category",
+        "techniqueName": "Technique",
+        "positionBefore": "Position before",
+        "positionAfter": "Position after",
+        "outcome": "Outcome",
+        "guardType": "Guard type",
+        "submissionType": "Submission type",
+        "startMs": "Start (ms)",
+        "endMs": "End (ms)",
+        "useSelection": "Use timeline selection"
+      },
+      "coaching": {
+        "strengthsTitle": "Key Strengths",
+        "weaknessesTitle": "Critical Weaknesses",
+        "addStrength": "Add Strength",
+        "addWeakness": "Add Weakness",
+        "severity": "Severity",
+        "scoringImpact": "Scoring impact",
+        "titlePlaceholder": "Title",
+        "noStrengths": "No standout strengths identified.",
+        "noWeaknesses": "No critical weaknesses identified."
+      },
+      "drills": {
+        "title": "Prescribed Drills",
+        "addDrill": "Add Drill",
+        "goalLabel": "Goal",
+        "instructionsLabel": "Instructions",
+        "namePlaceholder": "Drill name",
+        "empty": "No drills were prescribed."
+      },
+      "confidence": {
+        "label": "Confidence: {{percent}}%",
+        "low": "Low confidence",
+        "lowTooltip": "The model is less certain about this event."
+      },
+      "progress": {
+        "starting": "Starting analysis...",
+        "profiling": "Identifying your athlete...",
+        "logging": "Analyzing positions & transitions...",
+        "verifying": "Verifying identity tracking...",
+        "coaching": "Crafting your coach notes...",
+        "complete": "Analysis complete",
+        "completeTitle": "Analysis Completed",
+        "failed": "Analysis failed",
+        "failedTitle": "Analysis Failed",
+        "failedBody": "There was an error analyzing your video. Please try again."
+      },
+      "enums": {
+        "actor": { "Student": "Student", "Opponent": "Opponent" },
+        "techniqueCategory": {
+          "Takedown": "Takedown", "Submission": "Submission", "Sweep": "Sweep",
+          "Pass": "Pass", "Escape": "Escape", "Transition": "Transition",
+          "Control": "Control", "Defense": "Defense", "GuardPull": "Guard Pull",
+          "Scramble": "Scramble", "StandUp": "Stand Up", "GripFight": "Grip Fight"
+        },
+        "position": {
+          "Standing": "Standing", "OpenGuard": "Open Guard", "ClosedGuard": "Closed Guard",
+          "HalfGuard": "Half Guard", "SideControl": "Side Control", "Mount": "Mount",
+          "BackControl": "Back Control", "Turtle": "Turtle", "KneeOnBelly": "Knee on Belly",
+          "NorthSouth": "North-South", "FiftyFifty": "50/50", "Crucifix": "Crucifix",
+          "Scramble": "Scramble"
+        },
+        "outcome": {
+          "Successful": "Successful", "Failed": "Failed", "Partial": "Partial",
+          "Countered": "Countered", "InProgress": "In Progress"
+        },
+        "severity": { "Critical": "Critical", "Major": "Major", "Minor": "Minor" }
+      }
+    },
     "app.title": "Sample Asp.Net Core - React Docker App",
     "navbar.about": "About",
     "navbar.login": "Login",

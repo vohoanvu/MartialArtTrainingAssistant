@@ -20,6 +20,7 @@ using VideoAnalysis.Server.Domain.GeminiService;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using VideoAnalysis.Server.Domain.AIServices;
+using VideoAnalysis.Server.Configuration;
 using Hangfire;
 using Hangfire.PostgreSql;
 
@@ -62,6 +63,15 @@ namespace VideoAnalysis.Server
             builder.Services.AddScoped<CurriculumRecommendationService>();
             builder.Services.AddHttpClient<IXAIService, XAIService>();
             builder.Services.AddTransient<VideoAnalysisBackgroundJobService>();
+
+            // Agentic (v2) analysis pipeline
+            builder.Services.Configure<VertexAiPipelineOptions>(
+                builder.Configuration.GetSection(VertexAiPipelineOptions.SectionName));
+            builder.Services.AddHttpClient<IVertexRestClient, VertexRestClient>();
+            builder.Services.AddScoped<IAgenticPipelineService, AgenticPipelineService>();
+            builder.Services.AddScoped<AgenticAnalysisReadService>();
+            builder.Services.AddScoped<AgenticAnalysisWriteService>();
+            builder.Services.AddTransient<AgenticAnalysisBackgroundJobService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -239,7 +249,21 @@ namespace VideoAnalysis.Server
                         SchemaName = "hangfire"
                     });
             });
-            builder.Services.AddHangfireServer();
+            // Default server handles the standard queue (single-shot v1 jobs).
+            builder.Services.AddHangfireServer(opts =>
+            {
+                opts.Queues = ["default"];
+            });
+            // Dedicated server caps concurrent agentic (v2) Vertex jobs to avoid quota/429s.
+            var pipelineOptions = builder.Configuration
+                .GetSection(VertexAiPipelineOptions.SectionName)
+                .Get<VertexAiPipelineOptions>() ?? new VertexAiPipelineOptions();
+            builder.Services.AddHangfireServer(opts =>
+            {
+                opts.ServerName = "vertex-pipeline-server";
+                opts.Queues = ["vertex-pipeline"];
+                opts.WorkerCount = Math.Max(1, pipelineOptions.MaxConcurrentJobs);
+            });
 
             builder.Services.AddHealthChecks();
 

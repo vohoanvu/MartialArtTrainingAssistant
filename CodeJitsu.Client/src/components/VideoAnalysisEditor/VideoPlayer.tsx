@@ -2,6 +2,13 @@ import React, { useRef, useState, useEffect, forwardRef, useImperativeHandle } f
 import { Button } from '@/components/ui/button';
 import { TechniqueDto } from '@/types/global';
 
+export interface EventMarker {
+    id: string | number;
+    startMs: number;
+    label: string; // pre-translated by the parent
+    color?: string;
+}
+
 interface VideoPlayerProps {
     videoUrl: string;
     videoId: string;
@@ -10,10 +17,14 @@ interface VideoPlayerProps {
     setSelectedSegment: (segment: { start: string; end: string } | null) => void;
     clearSelection: () => void;
     onSegmentSelect?: (start: string, end: string) => void;
+    // ── V2 (ms-based) additions; legacy callers omit these ──
+    eventMarkers?: EventMarker[];
+    onSegmentSelectMs?: (startMs: number, endMs: number) => void;
 }
 
 export interface VideoPlayerHandle {
     seekTo: (timestamp: string) => void;
+    seekToMs: (ms: number) => void;
 }
 
 const parseTimespanToSeconds = (timestamp: string | null): number => {
@@ -41,6 +52,8 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     setSelectedSegment,
     clearSelection,
     onSegmentSelect,
+    eventMarkers,
+    onSegmentSelectMs,
 }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const timelineRef = useRef<HTMLDivElement>(null);
@@ -53,13 +66,19 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const [mouseDownPosition, setMouseDownPosition] = useState<number | null>(null);
     const DRAG_THRESHOLD = 5; // Pixels to consider as a drag
 
-    // Expose seekTo function to parent via ref
+    // Expose seek functions to parent via ref
     useImperativeHandle(ref, () => ({
         seekTo: (timestamp: string) => {
             const seconds = parseTimespanToSeconds(timestamp);
             if (!isNaN(seconds) && videoRef.current) {
                 videoRef.current.pause();
                 videoRef.current.currentTime = seconds;
+            }
+        },
+        seekToMs: (ms: number) => {
+            if (Number.isFinite(ms) && videoRef.current) {
+                videoRef.current.pause();
+                videoRef.current.currentTime = ms / 1000;
             }
         },
     }));
@@ -119,6 +138,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 const endFormatted = parseSecondsToTimespan(to);
                 setSelectedSegment({ start: startFormatted, end: endFormatted });
                 onSegmentSelect?.(startFormatted, endFormatted);
+                onSegmentSelectMs?.(Math.round(from * 1000), Math.round(to * 1000));
             }
 
             setIsDragging(false);
@@ -315,6 +335,28 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                                     videoRef.current!.currentTime = timestampNum;
                                 }}
                                 title={`Technique: ${technique.name} (${technique.startTimestamp})`}
+                            />
+                        );
+                    })}
+                    {/* V2 ms-based event markers (color-coded by actor/severity) */}
+                    {(eventMarkers ?? []).map((marker) => {
+                        const seconds = marker.startMs / 1000;
+                        if (!Number.isFinite(seconds) || duration <= 0) return null;
+                        const leftPercent = (seconds / duration) * 100;
+                        return (
+                            <div
+                                key={`evt-${marker.id}`}
+                                className="marker absolute top-0 h-full cursor-pointer"
+                                style={{
+                                    left: `${leftPercent}%`,
+                                    width: '5px',
+                                    backgroundColor: marker.color ?? '#3b82f6',
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    videoRef.current!.currentTime = seconds;
+                                }}
+                                title={marker.label}
                             />
                         );
                     })}

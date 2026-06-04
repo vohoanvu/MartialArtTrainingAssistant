@@ -38,6 +38,12 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
     public virtual DbSet<WeaknessCategory> WeaknessCategories { get; set; }
     public virtual DbSet<AnalysisWeakness> AnalysisWeaknesses { get; set; }
 
+    public virtual DbSet<MatchEvent> MatchEvents { get; set; }
+    public virtual DbSet<CoachingReport> CoachingReports { get; set; }
+    public virtual DbSet<CoachingStrength> CoachingStrengths { get; set; }
+    public virtual DbSet<CoachingWeakness> CoachingWeaknesses { get; set; }
+    public virtual DbSet<PrescribedDrill> PrescribedDrills { get; set; }
+
     public virtual DbSet<Techniques> Techniques { get; set; }
     public virtual DbSet<PointScoringTechnique> PointScoringTechniques { get; set; }
 
@@ -133,5 +139,40 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
         builder.Entity<TrainingSession>()
             .Property(ts => ts.EditedFighterPairsJson)
             .HasColumnType("jsonb");
+
+        // ── Agentic (v2) pipeline relationships ──
+        // 1:1 AiAnalysisResult ↔ CoachingReport; deleting the analysis cascades the report and its children.
+        builder.Entity<AiAnalysisResult>()
+            .HasOne(a => a.CoachingReport)
+            .WithOne(c => c.AiAnalysisResult)
+            .HasForeignKey<CoachingReport>(c => c.AiAnalysisResultId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MatchEvent>()
+            .HasOne(e => e.AiAnalysisResult)
+            .WithMany(a => a.MatchEvents)
+            .HasForeignKey(e => e.AiAnalysisResultId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MatchEvent>()
+            .HasIndex(e => new { e.AiAnalysisResultId, e.SequenceIndex });
+
+        builder.Entity<CoachingStrength>()
+            .HasOne(s => s.CoachingReport)
+            .WithMany(c => c.Strengths)
+            .HasForeignKey(s => s.CoachingReportId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<CoachingWeakness>()
+            .HasOne(w => w.CoachingReport)
+            .WithMany(c => c.Weaknesses)
+            .HasForeignKey(w => w.CoachingReportId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<PrescribedDrill>()
+            .HasOne(d => d.CoachingReport)
+            .WithMany(c => c.PrescribedDrills)
+            .HasForeignKey(d => d.CoachingReportId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

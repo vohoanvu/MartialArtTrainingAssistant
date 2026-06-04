@@ -2,12 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using CodeJitsu.Tests.Helpers;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using System.Security.Claims;
+using VideoAnalysis.Server.Configuration;
 using VideoAnalysis.Server.Controllers;
+using VideoAnalysis.Server.Domain.AIServices;
 using VideoAnalysis.Server.Domain.GeminiService;
 using VideoAnalysis.Server.Models.Dtos;
 
@@ -25,19 +28,23 @@ public class GeminiControllerTests
         var gemini = geminiMock?.Object ?? new Mock<IGeminiVisionService>().Object;
         services.AddScoped<IGeminiVisionService>(_ => gemini);
         services.AddScoped<CurriculumRecommendationService>();
+        services.AddScoped<AgenticAnalysisReadService>();
+        services.AddScoped<AgenticAnalysisWriteService>();
         return services.BuildServiceProvider();
     }
 
     private static GeminiController CreateController(
         MyDatabaseContext db,
         Mock<IGeminiVisionService>? geminiMock = null,
-        string? authUserId = "test-user-id")
+        string? authUserId = "test-user-id",
+        VertexAiPipelineOptions? pipelineOptions = null)
     {
         geminiMock ??= new Mock<IGeminiVisionService>();
         var loggerMock = new Mock<ILogger<GeminiController>>();
         var serviceProvider = BuildServiceProvider(db, geminiMock);
+        var options = Options.Create(pipelineOptions ?? new VertexAiPipelineOptions());
 
-        var controller = new GeminiController(geminiMock.Object, serviceProvider, loggerMock.Object);
+        var controller = new GeminiController(geminiMock.Object, serviceProvider, loggerMock.Object, options);
 
         var claims = new List<Claim>();
         if (authUserId != null)
@@ -319,6 +326,98 @@ public class GeminiControllerTests
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<MatchMakerResponse>(ok.Value);
         Assert.True(response.IsSuccessfullyParsed);
+    }
+
+    // â”€â”€ Agentic (v2) endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    [Fact]
+    public async Task Should_ReturnBadRequest_When_AnalyzeV2WithUnknownVideo()
+    {
+        var db = InMemoryDbContextFactory.Create();
+        var controller = CreateController(db);
+
+        var result = await controller.AnalyzeVideoV2Async(999);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Should_ReturnBadRequest_When_AnalyzeV2AndPipelineDisabled()
+    {
+        var db = InMemoryDbContextFactory.Create();
+        var controller = CreateController(db, pipelineOptions: new VertexAiPipelineOptions { Enabled = false });
+
+        var result = await controller.AnalyzeVideoV2Async(1);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Should_ReturnNotFound_When_GetAnalysisV2AndNoV2Analysis()
+    {
+        var db = InMemoryDbContextFactory.Create();
+        var controller = CreateController(db);
+
+        var result = await controller.GetVideoAnalysisV2(1);
+
+        Assert.IsType<NotFoundObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Should_ReturnNotStarted_When_GetStatusAndNoAnalysisRow()
+    {
+        var db = InMemoryDbContextFactory.Create();
+        var controller = CreateController(db);
+
+        var result = await controller.GetAnalysisStatus(1);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var dto = Assert.IsType<AnalysisStatusDto>(ok.Value);
+        Assert.Equal(AnalysisPipelineStatus.NotStarted.ToString(), dto.Status);
+    }
+
+    [Fact]
+    public async Task Should_ReturnPersistedStatus_When_GetStatusForExistingAnalysis()
+    {
+        var db = InMemoryDbContextFactory.Create();
+        db.AiAnalysisResults.Add(new AiAnalysisResult
+        {
+            VideoId = 1,
+            AnalysisJson = "{}",
+            Strengths = "[]",
+            AreasForImprovement = "[]",
+            PipelineStatus = AnalysisPipelineStatus.Coaching,
+        });
+        db.SaveChanges();
+        var controller = CreateController(db);
+
+        var result = await controller.GetAnalysisStatus(1);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var dto = Assert.IsType<AnalysisStatusDto>(ok.Value);
+        Assert.Equal(AnalysisPipelineStatus.Coaching.ToString(), dto.Status);
+    }
+
+    [Fact]
+    public async Task Should_ReturnBadRequest_When_UpdateAnalysisV2BodyIsNull()
+    {
+        var db = InMemoryDbContextFactory.Create();
+        var controller = CreateController(db);
+
+        var result = await controller.UpdateAnalysisV2Async(1, null!);
+
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Should_ReturnNotFound_When_UpdateAnalysisV2AndNoAnalysis()
+    {
+        var db = InMemoryDbContextFactory.Create();
+        var controller = CreateController(db);
+
+        var result = await controller.UpdateAnalysisV2Async(1, new AnalysisV2Dto { VideoId = 1 });
+
+        Assert.IsType<NotFoundObjectResult>(result.Result);
     }
 }
 

@@ -17,6 +17,7 @@ import {
     FighterInfo,
     Fighter,
     AnalysisResultDto,
+    AnalysisV2Dto,
     CurriculumDto,
     TakeAttendanceRequest,
     TakeAttendanceResponse,
@@ -646,6 +647,71 @@ export async function saveVideoAnalysisResult({
         throw new Error(`Failed to save analysis result: ${response.statusText}`);
     }
 
+    return await response.json();
+}
+
+// ── V2 (agentic pipeline) analysis ──────────────────────────────────────────
+
+export async function getVideoAnalysisV2({
+    videoId,
+    jwtToken,
+    refreshToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    videoId: string;
+    jwtToken: string | null;
+    refreshToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<AnalysisV2Dto | null> {
+    const response = await fetch(`/vid/api/video/${videoId}/analysis-v2`, {
+        headers: { Authorization: `Bearer ${jwtToken}` },
+    });
+
+    if (response.status === 404) {
+        // No v2 analysis for this video → caller falls back to the legacy view.
+        return null;
+    }
+    if (response.ok) {
+        return await response.json();
+    }
+    if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await getVideoAnalysisV2({ videoId, jwtToken, refreshToken, hydrate, currentTry: 1 });
+    }
+    throw new Error(`Error fetching v2 analysis: ${response.statusText}`);
+}
+
+export async function saveVideoAnalysisV2({
+    videoId,
+    analysisBody,
+    jwtToken,
+    hydrate,
+    currentTry = 0,
+}: {
+    videoId: string;
+    analysisBody: AnalysisV2Dto;
+    jwtToken: string | null;
+    hydrate: () => Promise<void>;
+    currentTry?: number;
+}): Promise<AnalysisV2Dto> {
+    const response = await fetch(`/vid/api/video/${videoId}/analysis-v2`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwtToken}`,
+        },
+        body: JSON.stringify(analysisBody),
+    });
+
+    if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await saveVideoAnalysisV2({ videoId, analysisBody, jwtToken, hydrate, currentTry: 1 });
+    }
+    if (!response.ok) {
+        throw new Error(`Failed to save v2 analysis: ${response.statusText}`);
+    }
     return await response.json();
 }
 

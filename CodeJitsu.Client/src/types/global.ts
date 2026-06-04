@@ -310,6 +310,102 @@ export interface AnalysisResultDto {
     techniques?: TechniqueDto[] | null; // Updated to use TechniqueDto
 }
 
+// ── V2 (agentic pipeline) analysis result ───────────────────────────────────
+// Timestamps are absolute integer milliseconds (distinct from the legacy HH:mm:ss path).
+
+export type Actor = 'Student' | 'Opponent';
+
+export type TechniqueCategory =
+    | 'Takedown' | 'Submission' | 'Sweep' | 'Pass' | 'Escape'
+    | 'Transition' | 'Control' | 'Defense' | 'GuardPull'
+    | 'Scramble' | 'StandUp' | 'GripFight';
+
+export type Position =
+    | 'Standing' | 'OpenGuard' | 'ClosedGuard' | 'HalfGuard'
+    | 'SideControl' | 'Mount' | 'BackControl' | 'Turtle'
+    | 'KneeOnBelly' | 'NorthSouth' | 'FiftyFifty' | 'Crucifix' | 'Scramble';
+
+export type Outcome = 'Successful' | 'Failed' | 'Partial' | 'Countered' | 'InProgress';
+
+export type WeaknessSeverity = 'Critical' | 'Major' | 'Minor';
+
+export type AnalysisPipelinePhase =
+    | 'NotStarted' | 'Profiling' | 'Logging' | 'Verifying' | 'Coaching' | 'Complete' | 'Failed';
+
+export interface MatchEvent {
+    id?: number | null;
+    startTimestampMs: number;
+    endTimestampMs: number;
+    actor: Actor;
+    techniqueCategory: TechniqueCategory;
+    techniqueName?: string | null;
+    positionBefore?: Position | null;
+    positionAfter?: Position | null;
+    outcome: Outcome;
+    guardType?: string | null;
+    submissionType?: string | null;
+    actionsDescription?: string | null;
+    confidence: number; // 0.0 - 1.0
+}
+
+export interface KeyStrength {
+    id?: number | null;
+    title: string;
+    explanation?: string | null;
+    timestampStartMs?: number | null;
+    timestampEndMs?: number | null;
+}
+
+export interface CriticalWeakness {
+    id?: number | null;
+    title: string;
+    explanation?: string | null;
+    timestampStartMs?: number | null;
+    timestampEndMs?: number | null;
+    severity: WeaknessSeverity;
+    scoringImpact?: string | null;
+}
+
+export interface PrescribedDrill {
+    id?: number | null;
+    drillName: string;
+    instructions?: string | null;
+    goal?: string | null;
+}
+
+export interface CoachingReport {
+    id?: number | null;
+    matchSummary: string;
+    technicalGrade: number; // 0-100
+    gradeLabel?: string | null;
+    eliteTip?: string | null;
+    keyStrengths: KeyStrength[];
+    criticalWeaknesses: CriticalWeakness[];
+    prescribedDrills: PrescribedDrill[];
+}
+
+export interface AnalysisV2Dto {
+    id?: number | null;
+    videoId: number;
+    visualDna?: string | null;
+    pipelineStatus: AnalysisPipelinePhase;
+    technicalGrade?: number | null;
+    gradeLabel?: string | null;
+    eliteTip?: string | null;
+    matchSummary?: string | null;
+    matchEvents: MatchEvent[];
+    coachingReport?: CoachingReport | null;
+}
+
+/** True when a fetched payload is the richer v2 analysis (vs. the legacy AnalysisResultDto). */
+export function isAnalysisV2(
+    data: AnalysisResultDto | AnalysisV2Dto | null | undefined
+): data is AnalysisV2Dto {
+    return !!data
+        && Array.isArray((data as AnalysisV2Dto).matchEvents)
+        && 'pipelineStatus' in (data as AnalysisV2Dto);
+}
+
 
 export interface CurriculumDto {
     session_title: string;
