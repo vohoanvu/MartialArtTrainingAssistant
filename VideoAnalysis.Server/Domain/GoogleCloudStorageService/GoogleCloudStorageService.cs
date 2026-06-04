@@ -27,7 +27,9 @@ namespace VideoAnalysis.Server.Domain.GoogleCloudStorageService
         {
             _credential = ResolveCredential();
             _storageClient = StorageClient.Create(_credential);
-            _bucketName = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudBucketName);
+            // Trim: the VM .env can carry trailing CR/LF on values (CRLF line endings / Secret Manager),
+            // and the GCS SDK rejects a bucket name with a trailing newline ("Invalid bucket name").
+            _bucketName = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudBucketName).Trim();
         }
 
         public string BucketName => _bucketName;

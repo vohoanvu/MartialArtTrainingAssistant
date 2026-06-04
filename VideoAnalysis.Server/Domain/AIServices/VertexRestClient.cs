@@ -52,7 +52,9 @@ namespace VideoAnalysis.Server.Domain.AIServices
             _httpClient.Timeout = TimeSpan.FromMinutes(10);
             _logger = logger;
 
-            _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId);
+            // Trim trailing CR/LF that the VM .env can carry on env values (CRLF / Secret Manager),
+            // which would otherwise corrupt the Vertex resource path (projects/{id}\n/locations/...).
+            _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId).Trim();
 
             // Same auth resolution as GeminiVisionService: SA key file if present, else ADC (keyless).
             var keyPath = Environment.GetEnvironmentVariable("GoogleCloud__ServiceAccountKeyPath");

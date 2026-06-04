@@ -63,10 +63,12 @@ namespace VideoAnalysis.Server.Domain.GeminiService
             _storageService = storageService;
             _logger = logger;
 
-            _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId);
-            _location = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionLocation);
-            _visionModel = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionModel);
-            _textModel = Global.Configuration?["GeminiVision:TextModel"] ?? "gemini-3.1-flash-lite-preview";
+            // Trim trailing CR/LF from env values (VM .env CRLF / Secret Manager) so Vertex paths and
+            // model ids aren't corrupted.
+            _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId).Trim();
+            _location = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionLocation).Trim();
+            _visionModel = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionModel).Trim();
+            _textModel = (Global.Configuration?["GeminiVision:TextModel"] ?? "gemini-3.1-flash-lite-preview").Trim();
 
             // Authenticate: try service account key file first, fall back to ADC.
             // Global.AccessAppEnvironmentVariable throws when the key path is unset/missing, so read
