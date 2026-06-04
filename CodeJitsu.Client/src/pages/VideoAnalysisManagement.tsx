@@ -3,14 +3,19 @@ import VideoUploadForm from '../components/VideoAnalysisEditor/VideoUploadForm';
 import VideoStorageListing from './VideoStorageListing';
 import { VideoUploadResponse } from '@/types/global';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { analysisConnection } from '../services/SignalRService';
 import * as signalR from '@microsoft/signalr';
 
+const V2_ENABLED = import.meta.env.VITE_ANALYSIS_V2_ENABLED !== 'false';
+
 const VideoAnalysisManagement: React.FC = () => {
     const { user, accessToken, hydrate } = useAuthStore();
+    const { t } = useTranslation();
     const [isUploading, setIsUploading] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysisPhase, setAnalysisPhase] = useState<string | null>(null);
     const [shouldRefreshList, setShouldRefreshList] = useState(false);
     const { toast } = useToast();
     const [isConnected, setIsConnected] = useState(false);
@@ -20,7 +25,7 @@ const VideoAnalysisManagement: React.FC = () => {
             analysisConnection.start().then(() => {
                 console.log('Connected to SignalR hub');
                 setIsConnected(true);
-                // Listen for the AnalysisCompleted event from the server.
+                // Legacy single-shot completion.
                 analysisConnection.on("AnalysisCompleted", (videoId: number) => {
                     toast({
                         title: "Analysis Completed",
@@ -28,6 +33,29 @@ const VideoAnalysisManagement: React.FC = () => {
                         variant: "default",
                     });
                     setShouldRefreshList(true);
+                });
+                // Agentic (v2) per-phase progress.
+                analysisConnection.on("AnalysisStatusChanged", (_videoId: number, phase: string) => {
+                    setAnalysisPhase(phase);
+                });
+                analysisConnection.on("AnalysisV2Completed", (videoId: number) => {
+                    setAnalysisPhase(null);
+                    setIsAnalyzing(false);
+                    toast({
+                        title: t('videoReviewV2.progress.completeTitle'),
+                        description: `Video ${videoId} analysis is complete.`,
+                        variant: "default",
+                    });
+                    setShouldRefreshList(true);
+                });
+                analysisConnection.on("AnalysisV2Failed", (_videoId: number) => {
+                    setAnalysisPhase(null);
+                    setIsAnalyzing(false);
+                    toast({
+                        title: t('videoReviewV2.progress.failedTitle'),
+                        description: t('videoReviewV2.progress.failedBody'),
+                        variant: "destructive",
+                    });
                 });
             }).catch((err) => console.error("SignalR Connection Error on /analysisHub: ", err));
         }
@@ -38,12 +66,13 @@ const VideoAnalysisManagement: React.FC = () => {
                 setIsConnected(false);
             }
         };
-    }, [toast]);
+    }, [toast, t]);
 
     const handleUploadSuccess = async (response: VideoUploadResponse) => {
         try {
             setIsAnalyzing(true);
-            const res = await fetch(`/vid/api/video/analyze/${response.videoId}`, {
+            const analyzePath = V2_ENABLED ? 'analyze-v2' : 'analyze';
+            const res = await fetch(`/vid/api/video/${analyzePath}/${response.videoId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,10 +124,14 @@ const VideoAnalysisManagement: React.FC = () => {
                                 onUploadSuccess={handleUploadSuccess}
                             />
                         </div>
-                        {isAnalyzing && (
+                        {(isAnalyzing || analysisPhase) && (
                             <div className="mt-4 flex items-center space-x-2">
                                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-samurai-400"></div>
-                                <p className="text-samurai-400">AI is analyzing the video. This may take a few minutes...</p>
+                                <p className="text-samurai-400">
+                                    {analysisPhase
+                                        ? t(`videoReviewV2.progress.${analysisPhase.toLowerCase()}`)
+                                        : t('videoReviewV2.progress.starting')}
+                                </p>
                             </div>
                         )}
                     </div>

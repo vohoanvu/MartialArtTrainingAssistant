@@ -1,5 +1,97 @@
 ﻿{
   "translation": {
+    "videoReviewV2": {
+      "page": { "title": "Przejrzyj i edytuj to nagranie" },
+      "saveChanges": "Zapisz zmiany",
+      "saving": "Zapisywanie...",
+      "unsavedChanges": "Niezapisane zmiany",
+      "tabs": {
+        "timeline": "Oś czasu walki",
+        "coaching": "Raport trenerski",
+        "drills": "Zalecane ćwiczenia"
+      },
+      "summary": {
+        "visualDnaTitle": "Profil zawodnika (Visual DNA)",
+        "matchSummaryTitle": "Podsumowanie walki",
+        "gradeLabel": "Ocena techniczna",
+        "gradeLabelField": "Etykieta oceny",
+        "eliteTipTitle": "Wskazówka eksperta"
+      },
+      "timeline": {
+        "addEvent": "Dodaj zdarzenie",
+        "empty": "Nie wykryto żadnych zdarzeń.",
+        "actionsTitle": "Co się wydarzyło"
+      },
+      "event": {
+        "category": "Kategoria",
+        "techniqueName": "Technika",
+        "positionBefore": "Pozycja przed",
+        "positionAfter": "Pozycja po",
+        "outcome": "Rezultat",
+        "guardType": "Typ gardy",
+        "submissionType": "Typ poddania",
+        "startMs": "Początek (ms)",
+        "endMs": "Koniec (ms)",
+        "useSelection": "Użyj zaznaczenia z osi czasu"
+      },
+      "coaching": {
+        "strengthsTitle": "Kluczowe mocne strony",
+        "weaknessesTitle": "Krytyczne słabości",
+        "addStrength": "Dodaj mocną stronę",
+        "addWeakness": "Dodaj słabość",
+        "severity": "Waga",
+        "scoringImpact": "Wpływ na punktację",
+        "titlePlaceholder": "Tytuł",
+        "noStrengths": "Nie zidentyfikowano wyróżniających mocnych stron.",
+        "noWeaknesses": "Nie zidentyfikowano krytycznych słabości."
+      },
+      "drills": {
+        "title": "Zalecane ćwiczenia",
+        "addDrill": "Dodaj ćwiczenie",
+        "goalLabel": "Cel",
+        "instructionsLabel": "Instrukcje",
+        "namePlaceholder": "Nazwa ćwiczenia",
+        "empty": "Nie zalecono żadnych ćwiczeń."
+      },
+      "confidence": {
+        "label": "Pewność: {{percent}}%",
+        "low": "Niska pewność",
+        "lowTooltip": "Model jest mniej pewny tego zdarzenia."
+      },
+      "progress": {
+        "starting": "Rozpoczynanie analizy...",
+        "profiling": "Identyfikacja zawodnika...",
+        "logging": "Analiza pozycji i przejść...",
+        "verifying": "Weryfikacja śledzenia tożsamości...",
+        "coaching": "Tworzenie notatek trenerskich...",
+        "complete": "Analiza zakończona",
+        "completeTitle": "Analiza zakończona",
+        "failed": "Analiza nie powiodła się",
+        "failedTitle": "Analiza nie powiodła się",
+        "failedBody": "Wystąpił błąd podczas analizy filmu. Spróbuj ponownie."
+      },
+      "enums": {
+        "actor": { "Student": "Zawodnik", "Opponent": "Przeciwnik" },
+        "techniqueCategory": {
+          "Takedown": "Obalenie", "Submission": "Poddanie", "Sweep": "Przewrót",
+          "Pass": "Przejście gardy", "Escape": "Ucieczka", "Transition": "Przejście",
+          "Control": "Kontrola", "Defense": "Obrona", "GuardPull": "Ściągnięcie do gardy",
+          "Scramble": "Walka o pozycję", "StandUp": "Powstanie", "GripFight": "Walka o chwyty"
+        },
+        "position": {
+          "Standing": "Stójka", "OpenGuard": "Otwarta garda", "ClosedGuard": "Zamknięta garda",
+          "HalfGuard": "Półgarda", "SideControl": "Pozycja boczna", "Mount": "Dosiad",
+          "BackControl": "Kontrola pleców", "Turtle": "Żółw", "KneeOnBelly": "Kolano na brzuchu",
+          "NorthSouth": "Północ-południe", "FiftyFifty": "50/50", "Crucifix": "Krucyfiks",
+          "Scramble": "Walka o pozycję"
+        },
+        "outcome": {
+          "Successful": "Udane", "Failed": "Nieudane", "Partial": "Częściowe",
+          "Countered": "Skontrowane", "InProgress": "W trakcie"
+        },
+        "severity": { "Critical": "Krytyczna", "Major": "Poważna", "Minor": "Drobna" }
+      }
+    },
     "app.title": "Demonstracyjna aplikacja Asp.Net Core - React Docker",
     "navbar.about": "O nas",
     "navbar.login": "Zaloguj się",
