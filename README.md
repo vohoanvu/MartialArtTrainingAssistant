@@ -40,7 +40,7 @@ To get started, clone the repository and open the project in Visual Studio 2022.
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 - [Node.js](https://nodejs.org/en/)
 - [React](https://reactjs.org/)
-- [.Net 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.Net 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (outdated! should be 10)
 
 ### .env Configuration
 
