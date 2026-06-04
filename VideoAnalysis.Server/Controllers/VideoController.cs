@@ -189,6 +189,10 @@ namespace VideoAnalysis.Server.Controllers
 
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
+            var martialArt = Enum.TryParse<MartialArt>(request.MartialArt, ignoreCase: true, out var parsed)
+                ? parsed
+                : MartialArt.BrazilianJiuJitsu_GI;
+
             // Same object-name convention as UploadFileAsync; the signer encodes it into the URL.
             var objectName = $"{Guid.NewGuid()}_{request.FileName}";
             var gcsPath = $"gs://{_gcsService.BucketName}/{objectName}";
@@ -199,7 +203,7 @@ namespace VideoAnalysis.Server.Controllers
                 FilePath = gcsPath,
                 Description = request.Description,
                 StudentIdentifier = request.StudentIdentifier,
-                MartialArt = request.MartialArt,
+                MartialArt = martialArt,
                 UploadedAt = DateTime.UtcNow,
                 Type = VideoType.StudentUpload,
             };

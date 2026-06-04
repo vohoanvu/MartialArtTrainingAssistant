@@ -54,7 +54,9 @@ namespace VideoAnalysis.Server.Models.Dtos
         public required string ContentType { get; set; }
         public string? Description { get; set; }
         public string? StudentIdentifier { get; set; }
-        public MartialArt MartialArt { get; set; }
+        // String (not the MartialArt enum) so JSON binds the name "BrazilianJiuJitsu_GI" the client
+        // sends; the app's System.Text.Json config deserializes enums from numbers, not names.
+        public string? MartialArt { get; set; }
     }
 
     public class TechniqueDto
