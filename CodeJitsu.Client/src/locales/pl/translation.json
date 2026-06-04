@@ -2,6 +2,11 @@
   "translation": {
     "videoReviewV2": {
       "page": { "title": "Przejrzyj i edytuj to nagranie" },
+      "player": {
+        "unsupportedTitle": "Podgląd niedostępny w przeglądarce",
+        "unsupportedBody": "To nagranie jest w formacie HEVC (H.265), którego większość przeglądarek nie odtwarza. Analiza AI została wykonana — pobierz oryginał, aby je obejrzeć.",
+        "download": "Pobierz wideo"
+      },
       "saveChanges": "Zapisz zmiany",
       "saving": "Zapisywanie...",
       "unsavedChanges": "Niezapisane zmiany",

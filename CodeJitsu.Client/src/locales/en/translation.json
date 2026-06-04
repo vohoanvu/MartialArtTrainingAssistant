@@ -2,6 +2,11 @@
   "translation": {
     "videoReviewV2": {
       "page": { "title": "Review and edit this tape" },
+      "player": {
+        "unsupportedTitle": "Preview not available in your browser",
+        "unsupportedBody": "This tape is encoded in HEVC (H.265), which most browsers can't play. The AI analysis still ran on it — download the original to watch it.",
+        "download": "Download video"
+      },
       "saveChanges": "Save Changes",
       "saving": "Saving...",
       "unsavedChanges": "Unsaved changes",

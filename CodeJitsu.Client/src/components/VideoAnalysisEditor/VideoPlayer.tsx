@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { TechniqueDto } from '@/types/global';
 
@@ -64,7 +65,11 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const [dragEnd, setDragEnd] = useState<number | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [mouseDownPosition, setMouseDownPosition] = useState<number | null>(null);
+    // True when the browser can't render the video track (e.g. HEVC/H.265): audio decodes but
+    // videoWidth/Height stay 0. We then show a download fallback instead of a blank player.
+    const [videoUnsupported, setVideoUnsupported] = useState(false);
     const DRAG_THRESHOLD = 5; // Pixels to consider as a drag
+    const { t } = useTranslation();
 
     // Expose seek functions to parent via ref
     useImperativeHandle(ref, () => ({
@@ -85,13 +90,22 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
 
     useEffect(() => {
         const video = videoRef.current!;
-        const handleLoadedMetadata = () => setDuration(video.duration);
+        // A renderable video reports non-zero intrinsic dimensions once metadata/first frame load;
+        // an undecodable video track (HEVC in most browsers) stays at 0 while audio still plays.
+        const checkRenderable = () =>
+            setVideoUnsupported(video.videoWidth === 0 && video.videoHeight === 0);
+        const handleLoadedMetadata = () => { setDuration(video.duration); checkRenderable(); };
         const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+        const handleError = () => setVideoUnsupported(true);
 
         video.addEventListener('loadedmetadata', handleLoadedMetadata);
+        video.addEventListener('loadeddata', checkRenderable);
         video.addEventListener('timeupdate', handleTimeUpdate);
+        video.addEventListener('error', handleError);
 
         return () => {
+            video.removeEventListener('loadeddata', checkRenderable);
+            video.removeEventListener('error', handleError);
             video.removeEventListener('loadedmetadata', handleLoadedMetadata);
             video.removeEventListener('timeupdate', handleTimeUpdate);
         };
@@ -288,8 +302,23 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
 
     return (
         <div className="video-container">
-            <div style={{ overflow: 'hidden' }}>
+            <div style={{ overflow: 'hidden', position: 'relative', ...(videoUnsupported ? { minHeight: 280 } : {}) }}>
                 <video ref={videoRef} src={videoUrl} controls className='w-full h-full' style={{ objectFit: 'contain' }} />
+                {videoUnsupported && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center bg-black/80 text-white">
+                        <p className="font-semibold text-lg">{t('videoReviewV2.player.unsupportedTitle')}</p>
+                        <p className="text-sm max-w-md opacity-90">{t('videoReviewV2.player.unsupportedBody')}</p>
+                        <a
+                            href={videoUrl}
+                            download
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-flex items-center rounded-md bg-white/90 px-4 py-2 text-sm font-medium text-black hover:bg-white"
+                        >
+                            {t('videoReviewV2.player.download')}
+                        </a>
+                    </div>
+                )}
             </div>
             <div className="timeline-container mt-2 relative">
                 <div
