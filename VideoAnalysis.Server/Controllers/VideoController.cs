@@ -169,6 +169,50 @@ namespace VideoAnalysis.Server.Controllers
             return Ok(new { VideoId = uploadedVideo.Id, SignedUrl = signedUrl });
         }
 
+        /// <summary>
+        /// Returns a signed URL the client uses to PUT the video DIRECTLY to GCS, bypassing
+        /// Cloudflare's 100 MB body cap and the app server entirely. Creates the VideoMetadata row
+        /// up front; the client uploads the bytes, then triggers analysis with the returned VideoId.
+        /// </summary>
+        [HttpPost("upload-url")]
+        [Authorize]
+        public async Task<IActionResult> RequestUploadUrlAsync([FromBody] UploadUrlRequest request)
+        {
+            if (request is null || string.IsNullOrWhiteSpace(request.FileName))
+                return BadRequest(new { Message = "FileName is required." });
+            if (!IsValidVideoFormat(request.ContentType))
+                return BadRequest(new { Message = "Invalid video format. Allowed: mp4, avi, mov, mpeg, webm." });
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
+
+            // Same object-name convention as UploadFileAsync; the signer encodes it into the URL.
+            var objectName = $"{Guid.NewGuid()}_{request.FileName}";
+            var gcsPath = $"gs://{_gcsService.BucketName}/{objectName}";
+
+            var uploadedVideo = new VideoMetadata
+            {
+                UserId = userId,
+                FilePath = gcsPath,
+                Description = request.Description,
+                StudentIdentifier = request.StudentIdentifier,
+                MartialArt = request.MartialArt,
+                UploadedAt = DateTime.UtcNow,
+                Type = VideoType.StudentUpload,
+            };
+            dbContext.Videos.Add(uploadedVideo);
+            await dbContext.SaveChangesAsync();
+
+            // 2h window: a multi-GB upload must START before this expires (GCS validates at request receipt).
+            var uploadUrl = await _gcsService.GenerateUploadUrlAsync(objectName, TimeSpan.FromHours(2));
+
+            _logger.LogInformation("Issued direct-upload URL for VideoId {VideoId} ({Object})", uploadedVideo.Id, objectName);
+            return Ok(new { VideoId = uploadedVideo.Id, UploadUrl = uploadUrl, GcsPath = gcsPath });
+        }
+
         [HttpPost("upload-demonstration")]
         [Authorize]
         [RequestSizeLimit(300 * 1024 * 1024)]

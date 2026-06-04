@@ -44,6 +44,19 @@ namespace VideoAnalysis.Server.Models.Dtos
         public MartialArt MartialArt { get; set; }
     }
 
+    /// <summary>
+    /// Request for a direct-to-GCS signed upload URL. The client PUTs the file bytes straight to
+    /// GCS (bypassing Cloudflare + the app server), so there is no 100 MB body limit.
+    /// </summary>
+    public class UploadUrlRequest
+    {
+        public required string FileName { get; set; }
+        public required string ContentType { get; set; }
+        public string? Description { get; set; }
+        public string? StudentIdentifier { get; set; }
+        public MartialArt MartialArt { get; set; }
+    }
+
     public class TechniqueDto
     {
         public int? Id { get; set; }

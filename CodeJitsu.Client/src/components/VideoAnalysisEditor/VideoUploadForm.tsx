@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { uploadVideoFile } from '@/services/api';
+import { uploadVideoDirect } from '@/services/api';
 import { Button } from '../ui/button';
 import { VideoUploadResponse, MartialArt } from '@/types/global';
 import { Input } from '../ui/input';
@@ -52,7 +52,8 @@ const VideoUploadForm = ({
         setProgress(0);
 
         try {
-            const response: VideoUploadResponse = await uploadVideoFile({
+            // Direct-to-GCS upload (handles multi-GB files; bypasses Cloudflare's 100MB cap).
+            const response: VideoUploadResponse = await uploadVideoDirect({
                 file,
                 description,
                 studentIdentifier,
@@ -65,16 +66,7 @@ const VideoUploadForm = ({
             setDescription('');
             setStudentIdentifier('');
             setMartialArt(MartialArt.None);
-
-            if (response.statusCode == 409 && response.message !== null) {
-                toast({
-                    title: "Duplicate Video Detected",
-                    description: response.message,
-                    variant: "destructive"
-                });
-                return;
-            }
-            setSignedUrl(response.signedUrl || '')
+            setSignedUrl('');
             onUploadSuccess(response);
         } catch (err: any) {
             setError(err);
