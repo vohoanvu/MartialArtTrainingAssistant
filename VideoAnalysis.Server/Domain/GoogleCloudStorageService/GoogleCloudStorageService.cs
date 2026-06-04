@@ -9,8 +9,12 @@ namespace VideoAnalysis.Server.Domain.GoogleCloudStorageService
     {
         Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType);
         Task<string> GenerateSignedUrlAsync(string filePath, TimeSpan expiration);
+        /// <summary>Generates a V4 signed URL the browser can PUT a file directly to (bypasses the app server / Cloudflare).</summary>
+        Task<string> GenerateUploadUrlAsync(string objectName, TimeSpan expiration);
         Task DeleteFileAsync(string filePath);
         Task<string> CalculateFileHashAsync(Stream fileStream);
+        /// <summary>The configured GCS bucket name.</summary>
+        string BucketName { get; }
     }
 
     public class GoogleCloudStorageService : IGoogleCloudStorageService
@@ -25,6 +29,8 @@ namespace VideoAnalysis.Server.Domain.GoogleCloudStorageService
             _storageClient = StorageClient.Create(_credential);
             _bucketName = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudBucketName);
         }
+
+        public string BucketName => _bucketName;
 
         // Use a mounted service-account key when one is present; otherwise fall back to
         // Application Default Credentials (the GCE VM's attached service account). ADC keeps us
@@ -62,7 +68,17 @@ namespace VideoAnalysis.Server.Domain.GoogleCloudStorageService
             var urlSigner = UrlSigner.FromCredential(_credential);
             return await urlSigner.SignAsync(_bucketName, objectName, expiration, HttpMethod.Get);
         }
-        
+
+        /// <inheritdoc/>
+        public async Task<string> GenerateUploadUrlAsync(string objectName, TimeSpan expiration)
+        {
+            // V4 signed PUT URL — same keyless signBlob path as the GET signer. Content-Type is NOT
+            // a signed header, so the browser may send any Content-Type; GCS stores the object with it.
+            var urlSigner = UrlSigner.FromCredential(_credential);
+            return await urlSigner.SignAsync(_bucketName, objectName, expiration, HttpMethod.Put);
+        }
+
+
         /// <inheritdoc/>
         public async Task DeleteFileAsync(string filePath)
         {

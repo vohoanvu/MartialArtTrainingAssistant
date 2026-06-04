@@ -396,6 +396,54 @@ interface VideoUploadResponse {
     signedUrl: string;
     isDuplicate?: boolean;
 }
+// ── Direct-to-GCS upload (bypasses Cloudflare's 100MB cap + the app server) ──
+
+export async function requestVideoUploadUrl({
+    file, description, studentIdentifier, martialArt, jwtToken, hydrate, currentTry = 0,
+}): Promise<{ videoId: number; uploadUrl: string; gcsPath: string }> {
+    const response = await fetch('/vid/api/video/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwtToken}` },
+        body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type || 'video/mp4',
+            description,
+            studentIdentifier,
+            martialArt,
+        }),
+    });
+    if (response.ok) return await response.json();
+    if (response.status === 401 && currentTry === 0) {
+        await hydrate();
+        return await requestVideoUploadUrl({ file, description, studentIdentifier, martialArt, jwtToken, hydrate, currentTry: 1 });
+    }
+    throw new Error(`Failed to get upload URL: ${response.status} ${response.statusText}`);
+}
+
+export async function uploadFileToSignedUrl({ uploadUrl, file, onProgress }): Promise<void> {
+    // PUT the bytes straight to storage.googleapis.com. No Authorization header (the signed URL
+    // carries auth in its query string); Content-Type is sent but not signed.
+    await axios.put(uploadUrl, file, {
+        headers: { 'Content-Type': file.type || 'video/mp4' },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        onUploadProgress: (progressEvent: any) => {
+            if (onProgress && progressEvent.total) {
+                onProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
+            }
+        },
+    });
+}
+
+/** Two-step large-file upload: request a signed URL, then PUT the file directly to GCS. */
+export async function uploadVideoDirect({
+    file, description, studentIdentifier, martialArt, jwtToken, hydrate, onProgress,
+}): Promise<VideoUploadResponse> {
+    const { videoId, uploadUrl } = await requestVideoUploadUrl({ file, description, studentIdentifier, martialArt, jwtToken, hydrate });
+    await uploadFileToSignedUrl({ uploadUrl, file, onProgress });
+    return { videoId } as VideoUploadResponse;
+}
+
 export async function uploadVideoFile({
     file,
     description,
