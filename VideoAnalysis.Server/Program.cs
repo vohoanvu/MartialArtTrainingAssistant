@@ -68,6 +68,10 @@ namespace VideoAnalysis.Server
             // Agentic (v2) analysis pipeline
             builder.Services.Configure<VertexAiPipelineOptions>(
                 builder.Configuration.GetSection(VertexAiPipelineOptions.SectionName));
+            // Propagate the shared Pipeline:ModelId to any phase that didn't override it, so the whole
+            // pipeline can be pointed at one model (e.g. gemini-3.5-flash) with a single setting — and so
+            // all phases stay on ONE model, which the multimodal context cache requires.
+            builder.Services.PostConfigure<VertexAiPipelineOptions>(o => o.Normalize());
             builder.Services.AddHttpClient<IVertexRestClient, VertexRestClient>();
             builder.Services.AddScoped<IAgenticPipelineService, AgenticPipelineService>();
             builder.Services.AddScoped<AgenticAnalysisReadService>();
@@ -266,6 +270,7 @@ namespace VideoAnalysis.Server
             var pipelineOptions = builder.Configuration
                 .GetSection(VertexAiPipelineOptions.SectionName)
                 .Get<VertexAiPipelineOptions>() ?? new VertexAiPipelineOptions();
+            pipelineOptions.Normalize();
             builder.Services.AddHangfireServer(opts =>
             {
                 opts.ServerName = "vertex-pipeline-server";

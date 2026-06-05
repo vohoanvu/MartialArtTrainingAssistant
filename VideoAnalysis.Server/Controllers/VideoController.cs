@@ -295,31 +295,63 @@ namespace VideoAnalysis.Server.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteUploadedVideoAsync(int videoId)
         {
-            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
-            var aiAnalysisId = dbContext.AiAnalysisResults.FirstOrDefault(a => a.VideoId == videoId)?.Id;
-            await dbContext.Techniques
-                .Where(t => t.AiAnalysisResultId == aiAnalysisId)
-                .ExecuteDeleteAsync();
-            await dbContext.Drills.Where(d => d.AiAnalysisResultId == aiAnalysisId)
-                .ExecuteDeleteAsync();
-                
-            var video = await dbContext.Videos.FindAsync(videoId);
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MyDatabaseContext>();
+
+            // Owner-scoped: only the uploader may delete. Return NotFound for both missing and not-owned
+            // so we don't leak the existence of other users' videos. (Mirrors getall-uploaded's filter.)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var video = await dbContext.Videos.AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Id == videoId && v.UserId == userId);
             if (video == null)
             {
                 return NotFound(new { Message = $"Video with ID {videoId} not found" });
             }
 
-            // Remove from database first
-            dbContext.Videos.Remove(video);
-            await dbContext.SaveChangesAsync();
+            // Capture GCS paths before the row is gone; GCS cleanup runs after the DB commit.
+            var originalPath = video.FilePath;
+            var playbackPath = video.PlaybackFilePath;
 
-            // then delete from GCS, might throw exception if file was already deleted
-            await _gcsService.DeleteFileAsync(video.FilePath!);
+            // Purge ALL analysis residue so the same source can be re-uploaded and re-analyzed clean.
+            // The v2 children (MatchEvent, CoachingReport + Strengths/Weaknesses/PrescribedDrills) are
+            // removed by DB ON DELETE CASCADE when the AiAnalysisResult row goes. The rows below have no
+            // cascade and must be deleted explicitly. One transaction → a partial failure rolls back.
+            await using var tx = await dbContext.Database.BeginTransactionAsync();
 
-            // Best-effort cleanup of the transcoded playback copy (don't fail the delete if it's missing).
-            if (!string.IsNullOrEmpty(video.PlaybackFilePath))
+            var aiAnalysisId = await dbContext.AiAnalysisResults
+                .Where(a => a.VideoId == videoId)
+                .Select(a => (int?)a.Id)
+                .FirstOrDefaultAsync();
+
+            // VideoSegmentFeedback references both the video AND a technique, so delete it before the
+            // techniques it points at (and before the video).
+            await dbContext.VideoSegmentFeedbacks.Where(f => f.VideoId == videoId).ExecuteDeleteAsync();
+            if (aiAnalysisId != null)
             {
-                try { await _gcsService.DeleteFileAsync(video.PlaybackFilePath); }
+                await dbContext.Techniques.Where(t => t.AiAnalysisResultId == aiAnalysisId).ExecuteDeleteAsync();
+                await dbContext.Drills.Where(d => d.AiAnalysisResultId == aiAnalysisId).ExecuteDeleteAsync();
+                await dbContext.AnalysisWeaknesses.Where(w => w.AiAnalysisResultId == aiAnalysisId).ExecuteDeleteAsync();
+            }
+            // Deleting the analysis cascades the v2 MatchEvents + CoachingReport (and its children).
+            await dbContext.AiAnalysisResults.Where(a => a.VideoId == videoId).ExecuteDeleteAsync();
+            await dbContext.Videos.Where(v => v.Id == videoId).ExecuteDeleteAsync();
+
+            await tx.CommitAsync();
+
+            // GCS cleanup is best-effort: an orphaned object is a minor cost issue, not a user-facing
+            // error. Never fail the request here — the DB is already clean (which is what re-analysis needs).
+            if (!string.IsNullOrEmpty(originalPath))
+            {
+                try { await _gcsService.DeleteFileAsync(originalPath); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete original GCS object for video {VideoId}", videoId); }
+            }
+            // Remove the whole transcoded/{videoId}/ folder (covers playback.mp4 + any partial residue).
+            try { await _gcsService.DeleteByPrefixAsync($"transcoded/{videoId}/"); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete transcoded artifacts for video {VideoId}", videoId); }
+            // Belt-and-suspenders: if the playback copy ever lived outside that prefix, try it explicitly.
+            if (!string.IsNullOrEmpty(playbackPath) && !playbackPath.Contains($"transcoded/{videoId}/"))
+            {
+                try { await _gcsService.DeleteFileAsync(playbackPath); }
                 catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete transcoded copy for video {VideoId}", videoId); }
             }
 

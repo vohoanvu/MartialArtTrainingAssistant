@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -160,28 +161,68 @@ namespace VideoAnalysis.Server.Domain.AIServices
             return await tokenAccess!.GetAccessTokenForRequestAsync();
         }
 
+        // Transient statuses worth retrying: throttling (429) and transient server faults (5xx). 4xx
+        // client errors (bad request, auth, not found) are not retried — they won't succeed on retry.
+        private static readonly TimeSpan[] RetryBackoff =
+            [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10)];
+
+        private static bool IsTransient(HttpStatusCode status) =>
+            status == HttpStatusCode.TooManyRequests        // 429
+            || status == HttpStatusCode.InternalServerError // 500
+            || status == HttpStatusCode.BadGateway          // 502
+            || status == HttpStatusCode.ServiceUnavailable  // 503
+            || status == HttpStatusCode.GatewayTimeout;     // 504
+
         private async Task<JsonElement> PostJsonAsync(string url, object body, CancellationToken ct)
         {
-            var token = await GetAccessTokenAsync();
-            using var request = new HttpRequestMessage(HttpMethod.Post, url);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            request.Content = JsonContent.Create(body, options: JsonOptions);
-
-            var response = await _httpClient.SendAsync(request, ct);
-
-            if (!response.IsSuccessStatusCode)
+            // Bounded retry with exponential backoff so a single transient blip (429/5xx, connection
+            // reset) doesn't throw away an in-flight multi-minute pipeline run. A timeout (the 10-min
+            // HttpClient limit) surfaces as TaskCanceledException and is intentionally NOT retried.
+            for (int attempt = 0; ; attempt++)
             {
-                var errorBody = await response.Content.ReadAsStringAsync(ct);
-                _logger.LogError("Vertex AI API error. Status: {StatusCode}, Body: {Body}",
-                    (int)response.StatusCode, errorBody[..Math.Min(500, errorBody.Length)]);
-                throw new HttpRequestException(
-                    $"Vertex AI request failed with {(int)response.StatusCode}: {errorBody[..Math.Min(500, errorBody.Length)]}",
-                    null,
-                    response.StatusCode);
-            }
+                var token = await GetAccessTokenAsync();
+                using var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                request.Content = JsonContent.Create(body, options: JsonOptions);
 
-            await using var stream = await response.Content.ReadAsStreamAsync(ct);
-            return await JsonSerializer.DeserializeAsync<JsonElement>(stream, cancellationToken: ct);
+                HttpResponseMessage response;
+                try
+                {
+                    response = await _httpClient.SendAsync(request, ct);
+                }
+                catch (HttpRequestException ex) when (attempt < RetryBackoff.Length && !ct.IsCancellationRequested)
+                {
+                    _logger.LogWarning(ex, "Vertex AI network error (attempt {Attempt}/{Max}); retrying in {Delay}s.",
+                        attempt + 1, RetryBackoff.Length + 1, RetryBackoff[attempt].TotalSeconds);
+                    await Task.Delay(RetryBackoff[attempt], ct);
+                    continue;
+                }
+
+                using (response)
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        await using var stream = await response.Content.ReadAsStreamAsync(ct);
+                        return await JsonSerializer.DeserializeAsync<JsonElement>(stream, cancellationToken: ct);
+                    }
+
+                    var errorBody = await response.Content.ReadAsStringAsync(ct);
+                    if (IsTransient(response.StatusCode) && attempt < RetryBackoff.Length && !ct.IsCancellationRequested)
+                    {
+                        _logger.LogWarning("Vertex AI transient {StatusCode} (attempt {Attempt}/{Max}); retrying in {Delay}s.",
+                            (int)response.StatusCode, attempt + 1, RetryBackoff.Length + 1, RetryBackoff[attempt].TotalSeconds);
+                        await Task.Delay(RetryBackoff[attempt], ct);
+                        continue;
+                    }
+
+                    _logger.LogError("Vertex AI API error. Status: {StatusCode}, Body: {Body}",
+                        (int)response.StatusCode, errorBody[..Math.Min(500, errorBody.Length)]);
+                    throw new HttpRequestException(
+                        $"Vertex AI request failed with {(int)response.StatusCode}: {errorBody[..Math.Min(500, errorBody.Length)]}",
+                        null,
+                        response.StatusCode);
+                }
+            }
         }
     }
 }

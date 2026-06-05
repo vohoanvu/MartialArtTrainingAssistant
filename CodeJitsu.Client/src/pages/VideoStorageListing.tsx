@@ -37,12 +37,10 @@ const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageL
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (shouldRefresh) {
-            fetchVideos().then(() => {
-                onRefreshComplete();
-            });
-        }
-        fetchVideos();
+        // Fetch once per mount / shouldRefresh change; signal the parent when a requested refresh lands.
+        fetchVideos().then(() => {
+            if (shouldRefresh) onRefreshComplete();
+        });
     }, [shouldRefresh]);
 
     const fetchVideos = async () => {
@@ -65,13 +63,16 @@ const VideoStorageListing = ({ shouldRefresh, onRefreshComplete }: VideoStorageL
         if (!confirm('Are you sure you want to delete this video?')) return;
 
         setIsLoading(true);
+        setError(null);
         try {
             await deleteUploadedVideo({
                 videoId,
                 jwtToken: accessToken,
                 hydrate,
             });
-            setVideos(videos.filter(v => v.id !== videoId));
+            // Optimistic removal for instant feedback, then re-sync with the server for the source of truth.
+            setVideos(prev => prev.filter(v => v.id !== videoId));
+            await fetchVideos();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
         } finally {

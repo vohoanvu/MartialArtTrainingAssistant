@@ -12,6 +12,8 @@ namespace VideoAnalysis.Server.Domain.GoogleCloudStorageService
         /// <summary>Generates a V4 signed URL the browser can PUT a file directly to (bypasses the app server / Cloudflare).</summary>
         Task<string> GenerateUploadUrlAsync(string objectName, TimeSpan expiration);
         Task DeleteFileAsync(string filePath);
+        /// <summary>Best-effort delete of every object under a prefix (e.g. "transcoded/{videoId}/").</summary>
+        Task DeleteByPrefixAsync(string prefix);
         Task<string> CalculateFileHashAsync(Stream fileStream);
         /// <summary>The configured GCS bucket name.</summary>
         string BucketName { get; }
@@ -86,6 +88,17 @@ namespace VideoAnalysis.Server.Domain.GoogleCloudStorageService
         {
             var objectName = filePath.Replace($"gs://{_bucketName}/", "");
             await _storageClient.DeleteObjectAsync(_bucketName, objectName);
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteByPrefixAsync(string prefix)
+        {
+            // List + delete every object under the prefix. Used to purge the per-video transcoded
+            // folder (transcoded/{videoId}/playback.mp4 plus any partial/residual outputs).
+            await foreach (var obj in _storageClient.ListObjectsAsync(_bucketName, prefix))
+            {
+                await _storageClient.DeleteObjectAsync(_bucketName, obj.Name);
+            }
         }
 
         public async Task<string> CalculateFileHashAsync(Stream fileStream)

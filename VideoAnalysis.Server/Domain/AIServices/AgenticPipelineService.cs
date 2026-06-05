@@ -232,7 +232,9 @@ namespace VideoAnalysis.Server.Domain.AIServices
                 && _options.HeadCoach.ModelId == cacheModel;
             if (!eligible)
             {
-                _logger.LogInformation("Context caching skipped for video {VideoId}: phases use differing models.", videoId);
+                _logger.LogWarning(
+                    "Context caching DISABLED for video {VideoId}: phases use differing models — each phase will re-send the full video (higher latency + token cost).",
+                    videoId);
                 return null;
             }
 
@@ -258,12 +260,16 @@ namespace VideoAnalysis.Server.Domain.AIServices
                         },
                     },
                 };
-                return await _vertex.CreateCachedContentAsync(body, _options.Location, ct);
+                var cacheName = await _vertex.CreateCachedContentAsync(body, _options.Location, ct);
+                _logger.LogInformation(
+                    "Context cache ACTIVE for video {VideoId} (model {Model}); all 4 phases reuse the cached video.",
+                    videoId, cacheModel);
+                return cacheName;
             }
             catch (Exception ex)
             {
                 // Short videos may fall below the cache token minimum; fall back to per-phase fileData.
-                _logger.LogWarning(ex, "Context cache creation failed for video {VideoId}; falling back to per-phase fileData.", videoId);
+                _logger.LogWarning(ex, "Context cache creation FAILED for video {VideoId}; falling back to per-phase fileData (each phase re-sends the video).", videoId);
                 return null;
             }
         }

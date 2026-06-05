@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,16 +12,20 @@ import { StudentDetails } from '@/components/VideoAnalysisEditor/StudentFighterD
 import TechniqueFeedback from '@/components/VideoAnalysisEditor/TechniqueFeedback';
 import AnalysisV2Panel from '@/components/VideoAnalysisEditor/v2/AnalysisV2Panel';
 import { actorMarkerColor, techniqueCategoryKey } from '@/components/VideoAnalysisEditor/v2/enumLabels';
+import { analysisConnection } from '@/services/SignalRService';
+import { useToast } from '@/hooks/use-toast';
 
 const V2_ENABLED = import.meta.env.VITE_ANALYSIS_V2_ENABLED !== 'false';
 
 const VideoReview: React.FC = () => {
     const { videoId } = useParams<{ videoId: string }>();
     const { t } = useTranslation();
+    const { toast } = useToast();
     const [feedbackList, setFeedbackList] = useState<AnalysisResultDto | null>(null);
     const [analysisV2, setAnalysisV2] = useState<AnalysisV2Dto | null>(null);
     const [videoUrl, setVideoUrl] = useState('');
     const [transcodeStatus, setTranscodeStatus] = useState<string>('None');
+    const [analysisPhase, setAnalysisPhase] = useState<string | null>(null);
     const { accessToken, refreshToken, hydrate } = useAuthStore();
 
     const [selectedSegment, setSelectedSegment] = useState<{ start: string; end: string } | null>(null);
@@ -31,40 +35,79 @@ const VideoReview: React.FC = () => {
     const [studentIdentifier, setStudentIdentifier] = useState<string | null>(null);
     const [isAnalysisSaving, setIsAnalysisSaving] = useState(false);
 
+    const loadAnalysis = useCallback(async () => {
+        if (!videoId) return;
+        try {
+            const videoDetails = await getVideoDetails({ videoId, jwtToken: accessToken, refreshToken, hydrate });
+            setVideoUrl(videoDetails.signedUrl);
+            setTranscodeStatus(videoDetails.transcodeStatus ?? 'None');
+            setStudentIdentifier(videoDetails.studentIdentifier);
+
+            // Prefer the richer v2 analysis; fall back to the legacy editor when absent.
+            let usedV2 = false;
+            if (V2_ENABLED) {
+                try {
+                    const v2 = await getVideoAnalysisV2({ videoId, jwtToken: accessToken, refreshToken, hydrate });
+                    if (v2) { setAnalysisV2(v2); usedV2 = true; }
+                } catch (e) {
+                    console.warn('v2 analysis fetch failed, falling back to legacy:', e);
+                }
+            }
+            if (!usedV2) {
+                const feedbackData: AnalysisResultDto = await getVideoFeedback({ videoId, jwtToken: accessToken, refreshToken, hydrate });
+                setFeedbackList(feedbackData);
+            }
+
+            const fd = await getFighterDetails({ fighterId: videoDetails.fighterId, jwtToken: accessToken, refreshToken, hydrate });
+            setFighterDetails(fd ?? null);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }, [videoId, accessToken, refreshToken, hydrate]);
+
+    useEffect(() => { loadAnalysis(); }, [loadAnalysis]);
+
+    // Live analysis progress. The agentic pipeline broadcasts per-phase status + completion/failure on
+    // the shared videoAnalysisHub (the connection is owned/started globally by NotificationsListener).
+    // Here we only register handlers scoped to THIS video and detach them on unmount — we deliberately
+    // do NOT start/stop the shared connection, to avoid racing the global owner.
     useEffect(() => {
         if (!videoId) return;
+        const id = Number(videoId);
 
-        const fetchData = async () => {
-            try {
-                const videoDetails = await getVideoDetails({ videoId, jwtToken: accessToken, refreshToken, hydrate });
-                setVideoUrl(videoDetails.signedUrl);
-                setTranscodeStatus(videoDetails.transcodeStatus ?? 'None');
-                setStudentIdentifier(videoDetails.studentIdentifier);
-
-                // Prefer the richer v2 analysis; fall back to the legacy editor when absent.
-                let usedV2 = false;
-                if (V2_ENABLED) {
-                    try {
-                        const v2 = await getVideoAnalysisV2({ videoId, jwtToken: accessToken, refreshToken, hydrate });
-                        if (v2) { setAnalysisV2(v2); usedV2 = true; }
-                    } catch (e) {
-                        console.warn('v2 analysis fetch failed, falling back to legacy:', e);
-                    }
-                }
-                if (!usedV2) {
-                    const feedbackData: AnalysisResultDto = await getVideoFeedback({ videoId, jwtToken: accessToken, refreshToken, hydrate });
-                    setFeedbackList(feedbackData);
-                }
-
-                const fd = await getFighterDetails({ fighterId: videoDetails.fighterId, jwtToken: accessToken, refreshToken, hydrate });
-                setFighterDetails(fd ?? null);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
+        const onStatus = (vId: number, phase: string) => {
+            if (vId === id) setAnalysisPhase(phase);
+        };
+        const onCompleted = (vId: number) => {
+            if (vId !== id) return;
+            setAnalysisPhase(null);
+            toast({
+                title: t('videoReviewV2.progress.completeTitle'),
+                description: t('videoReviewV2.progress.complete'),
+                variant: 'default',
+            });
+            void loadAnalysis(); // swap in the fresh results without a manual reload
+        };
+        const onFailed = (vId: number) => {
+            if (vId !== id) return;
+            setAnalysisPhase(null);
+            toast({
+                title: t('videoReviewV2.progress.failedTitle'),
+                description: t('videoReviewV2.progress.failedBody'),
+                variant: 'destructive',
+            });
         };
 
-        fetchData();
-    }, [videoId, accessToken, refreshToken, hydrate]);
+        analysisConnection.on('AnalysisStatusChanged', onStatus);
+        analysisConnection.on('AnalysisV2Completed', onCompleted);
+        analysisConnection.on('AnalysisV2Failed', onFailed);
+
+        return () => {
+            analysisConnection.off('AnalysisStatusChanged', onStatus);
+            analysisConnection.off('AnalysisV2Completed', onCompleted);
+            analysisConnection.off('AnalysisV2Failed', onFailed);
+        };
+    }, [videoId, t, toast, loadAnalysis]);
 
     // While a playback transcode is running, poll for completion and swap in the playable URL.
     useEffect(() => {
@@ -153,6 +196,12 @@ const VideoReview: React.FC = () => {
     return (
         <div className="w-full">
             <h1 className="font-serif text-3xl font-bold text-center mt-3 text-ink-400">{t('videoReviewV2.page.title')}</h1>
+            {analysisPhase && (
+                <div className="mx-auto mt-2 flex max-w-2xl items-center justify-center space-x-2 rounded-md border border-[rgba(60,50,40,0.10)] bg-parchment-50 px-4 py-2 shadow-zen-sm">
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-samurai-400"></div>
+                    <p className="text-samurai-400">{t(`videoReviewV2.progress.${analysisPhase.toLowerCase()}`)}</p>
+                </div>
+            )}
             <div className="flex flex-col md:flex-row gap-4 md:p-4 m-0 md:m-2">
                 <div className="w-full md:w-1/2 flex flex-col gap-4">
                     <div className="rounded-lg shadow-zen-sm bg-parchment-50 border border-[rgba(60,50,40,0.10)] p-2 md:p-4">
