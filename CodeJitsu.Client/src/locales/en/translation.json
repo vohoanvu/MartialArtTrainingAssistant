@@ -77,6 +77,7 @@
         "coaching": "Crafting your coach notes...",
         "complete": "Analysis complete",
         "completeTitle": "Analysis Completed",
+        "completeBanner": "Your video #{{videoId}} analysis is ready to review.",
         "failed": "Analysis failed",
         "failedTitle": "Analysis Failed",
         "failedBody": "There was an error analyzing your video. Please try again."

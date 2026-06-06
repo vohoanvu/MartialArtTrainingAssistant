@@ -77,6 +77,7 @@
         "coaching": "Tworzenie notatek trenerskich...",
         "complete": "Analiza zakończona",
         "completeTitle": "Analiza zakończona",
+        "completeBanner": "Analiza Twojego filmu #{{videoId}} jest gotowa do przeglądu.",
         "failed": "Analiza nie powiodła się",
         "failedTitle": "Analiza nie powiodła się",
         "failedBody": "Wystąpił błąd podczas analizy filmu. Spróbuj ponownie."

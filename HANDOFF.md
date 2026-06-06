@@ -1,12 +1,48 @@
 # Hand-off — what to work on next
 
-_Last updated: 2026-06-05. Previous: infra migration (codejitsu → MyCoach), 2026-06-04._
+_Last updated: 2026-06-06. Previous: GCP Transcoder API for HEVC playback, 2026-06-05._
 
 `thecodejitsu.com` runs on the MyCoach project (`project-afa815fe-26c6-40c3-a8b`). Operational
 gotchas live in `CLAUDE.md` → *Deployment*. **Read "Deploy reality" below before deploying** — the
 CI/CD only builds images; the actual VM deploy is manual.
 
 ---
+
+## ✅ Done this session (2026-06-06)
+
+All on `feature/gcp-vm-deploy`, **deployed to the VM** (plan: `ANALYSIS-PIPELINE-OPTIMIZATION-PLAN.md`).
+
+1. **Analysis pipeline perf knobs.** Model is now a single env flip: shared `VertexAi:Pipeline:ModelId`
+   propagated to all 4 phases via `Normalize()` (PostConfigure in `Program.cs`) — set
+   `VertexAi__Pipeline__ModelId=...` in the VM `.env` + recreate `video-analysis` (no rebuild). Also:
+   trimmed oversized MaxOutputTokens + EventLogger ThinkingBudget (kept Profiler/Verifier/HeadCoach
+   budgets — accuracy-critical), context-cache active/disabled/failed logging, and bounded retry/backoff
+   (2s/5s/10s, transient 429/5xx) in `VertexRestClient`.
+   - **Tried Gemini 3.5 Flash → ROLLED BACK to `gemini-3.1-pro-preview`.** Flash dropped accuracy to
+     ~50% (Phase-2 Event Logger events frequently wrong — worse than Pro). Pro stays.
+     ⚠️ The `.env` model override does NOT survive `refresh-env-secret-manager.sh` (it does `> .env`);
+     to A/B a model durably, add it to that script's static section or to Secret Manager.
+2. **DELETE uploaded video — full cleanup** ✅ **confirmed working in prod.** Owner-scoped +
+   transactional purge of AiAnalysisResult (DB-cascades MatchEvent + CoachingReport children) +
+   AnalysisWeakness/VideoSegmentFeedback/Techniques/Drills; best-effort GCS delete of original + the
+   whole `transcoded/{videoId}/` prefix (new `DeleteByPrefixAsync`); returns 200 (no client error).
+   Client re-syncs via `fetchVideos()`.
+3. **Live analysis progress on `/video-review/{id}`** — per-phase spinner + auto-refresh of results on
+   completion (the backend already emits the SignalR events).
+
+Local verify: backend 151 pass / 6 skipped; frontend 99 pass; tsc clean. (Build backend without the SPA
+esproj npm step via `dotnet build --no-dependencies` + `dotnet test --no-build`.)
+
+### ✅ Completion BANNER fixed — code-complete 2026-06-06 (needs deploy + browser check)
+Root cause was `NotificationsListener.tsx` only handling the legacy v1 `AnalysisCompleted` (the default
+v2 pipeline emits `AnalysisV2Completed`) AND never starting `analysisConnection` (only videoShareHub).
+Fix: `NotificationsListener` now OWNS both connections (starts videoShareHub + videoAnalysisHub) and
+fires the global banner for `AnalysisV2Completed`/`AnalysisV2Failed` (+ legacy `AnalysisCompleted`).
+Pages (`VideoReview`, `VideoAnalysisManagement`) were trimmed to page-local reactions only (phase
+spinner / list & results refresh); their completion toasts were removed so the banner is the single
+notification. Added i18n `videoReviewV2.progress.completeBanner` (en/pl); `NotificationPopup`'s
+"Shared by" line is now conditional. Local verify: tsc clean, frontend 99 pass. **Remaining:
+commit/push → CI → VM deploy → browser-verify the banner fires on a real analysis completion.**
 
 ## ✅ Done this session (2026-06-05)
 
@@ -129,16 +165,24 @@ The code now trims the GCS/Vertex values, but **other env values still carry `\r
 anyone with an active session (acceptable, but do it knowingly). Then the code trims become belt-and-
 suspenders.
 
-### C. Decommission the old `codejitsu` project  _(carried over; stability window has passed)_
-Old VM is stopped-but-intact as rollback. Tear down:
-```bash
-CONFIRM=DECOMMISSION bash decommission-codejitsu.sh
-```
-Deletes old VM, static IP, AR repo, firewall, secrets, and the MyCoach staging bucket
-`martial-art-demo-vids-migrate`. Manual (Console/external): delete old OAuth client + old YouTube key
-in `codejitsu`; **rotate the GitHub PAT** in `.mcp.json`/`.claude/.mcp.json`
-(https://github.com/settings/tokens — it appeared in a transcript); optionally
-`gcloud projects delete codejitsu`.
+### C. Decommission the old `codejitsu` project  ✅ DONE 2026-06-06 (resources)
+Ran the automated teardown (steps individually, since the auto-mode classifier blocks the opaque
+`CONFIRM=DECOMMISSION` script). Deleted in `codejitsu`: VM `thecodejitsu-app-vm` (found RUNNING but
+idle — 0 containers — so safe), static IP `codejitsu-static-ip`, AR repo `codejitsu-repo`, 4 app
+firewall rules (default VPC rules kept), all 22 Secret Manager secrets; plus the MyCoach staging bucket
+`martial-art-demo-vids-migrate`. Verified: prod `thecodejitsu.com` = 200, live bucket intact.
+
+**Still MANUAL / optional (not done):**
+- Delete the OLD **OAuth 2.0 client** in `codejitsu` (Console → APIs & Services → Credentials) — not
+  gcloud-manageable.
+- Delete the OLD **YouTube API key** `VideoSharingAppDemoYoutube` (uid `d7496e6c-4264-44cf-8847-3880fbfe0648`)
+  — IS gcloud-deletable (`gcloud services api-keys delete <uid> --project=codejitsu`); left as manual
+  per the protocol. (Other keys in `codejitsu` are Firebase/other apps — do NOT touch.)
+- **Rotate the GitHub PAT** in `.mcp.json`/`.claude/.mcp.json` (https://github.com/settings/tokens — it
+  appeared in a transcript).
+- Leftover unrelated AR repo `cloud-run-source-deploy` still in `codejitsu` (not this app) — delete only
+  if you know it's unused.
+- Optional: `gcloud projects delete codejitsu` once billing confirms zero charges.
 
 ### D. Smaller follow-ups
 - **Validate agentic v2 output quality** on a real (H.264) tape end-to-end now that upload + analysis

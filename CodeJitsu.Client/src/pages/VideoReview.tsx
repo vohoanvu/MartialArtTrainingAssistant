@@ -13,14 +13,12 @@ import TechniqueFeedback from '@/components/VideoAnalysisEditor/TechniqueFeedbac
 import AnalysisV2Panel from '@/components/VideoAnalysisEditor/v2/AnalysisV2Panel';
 import { actorMarkerColor, techniqueCategoryKey } from '@/components/VideoAnalysisEditor/v2/enumLabels';
 import { analysisConnection } from '@/services/SignalRService';
-import { useToast } from '@/hooks/use-toast';
 
 const V2_ENABLED = import.meta.env.VITE_ANALYSIS_V2_ENABLED !== 'false';
 
 const VideoReview: React.FC = () => {
     const { videoId } = useParams<{ videoId: string }>();
     const { t } = useTranslation();
-    const { toast } = useToast();
     const [feedbackList, setFeedbackList] = useState<AnalysisResultDto | null>(null);
     const [analysisV2, setAnalysisV2] = useState<AnalysisV2Dto | null>(null);
     const [videoUrl, setVideoUrl] = useState('');
@@ -81,21 +79,12 @@ const VideoReview: React.FC = () => {
         const onCompleted = (vId: number) => {
             if (vId !== id) return;
             setAnalysisPhase(null);
-            toast({
-                title: t('videoReviewV2.progress.completeTitle'),
-                description: t('videoReviewV2.progress.complete'),
-                variant: 'default',
-            });
+            // The completion banner is shown globally by NotificationsListener; here we just refresh.
             void loadAnalysis(); // swap in the fresh results without a manual reload
         };
         const onFailed = (vId: number) => {
             if (vId !== id) return;
             setAnalysisPhase(null);
-            toast({
-                title: t('videoReviewV2.progress.failedTitle'),
-                description: t('videoReviewV2.progress.failedBody'),
-                variant: 'destructive',
-            });
         };
 
         analysisConnection.on('AnalysisStatusChanged', onStatus);
@@ -107,7 +96,7 @@ const VideoReview: React.FC = () => {
             analysisConnection.off('AnalysisV2Completed', onCompleted);
             analysisConnection.off('AnalysisV2Failed', onFailed);
         };
-    }, [videoId, t, toast, loadAnalysis]);
+    }, [videoId, loadAnalysis]);
 
     // While a playback transcode is running, poll for completion and swap in the playable URL.
     useEffect(() => {

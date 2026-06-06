@@ -45,7 +45,7 @@ const NotificationPopup = ({ bannerTitle, videoTitle, userName, isVisible, onClo
                 <div className="flex-grow">
                     <strong className="font-display">{bannerTitle}</strong>
                     <p className="font-bold text-lg font-sans">{videoTitle}</p>
-                    <p className="text-sm font-sans">Shared by: {userName}</p>
+                    {userName ? <p className="text-sm font-sans">Shared by: {userName}</p> : null}
                 </div>
                 <button onClick={() => setShow(false)} className="ml-4 text-white text-lg font-semibold focus:outline-none">
                     &times;

@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { analysisConnection } from '../services/SignalRService';
-import * as signalR from '@microsoft/signalr';
 
 const V2_ENABLED = import.meta.env.VITE_ANALYSIS_V2_ENABLED !== 'false';
 
@@ -18,55 +17,28 @@ const VideoAnalysisManagement: React.FC = () => {
     const [analysisPhase, setAnalysisPhase] = useState<string | null>(null);
     const [shouldRefreshList, setShouldRefreshList] = useState(false);
     const { toast } = useToast();
-    const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
-        if (isConnected || analysisConnection.state === signalR.HubConnectionState.Disconnected) {
-            analysisConnection.start().then(() => {
-                console.log('Connected to SignalR hub');
-                setIsConnected(true);
-                // Legacy single-shot completion.
-                analysisConnection.on("AnalysisCompleted", (videoId: number) => {
-                    toast({
-                        title: "Analysis Completed",
-                        description: `Video ${videoId} analysis is complete.`,
-                        variant: "default",
-                    });
-                    setShouldRefreshList(true);
-                });
-                // Agentic (v2) per-phase progress.
-                analysisConnection.on("AnalysisStatusChanged", (_videoId: number, phase: string) => {
-                    setAnalysisPhase(phase);
-                });
-                analysisConnection.on("AnalysisV2Completed", (videoId: number) => {
-                    setAnalysisPhase(null);
-                    setIsAnalyzing(false);
-                    toast({
-                        title: t('videoReviewV2.progress.completeTitle'),
-                        description: `Video ${videoId} analysis is complete.`,
-                        variant: "default",
-                    });
-                    setShouldRefreshList(true);
-                });
-                analysisConnection.on("AnalysisV2Failed", (_videoId: number) => {
-                    setAnalysisPhase(null);
-                    setIsAnalyzing(false);
-                    toast({
-                        title: t('videoReviewV2.progress.failedTitle'),
-                        description: t('videoReviewV2.progress.failedBody'),
-                        variant: "destructive",
-                    });
-                });
-            }).catch((err) => console.error("SignalR Connection Error on /analysisHub: ", err));
-        }
+        // The shared videoAnalysisHub connection is owned/started globally by NotificationsListener,
+        // which also shows the completion/failure BANNER. Here we only react for page-local UI: the
+        // per-phase spinner and refreshing the uploaded-videos list when a job finishes.
+        const onStatus = (_videoId: number, phase: string) => setAnalysisPhase(phase);
+        const onV2Done = (_videoId: number) => { setAnalysisPhase(null); setIsAnalyzing(false); setShouldRefreshList(true); };
+        const onV1Done = (_videoId: number) => setShouldRefreshList(true);
+        const onV2Failed = (_videoId: number) => { setAnalysisPhase(null); setIsAnalyzing(false); };
+
+        analysisConnection.on("AnalysisStatusChanged", onStatus);
+        analysisConnection.on("AnalysisV2Completed", onV2Done);
+        analysisConnection.on("AnalysisCompleted", onV1Done);
+        analysisConnection.on("AnalysisV2Failed", onV2Failed);
 
         return () => {
-            if (isConnected) {
-                analysisConnection.stop();
-                setIsConnected(false);
-            }
+            analysisConnection.off("AnalysisStatusChanged", onStatus);
+            analysisConnection.off("AnalysisV2Completed", onV2Done);
+            analysisConnection.off("AnalysisCompleted", onV1Done);
+            analysisConnection.off("AnalysisV2Failed", onV2Failed);
         };
-    }, [toast, t]);
+    }, []);
 
     const handleUploadSuccess = async (response: VideoUploadResponse) => {
         try {
