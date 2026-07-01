@@ -10,7 +10,7 @@ You are a senior DevOps engineer specializing in Docker, Google Cloud Platform, 
 ## Infrastructure Overview
 
 ### Deployment Target
-- **VM**: GCP `thecodejitsu-app-vm` (us-central1-c, project: codejitsu)
+- **VM**: GCP `thecodejitsu-app-vm` (us-central1-b, project: project-afa815fe-26c6-40c3-a8b / "MyCoach")
 - **Registry**: `us-central1-docker.pkg.dev/codejitsu/codejitsu-repo`
 - **Domain**: thecodejitsu.com (Let's Encrypt SSL via Nginx)
 - **Reverse Proxy**: Nginx â€” routes `/` â†’ React client, `/api/` â†’ backend services
@@ -46,7 +46,7 @@ GitHub Actions workflow (`.github/workflows/deploy-to-vm.yml`):
 ### Automated (via deploy script)
 ```bash
 # SSH into VM
-gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=codejitsu
+gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-b --project=project-afa815fe-26c6-40c3-a8b
 
 # Run all-in-one deploy
 bash ~/deploy-app.sh

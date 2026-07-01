@@ -1,10 +1,43 @@
 # Hand-off — what to work on next
 
-_Last updated: 2026-06-06. Previous: GCP Transcoder API for HEVC playback, 2026-06-05._
+_Last updated: 2026-07-01. Previous: GCP Transcoder API for HEVC playback, 2026-06-05._
 
 `thecodejitsu.com` runs on the MyCoach project (`project-afa815fe-26c6-40c3-a8b`). Operational
 gotchas live in `CLAUDE.md` → *Deployment*. **Read "Deploy reality" below before deploying** — the
 CI/CD only builds images; the actual VM deploy is manual.
+
+---
+
+## 🚑 Incident + recovery (2026-07-01) — VM zone moved `us-central1-c` → `us-central1-b`
+
+After the MyCoach **billing** interruption, `thecodejitsu-app-vm` (stopped) would not restart:
+`ZONE_RESOURCE_POOL_EXHAUSTED` — Google had **no capacity** in `us-central1-c`. During the event
+**e2-medium AND n1-standard-1 were unavailable in all four us-central1 zones (a/b/c/f)** — a broad
+regional stockout, not a config issue.
+
+**Fix (site restored, verified `https://thecodejitsu.com/` = 200):**
+1. Machine image `codejitsu-vm-recovery` (global) created as a full backup (captures boot disk + SA
+   `codejitsu-vm-runtime` + tags `http-server`/`https-server` + network).
+2. Deleted the old instance **keeping the boot disk** (`--keep-disks=boot`) → freed the name + the
+   regional static IP.
+3. Recreated **same name / same static IP `35.232.12.173`** from the image, sweeping zones; landed in
+   **`us-central1-b`** at **e2-medium** (cost-neutral ~$24/mo, 4 GB). The static IP is regional so it
+   followed for free; **no Cloudflare DNS change needed**.
+4. SSH’d in (see Windows note below) and ran `cd ~/app && docker-compose up -d` — containers had been
+   `Exited (0)` since the shutdown (no restart policy) so they needed a manual start.
+
+**Follow-ups from this incident:**
+- ⬜ **Add `restart: unless-stopped`** to the compose services (repo `docker-compose.yml` + the VM's
+  `~/app/docker-compose.yml`) so the site self-heals after any future stop/reboot instead of needing a
+  manual `docker-compose up -d`.
+- ⬜ **Clean up backups once confident:** machine image `codejitsu-vm-recovery` + orphaned boot disk
+  `thecodejitsu-app-vm` in `us-central1-c` (both still billing a little).
+- ℹ️ If capacity in `us-central1-c` returns and you want to move back, same machine-image dance (or just
+  stay in `-b`). All docs/commands now say `us-central1-b`.
+- 🪟 **Windows SSH gotcha:** gcloud's bundled PuTTY `plink` rejects OpenSSH `-o` flags. Use OpenSSH
+  directly: `ssh -i ~/.ssh/google_compute_engine vohoanvu@35.232.12.173 "<cmd>"` (user `vohoanvu`'s
+  key is in project metadata; OS Login off; new host key on reused IP, so add
+  `-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null` for scripted calls).
 
 ---
 
@@ -41,8 +74,9 @@ fires the global banner for `AnalysisV2Completed`/`AnalysisV2Failed` (+ legacy `
 Pages (`VideoReview`, `VideoAnalysisManagement`) were trimmed to page-local reactions only (phase
 spinner / list & results refresh); their completion toasts were removed so the banner is the single
 notification. Added i18n `videoReviewV2.progress.completeBanner` (en/pl); `NotificationPopup`'s
-"Shared by" line is now conditional. Local verify: tsc clean, frontend 99 pass. **Remaining:
-commit/push → CI → VM deploy → browser-verify the banner fires on a real analysis completion.**
+"Shared by" line is now conditional. Local verify: tsc clean, frontend 99 pass. **DEPLOYED to the VM
+2026-06-06** (CI run 27062754971 → app-client digest `sha256:33b3048…` matches AR `latest`, site 200).
+**Remaining: browser-verify the banner actually pops on a real analysis completion.**
 
 ## ✅ Done this session (2026-06-05)
 
@@ -93,7 +127,7 @@ All landed on `feature/gcp-vm-deploy` and **deployed to the VM**.
 - **There is no `~/deploy-app.sh`** (CLAUDE.md is wrong). Deploy manually from `~/app`, **without
   `sudo`** (the gcloud cred helper is a snap not on sudo's `secure_path`):
   ```bash
-  gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=project-afa815fe-26c6-40c3-a8b
+  gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-b --project=project-afa815fe-26c6-40c3-a8b
   cd ~/app && gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
   docker-compose pull && docker-compose down --remove-orphans && docker container prune -f && docker-compose up -d
   docker ps   # verify fresh CreatedAt

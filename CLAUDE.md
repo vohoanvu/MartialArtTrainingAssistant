@@ -97,12 +97,14 @@ The `app-client` container uses `default.local.conf` (HTTP-only, no SSL) for loc
 
 ## Deployment
 
-The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-c`, project `project-afa815fe-26c6-40c3-a8b` / "MyCoach") with Nginx as reverse proxy. The site stays on `thecodejitsu.com`, fronted by Cloudflare (proxied, **Full (Strict)** SSL) terminating at a **Cloudflare Origin CA cert** on the VM (15-yr, valid to 2041). The VM authenticates to GCS + Vertex AI **keyless** via its attached service account `codejitsu-vm-runtime` (no mounted SA key — MyCoach enforces `constraints/iam.disableServiceAccountKeyCreation`). Migrated from the personal `codejitsu` project in June 2026; see `MIGRATION-PLAN-gcp-codejitsu-to-mycoach.md`.
+The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-b`, project `project-afa815fe-26c6-40c3-a8b` / "MyCoach") with Nginx as reverse proxy. The site stays on `thecodejitsu.com`, fronted by Cloudflare (proxied, **Full (Strict)** SSL) terminating at a **Cloudflare Origin CA cert** on the VM (15-yr, valid to 2041). The VM authenticates to GCS + Vertex AI **keyless** via its attached service account `codejitsu-vm-runtime` (no mounted SA key — MyCoach enforces `constraints/iam.disableServiceAccountKeyCreation`). Migrated from the personal `codejitsu` project in June 2026; see `MIGRATION-PLAN-gcp-codejitsu-to-mycoach.md`.
 
 ### Current infrastructure (post-migration, June 2026)
 
-- **Project:** `project-afa815fe-26c6-40c3-a8b` ("MyCoach"), company-billed. Region `us-central1`, zone `us-central1-c`.
-- **VM:** `thecodejitsu-app-vm` (e2-small, Ubuntu 24.04), static IP **35.232.12.173**, app dir **`/home/vohoanvu/app`**.
+- **Project:** `project-afa815fe-26c6-40c3-a8b` ("MyCoach"), company-billed. Region `us-central1`, zone `us-central1-b`.
+- **VM:** `thecodejitsu-app-vm` (**e2-medium**, Ubuntu 24.04), static IP **35.232.12.173** (regional — can attach in any `us-central1` zone), app dir **`/home/vohoanvu/app`**.
+  - ⚠️ **Zone is now `us-central1-b`** (was `us-central1-c`). Moved 2026-07-01: after the billing outage, `us-central1-c` was hit by a region-wide `ZONE_RESOURCE_POOL_EXHAUSTED` stockout (e2-medium **and** n1-standard-1 unavailable in all 4 us-central1 zones for a while) that blocked the restart. Recovery = machine image → delete old instance (kept boot disk) → recreate same name/IP in `us-central1-b`. Backup machine image `codejitsu-vm-recovery` (global) + orphaned boot disk `thecodejitsu-app-vm` in `us-central1-c` still exist — delete once confident.
+  - ⚠️ **Containers have NO restart policy** — after any VM stop/reboot the site stays down until you SSH and run `cd ~/app && docker-compose up -d`. Consider adding `restart: unless-stopped` to the compose services so it self-heals.
 - **Keyless auth:** the VM's attached SA `codejitsu-vm-runtime` is the app's ADC identity (Secret Manager accessor [per-secret], Artifact Registry reader, `aiplatform.user`, Storage `objectAdmin` on the bucket, and Token-Creator-on-self for V4 signed-URL `signBlob`). **No SA key files** — `GoogleCloudStorageService`/`GeminiVisionService` fall back to ADC.
 - **docker-compose:** v2 standalone at `/usr/local/bin/docker-compose`. **Run it WITHOUT `sudo`** (the user is in the `docker` group; the gcloud credential helper is a snap at `/snap/bin` that `sudo`'s secure_path can't see — `sudo docker-compose pull` fails AR auth).
 - **TLS:** Cloudflare proxied + Full (Strict); Origin CA cert at `~/app/letsencrypt/config/live/thecodejitsu.com/` (private key generated on-VM, never left it). DNS is at **Cloudflare** (not Cloud DNS); cutover = flip the origin A record there.
@@ -113,7 +115,8 @@ The app runs on a single GCP VM (`thecodejitsu-app-vm`, zone `us-central1-c`, pr
 **CI/CD is partial** â€” GitHub Actions (`.github/workflows/deploy-to-vm.yml`) only builds Docker images and pushes to GCP Artifact Registry (`us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo`). Actual deployment requires manual SSH into the VM.
 
 **Manual deploy workflow:**
-1. SSH: `gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=project-afa815fe-26c6-40c3-a8b`
+1. SSH: `gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-b --project=project-afa815fe-26c6-40c3-a8b`
+   - On Windows, gcloud's bundled PuTTY `plink` rejects OpenSSH `-o` flags. Direct OpenSSH works: `ssh -i ~/.ssh/google_compute_engine vohoanvu@35.232.12.173` (user `vohoanvu`'s key is in project metadata; OS Login is off).
 2. Run the all-in-one deploy script: `bash ~/deploy-app.sh`
    - This handles: docker auth, pull, secret refresh, container restart, verification, and image cleanup
    - Use `bash` to invoke it (avoids `chmod` permission issues on the VM)

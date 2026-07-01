@@ -1,6 +1,7 @@
 services:
   fighter-manager:
     image: us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo/fighter-manager:latest
+    restart: unless-stopped
     ports:
       - "7080:7080"
     env_file: .env
@@ -10,6 +11,7 @@ services:
       - appnet
   video-analysis:
     image: us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo/video-analysis:latest
+    restart: unless-stopped
     ports:
       - "7081:7081"
     env_file: .env
@@ -22,6 +24,7 @@ services:
       - appnet
   app-client:
     image: us-central1-docker.pkg.dev/project-afa815fe-26c6-40c3-a8b/codejitsu-repo/app-client:latest
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"

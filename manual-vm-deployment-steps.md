@@ -22,7 +22,7 @@ Follow these steps each time you want to deploy an update.
 Open a terminal on your local machine and SSH into the server.
 
 ```bash
-gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-c --project=project-afa815fe-26c6-40c3-a8b
+gcloud compute ssh vohoanvu@thecodejitsu-app-vm --zone=us-central1-b --project=project-afa815fe-26c6-40c3-a8b
 ```
 
 Ensure these steps are completed whenever VM restarts:
@@ -204,7 +204,7 @@ gcloud compute firewall-rules create allow-https-443 \
 - Check public IP:
 ```shell
 gcloud compute instances describe thecodejitsu-app-vm \
-    --zone=us-central1-c \
+    --zone=us-central1-b \
     --project=project-afa815fe-26c6-40c3-a8b \
     --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
 ```
