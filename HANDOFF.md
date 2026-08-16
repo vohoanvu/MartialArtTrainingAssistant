@@ -1,6 +1,6 @@
 # Hand-off — what to work on next
 
-_Last updated: 2026-07-01. Previous: GCP Transcoder API for HEVC playback, 2026-06-05._
+_Last updated: 2026-08-16 (cost cut: VM resized e2-medium → e2-small). Previous: zone-move incident 2026-07-01._
 
 `thecodejitsu.com` runs on the MyCoach project (`project-afa815fe-26c6-40c3-a8b`). Operational
 gotchas live in `CLAUDE.md` → *Deployment*. **Read "Deploy reality" below before deploying** — the
@@ -27,17 +27,38 @@ regional stockout, not a config issue.
    `Exited (0)` since the shutdown (no restart policy) so they needed a manual start.
 
 **Follow-ups from this incident:**
-- ⬜ **Add `restart: unless-stopped`** to the compose services (repo `docker-compose.yml` + the VM's
-  `~/app/docker-compose.yml`) so the site self-heals after any future stop/reboot instead of needing a
-  manual `docker-compose up -d`.
-- ⬜ **Clean up backups once confident:** machine image `codejitsu-vm-recovery` + orphaned boot disk
-  `thecodejitsu-app-vm` in `us-central1-c` (both still billing a little).
+- ✅ **`restart: unless-stopped`** is on all compose services (repo `docker-compose.prod.yml` + the VM's
+  `~/app/docker-compose.yml`) — verified 2026-08-16: containers auto-started after a VM stop/start.
+- ✅ **Backups cleaned up** (verified gone 2026-08-16): old machine image `codejitsu-vm-recovery` and the
+  orphaned `us-central1-c` boot disk no longer exist. Current recovery point: machine image
+  `codejitsu-vm-recovery-20260816` (global, taken pre-resize; ~$1.5/mo — delete when unwanted).
 - ℹ️ If capacity in `us-central1-c` returns and you want to move back, same machine-image dance (or just
   stay in `-b`). All docs/commands now say `us-central1-b`.
 - 🪟 **Windows SSH gotcha:** gcloud's bundled PuTTY `plink` rejects OpenSSH `-o` flags. Use OpenSSH
   directly: `ssh -i ~/.ssh/google_compute_engine vohoanvu@35.232.12.173 "<cmd>"` (user `vohoanvu`'s
   key is in project metadata; OS Login off; new host key on reused IP, so add
   `-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null` for scripted calls).
+
+---
+
+## 💰 Cost reduction (2026-08-16) — VM resized to e2-small
+
+Compute Engine was ~$1.30/day (~$39/mo). Changes, all verified live (`https://thecodejitsu.com/` = 200):
+1. **VM resized e2-medium → e2-small** (2 GB RAM, ~$12/mo vs ~$24.5/mo). Stop → `set-machine-type` →
+   start; same static IP; containers auto-started via restart policy. Rollback: same dance back to
+   `e2-medium`.
+2. **2 GB swap file** added (`/swapfile`, persisted in `/etc/fstab`, `vm.swappiness=10`) to absorb .NET
+   GC spikes on 2 GB RAM.
+3. **Container memory limits** in `docker-compose.prod.yml` (+ VM copy): fighter-manager 800m,
+   video-analysis 1100m, app-client 128m. Idle usage is ~210 MiB total — lots of headroom.
+4. Fresh recovery machine image `codejitsu-vm-recovery-20260816` (global) taken pre-resize.
+5. ✅ **Artifact Registry cleanup policy applied** (2026-08-16, `codejitsu-repo`, us-central1, dry run
+   disabled): DELETE versions olderThan 30d + KEEP the 5 most recent versions per image. Caps the
+   `:sha`+`:latest` accumulation from CI builds.
+6. Watch `docker stats` / swap usage for a few days; if video-analysis OOMs under heavy Vertex pipeline
+   load, bump its limit or resize back.
+
+Expected new run rate ≈ **$0.65–0.70/day** (VM ~$12 + boot disk ~$3 + static IP ~$3.65 + image ~$1.5 /mo).
 
 ---
 
