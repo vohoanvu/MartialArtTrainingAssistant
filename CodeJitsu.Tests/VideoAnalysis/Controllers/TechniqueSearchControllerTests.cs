@@ -66,7 +66,7 @@ public class TechniqueSearchControllerTests
         searchMock.Setup(s => s.SearchAsync("armbar", It.IsAny<TrainingSession>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TechniqueSearchResult
             {
-                Source = TechniqueResourceSearchService.SourceGrounded,
+                Source = TechniqueResourceSearchService.SourceYoutube,
                 ModelId = "gemini-4-argon",
                 YoutubeVideos =
                 [
@@ -90,7 +90,7 @@ public class TechniqueSearchControllerTests
         var ok = Assert.IsType<OkObjectResult>(result);
         using var doc = JsonDocument.Parse(Assert.IsType<string>(ok.Value));
         var root = doc.RootElement;
-        Assert.Equal("vertex-grounded", root.GetProperty("source").GetString());
+        Assert.Equal("youtube", root.GetProperty("source").GetString());
         var video = root.GetProperty("youtube_videos")[0];
         Assert.Equal("abc123def45", video.GetProperty("video_id").GetString());
         Assert.Equal("2024-01-01T00:00:00+00:00", video.GetProperty("publication_date").GetString());

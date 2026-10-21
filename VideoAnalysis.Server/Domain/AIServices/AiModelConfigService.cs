@@ -37,7 +37,7 @@ namespace VideoAnalysis.Server.Domain.AIServices
             new(AiFeatureKeys.VideoAnalysisSingleShot, AiFeatureKinds.Generation, RequiresVideo: true, RequiresGoogleSearch: false),
             new(AiFeatureKeys.ClassCurriculum, AiFeatureKinds.Generation, RequiresVideo: false, RequiresGoogleSearch: false),
             new(AiFeatureKeys.FighterPairing, AiFeatureKinds.Generation, RequiresVideo: false, RequiresGoogleSearch: false),
-            new(AiFeatureKeys.TechniqueSearch, AiFeatureKinds.Search, RequiresVideo: false, RequiresGoogleSearch: true),
+            // TechniqueSearch is no longer listed: it is a plain YouTube Data API search now (no model to configure).
         ];
 
         private readonly IServiceScopeFactory _scopeFactory;
