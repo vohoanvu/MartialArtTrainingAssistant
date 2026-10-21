@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './styles/tokens.css'
 import './styles/globals.css'
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
 import {Home} from "@/pages/Home.tsx";
 import {Layout} from "@/components/layouts/Layout.tsx";
 import "./services/i18n.ts";
@@ -19,7 +19,6 @@ import LandingPage from './pages/LandingPage.tsx';
 import SsoCallback from './pages/SSOCallback.tsx';
 import { Toaster } from './components/ui/toaster.tsx';
 import VideoAnalysisManagement from './pages/VideoAnalysisManagement.tsx';
-import PricingPage from './pages/Pricing.tsx';
 import AiConsole from './pages/AiConsole.tsx';
 
 const router = createBrowserRouter([
@@ -36,8 +35,9 @@ const router = createBrowserRouter([
                 element: <Home/>,
             },
             {
+                // CodeJitsu is a demo, not a commercial product: old pricing links go to the landing page.
                 path: '/pricing',
-                element: <PricingPage/>,
+                element: <Navigate to="/" replace/>,
             },
             {
                 path: '/about',

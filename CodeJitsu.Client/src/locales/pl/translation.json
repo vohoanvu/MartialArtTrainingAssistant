@@ -285,6 +285,79 @@
       "opensInNewTab": "(otwiera się w nowej karcie)",
       "searchSuggestions": "Podpowiedzi Google Search",
       "searchSuggestionsFrameTitle": "Podpowiedzi Google Search"
+    },
+    "landing": {
+      "hero": {
+        "eyebrow": "Projekt demonstracyjny · Wewnętrzne narzędzie R&D",
+        "title": "AI, które czyta nagranie sparingu BJJ",
+        "subtitle": "CodeJitsu to działające demo, a nie produkt na sprzedaż. Prześlij nagranie rolowania, a Gemini rozłoży je na oś czasu walki ze znacznikami czasu, ocenę techniczną i ćwiczenia, które naprawią to, co poszło nie tak. W TKNQ służy też jako wewnętrzny poligon R&D dla multimodalnej AI.",
+        "cta": "Wypróbuj demo",
+        "videoTitle": "Film demonstracyjny CodeJitsu",
+        "videoFallback": "Twoja przeglądarka nie może odtworzyć tego filmu."
+      },
+      "status": {
+        "eyebrow": "Zanim przejdziesz dalej",
+        "title": "Demo, a nie produkt komercyjny",
+        "notForSale": {
+          "title": "Nie na sprzedaż",
+          "body": "Nie ma planów, subskrypcji ani płacących klientów. Nic tutaj nie jest sprzedawane i nic nie jest przygotowywane do sprzedaży."
+        },
+        "internal": {
+          "title": "Używane wewnętrznie do R&D",
+          "body": "Zespół TKNQ używa CodeJitsu do testowania nowych modeli, promptów i potoków agentowych na prawdziwych nagraniach sparingów, a zdobytą wiedzę wykorzystuje w innych projektach."
+        },
+        "asIs": {
+          "title": "Udostępniane w stanie „tak jak jest”",
+          "body": "Funkcje mogą się zmieniać lub przestać działać bez uprzedzenia, a informacje zwrotne AI mogą być błędne. Traktuj analizę jako punkt wyjścia dla trenera, a nie werdykt."
+        }
+      },
+      "features": {
+        "title": "Co potrafi demo",
+        "description": "Wszystko poniżej działa na żywo w tym demo.",
+        "analysis": {
+          "title": "Analiza nagrań sparingów",
+          "body": "Czterofazowy potok agentowy oparty na Gemini 4 Argon profiluje zawodnika, zapisuje każdą technikę ze znacznikiem czasu, weryfikuje każdą decyzję i pisze raport trenerski.",
+          "b1": "Oś czasu walki ze znacznikami czasu",
+          "b2": "Ocena techniczna, mocne i słabe strony",
+          "b3": "Edytowalne informacje zwrotne AI"
+        },
+        "planning": {
+          "title": "Planowanie zajęć",
+          "body": "Zamienia słabe strony wykryte na nagraniach Twoich uczniów w uporządkowane zajęcia, a potem dobiera pary do rund sparingowych.",
+          "b1": "Programy zajęć tworzone przez AI",
+          "b2": "Obecność osób z wolnego wejścia",
+          "b3": "Dobór partnerów według pasa, wagi i doświadczenia"
+        },
+        "search": {
+          "title": "Wyszukiwanie filmów z technikami",
+          "body": "Znajduje filmy instruktażowe dla danej techniki dzięki ugruntowaniu w wyszukiwarce Google, a potem sprawdza każdy link YouTube przez YouTube Data API, zanim go pokaże.",
+          "b1": "Ugruntowane w wyszukiwarce Google",
+          "b2": "Każdy link do filmu sprawdzony",
+          "b3": "Artykuły i materiały obok filmów"
+        }
+      },
+      "rnd": {
+        "eyebrow": "Dlaczego istnieje",
+        "title": "Poligon R&D, którego naprawdę używamy",
+        "description": "Nagrania sparingów są długie, szybkie i pełne podobnie wyglądających pozycji, co czyni je trudnym testem dla modeli rozumiejących wideo. Właśnie dlatego TKNQ utrzymuje CodeJitsu wewnętrznie.",
+        "p1": "Porównywanie nowych modeli multimodalnych na prawdziwych nagraniach, z przełączaniem modeli w konsoli administracyjnej bez ponownego wdrażania.",
+        "p2": "Prototypowanie agentowych, wieloetapowych potoków: profil, zapis, weryfikacja, trener.",
+        "p3": "Eksperymenty z ugruntowanym wyszukiwaniem, które samo weryfikuje swoje linki.",
+        "p4": "Człowiek w pętli: trenerzy mogą przejrzeć i poprawić każdy wynik AI.",
+        "stackTitle": "Pod maską"
+      },
+      "cta": {
+        "title": "Przekonaj się sam",
+        "body": "Zaloguj się, aby przesłać nagranie lub utworzyć zajęcia demonstracyjne. Nie przesyłaj nagrań, które muszą pozostać prywatne.",
+        "button": "Otwórz demo"
+      },
+      "footer": {
+        "line": "CodeJitsu to projekt demonstracyjny i wewnętrzny projekt R&D firmy TKNQ (wymawiane „Technique”). Nie jest produktem komercyjnym.",
+        "visit": "Odwiedź TKNQ",
+        "copyright": "© {{year}} TKNQ · CodeJitsu",
+        "privacy": "Polityka prywatności",
+        "contact": "Kontakt"
+      }
     }
   }
 }

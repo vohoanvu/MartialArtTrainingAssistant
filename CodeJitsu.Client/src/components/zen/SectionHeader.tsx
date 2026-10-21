@@ -19,7 +19,7 @@ export function SectionHeader({ eyebrow, title, description, centered }: Section
         {title}
       </h2>
       {description && (
-        <p className="mt-3 font-sans text-base text-slate-zen400 max-w-xl">
+        <p className={cn('mt-3 font-sans text-base text-slate-zen400 max-w-xl', centered && 'mx-auto')}>
           {description}
         </p>
       )}

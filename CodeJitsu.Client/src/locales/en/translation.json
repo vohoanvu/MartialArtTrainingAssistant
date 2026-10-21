@@ -285,6 +285,79 @@
       "opensInNewTab": "(opens in a new tab)",
       "searchSuggestions": "Google Search suggestions",
       "searchSuggestionsFrameTitle": "Google Search suggestions"
+    },
+    "landing": {
+      "hero": {
+        "eyebrow": "Demo project · Internal R&D tool",
+        "title": "AI that reads a BJJ sparring tape",
+        "subtitle": "CodeJitsu is a working demo, not a product for sale. Upload a roll and Gemini breaks it down into a timestamped match timeline, a technical grade and the drills to fix what went wrong. At TKNQ, it doubles as an internal R&D testbed for multimodal AI.",
+        "cta": "Try the demo",
+        "videoTitle": "CodeJitsu demo video",
+        "videoFallback": "Your browser can't play this video."
+      },
+      "status": {
+        "eyebrow": "Before you go further",
+        "title": "A demo, not a commercial product",
+        "notForSale": {
+          "title": "Not for sale",
+          "body": "There are no plans, subscriptions or paying customers. Nothing here is sold, and nothing is being prepared for sale."
+        },
+        "internal": {
+          "title": "Used internally for R&D",
+          "body": "The TKNQ team uses CodeJitsu to try new models, prompts and agent pipelines against real sparring footage, and carries what we learn into other work."
+        },
+        "asIs": {
+          "title": "Provided as-is",
+          "body": "Features change or break without notice, and AI feedback can be wrong. Treat the analysis as a starting point for a coach, not a verdict."
+        }
+      },
+      "features": {
+        "title": "What the demo does",
+        "description": "Everything below runs live in this demo.",
+        "analysis": {
+          "title": "Sparring video analysis",
+          "body": "A four-phase agentic pipeline on Gemini 4 Argon profiles the athlete, logs every technique with timestamps, double-checks each call and writes a coaching report.",
+          "b1": "Timestamped match timeline",
+          "b2": "Technical grade, strengths and weaknesses",
+          "b3": "Editable AI feedback"
+        },
+        "planning": {
+          "title": "Class planning",
+          "body": "Turns the weaknesses found in your students' footage into a structured class, then pairs partners for the live rounds.",
+          "b1": "AI-drafted curricula",
+          "b2": "Walk-in attendance",
+          "b3": "Partner matching by belt, weight and experience"
+        },
+        "search": {
+          "title": "Technique video search",
+          "body": "Finds instructional videos for a technique with Google Search grounding, then checks every YouTube link with the YouTube Data API before showing it.",
+          "b1": "Grounded with Google Search",
+          "b2": "Every video link checked",
+          "b3": "Articles and resources alongside videos"
+        }
+      },
+      "rnd": {
+        "eyebrow": "Why it exists",
+        "title": "An R&D testbed we actually use",
+        "description": "Sparring footage is long, fast and full of look-alike positions, which makes it a hard test for video-understanding models. That is exactly why TKNQ keeps CodeJitsu running internally.",
+        "p1": "Benchmark new multimodal models on real footage, switching models from an admin console without a redeploy.",
+        "p2": "Prototype agentic, multi-step pipelines: profile, log, verify, coach.",
+        "p3": "Experiment with grounded search that verifies its own links.",
+        "p4": "Keep a human in the loop: instructors can review and edit every AI output.",
+        "stackTitle": "Under the hood"
+      },
+      "cta": {
+        "title": "See it for yourself",
+        "body": "Sign in to upload a tape or set up a demo class. Please don't upload footage you need to keep private.",
+        "button": "Open the demo"
+      },
+      "footer": {
+        "line": "CodeJitsu is a demo and internal R&D project by TKNQ (pronounced “Technique”). It is not a commercial product.",
+        "visit": "Visit TKNQ",
+        "copyright": "© {{year}} TKNQ · CodeJitsu",
+        "privacy": "Privacy Policy",
+        "contact": "Contact"
+      }
     }
   }
 }
