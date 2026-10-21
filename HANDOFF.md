@@ -8,9 +8,14 @@ CI/CD only builds images; the actual VM deploy is manual.
 
 ---
 
-## 🧠 Gemini 4 Argon + AI Console + Grok removal (2026-10-21) — CODE-COMPLETE, NOT DEPLOYED
+## 🧠 Gemini 4 Argon + AI Console + Grok removal (2026-10-21) — ✅ DEPLOYED
 
-On `feature/gcp-vm-deploy`, uncommitted at hand-off. Backend 187 pass / 6 skipped; frontend 138 pass (Node 22), tsc clean.
+Commit `a7e94cc` on `feature/gcp-vm-deploy` (CI run 39593231959 ✅). Deployed to the VM 2026-10-21 11:42 UTC; running
+digests = AR `latest` (video-analysis `sha256:724e6e7…`, fighter-manager `sha256:963cbf0…`, app-client `sha256:0958b93…`).
+Rollback digests (pre-deploy): video-analysis `sha256:5f3fef4…`, fighter-manager `sha256:ffe5b1a…`, app-client
+`sha256:33b3048…`; VM backups `~/app/{docker-compose.yml,refresh-env-secret-manager.sh,.env}.bak-<ts>`.
+Live smoke: VM SA → `gemini-4-argon` (global, thinkingLevel LOW) = HTTP 200 (~14 s for a one-word reply).
+Backend 187 pass / 6 skipped; frontend 138 pass (Node 22), tsc clean.
 
 - **Agentic pipeline → `gemini-4-argon`** (GA 2026-10-13). Argon rejects `thinkingBudget` (HTTP 400; use
   `thinkingLevel` LOW/MEDIUM/HIGH), has **no explicit context caching** (implicit only, ≥6,144-token shared
@@ -27,12 +32,13 @@ On `feature/gcp-vm-deploy`, uncommitted at hand-off. Backend 187 pass / 6 skippe
 **Remaining (in order):**
 1. ✅ Migration `20261021112034_AddAiFeatureConfigs` applied to Supabase 2026-10-21 (`dotnet ef database update
    --connection <session pooler>`; additive, one table).
-2. ⬜ Create Secret Manager secret `AI_CONSOLE_ADMIN_EMAILS` (+ grant the VM SA accessor) — the refresh script
-   fetches it optionally. Copy the updated `refresh-env-secret-manager.sh` + `docker-compose.prod.yml` to the VM.
-3. ⬜ CI build + manual VM deploy.
-4. ⬜ **Validate Argon on a real tape** (event accuracy vs the 3.1-pro baseline — Flash regressed to ~50%
+2. ✅ Secret `AI_CONSOLE_ADMIN_EMAILS` = `vohoanvu96@gmail.com` (VM SA has accessor); VM compose + refresh script
+   updated (fetched optionally). To add admins: add a new secret version (comma-separated) + refresh + recreate.
+3. ✅ CI build + manual VM deploy.
+4. ⬜ Browser-check `/console` while logged in as the admin, and a Live Search from a class session.
+5. ⬜ **Validate Argon on a real tape** (event accuracy vs the 3.1-pro baseline — Flash regressed to ~50%
    before). Roll back from the console if worse.
-5. ⬜ Optional: delete the `XAIGROK_API_KEY` / `XAIGROK_ENDPOINT` secrets; legacy `k8s/test/*` still mention them.
+6. ⬜ Optional: delete the `XAIGROK_API_KEY` / `XAIGROK_ENDPOINT` secrets; legacy `k8s/test/*` still mention them.
 
 ---
 
