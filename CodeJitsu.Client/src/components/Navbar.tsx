@@ -3,12 +3,17 @@ import { cn } from "@/lib/utils.ts";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import useAuthStore from "@/store/authStore.ts";
+import { useAiConsoleAccess } from "@/hooks/useAiConsoleAccess.ts";
+import { Cpu } from "lucide-react";
 
 export default function Navbar(): ReactElement {
     const { t } = useTranslation();
     const authStatus = useAuthStore((state) => state.loginStatus);
     const logout = useAuthStore((state) => state.logout);
     const authUser = useAuthStore((state) => state.user);
+    const accessToken = useAuthStore((state) => state.accessToken);
+    // Admin = server-side allow-list (no role in the JWT), so always ask the API.
+    const isAiAdmin = useAiConsoleAccess(authStatus === "authenticated" ? accessToken : null);
     const location = useLocation();
 
     const isActive = (path: string) => location.pathname === path;
@@ -42,6 +47,12 @@ export default function Navbar(): ReactElement {
                             <Link to="/class-session" className={linkClass('/class-session')}>
                                 Manage Classes
                             </Link>
+                            {isAiAdmin && (
+                                <Link to="/console" className={cn(linkClass('/console'), 'inline-flex items-center gap-1.5')}>
+                                    <Cpu className="h-3.5 w-3.5" aria-hidden="true" />
+                                    {t("aiConsole.nav")}
+                                </Link>
+                            )}
                             <span className="hidden md:block font-sans text-sm text-parchment-300">
                                 Welcome <strong className="text-parchment-100 font-medium">{authUser?.email}</strong>
                             </span>

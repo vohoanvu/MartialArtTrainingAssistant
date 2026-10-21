@@ -1,13 +1,10 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.StaticFiles;
+using SharedEntities.Models;
+using VideoAnalysis.Server.Domain.AIServices;
 using VideoAnalysis.Server.Domain.GoogleCloudStorageService;
 using VideoAnalysis.Server.Models.Dtos;
-using SharedEntities.Models;
-using SharedEntities;
-using System.Text;
 
 namespace VideoAnalysis.Server.Domain.GeminiService
 {
@@ -31,18 +28,14 @@ namespace VideoAnalysis.Server.Domain.GeminiService
     }
 
     /// <summary>
-    /// Calls Vertex AI Gemini models via the global REST endpoint with OAuth2 Bearer auth.
-    /// Follows the same pattern as MyCoachApp's VertexAiService.
+    /// Single-shot Gemini features (v1 video analysis, curriculum, fighter pairing) on Vertex AI. The model,
+    /// location and generation settings of each feature come from <see cref="IAiModelConfigService"/> (AI Console
+    /// override, else appsettings/env), and requests are built per the model's capabilities.
     /// </summary>
     public class GeminiVisionService : IGeminiVisionService
     {
-        private readonly HttpClient _httpClient;
-        private readonly GoogleCredential _credential;
-        private readonly string _projectId;
-        private readonly string _location;
-        private readonly string _visionModel;
-        private readonly string _textModel;
-
+        private readonly IVertexRestClient _vertex;
+        private readonly IAiModelConfigService _modelConfig;
         private readonly IGoogleCloudStorageService _storageService;
         private readonly ILogger<GeminiVisionService> _logger;
 
@@ -53,46 +46,18 @@ namespace VideoAnalysis.Server.Domain.GeminiService
         };
 
         public GeminiVisionService(
-            HttpClient httpClient,
+            IVertexRestClient vertex,
+            IAiModelConfigService modelConfig,
             IGoogleCloudStorageService storageService,
             ILogger<GeminiVisionService> logger)
         {
-            _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri("https://aiplatform.googleapis.com");
-
+            _vertex = vertex;
+            _modelConfig = modelConfig;
             _storageService = storageService;
             _logger = logger;
-
-            // Trim trailing CR/LF from env values (VM .env CRLF / Secret Manager) so Vertex paths and
-            // model ids aren't corrupted.
-            _projectId = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GoogleCloudProjectId).Trim();
-            _location = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionLocation).Trim();
-            _visionModel = Global.AccessAppEnvironmentVariable(AppEnvironmentVariables.GeminiVisionModel).Trim();
-            _textModel = (Global.Configuration?["GeminiVision:TextModel"] ?? "gemini-3.1-flash-lite-preview").Trim();
-
-            // Authenticate: try service account key file first, fall back to ADC.
-            // Global.AccessAppEnvironmentVariable throws when the key path is unset/missing, so read
-            // the env var directly to allow a clean ADC fallback on keyless (org-policy) deployments.
-            var keyPath = Environment.GetEnvironmentVariable("GoogleCloud__ServiceAccountKeyPath");
-            if (!string.IsNullOrEmpty(keyPath) && File.Exists(keyPath))
-            {
-                _credential = GoogleCredential.FromFile(keyPath)
-                    .CreateScoped("https://www.googleapis.com/auth/cloud-platform");
-                _logger.LogInformation("GeminiVisionService: using service account key from {KeyPath}", keyPath);
-            }
-            else
-            {
-                _credential = GoogleCredential.GetApplicationDefault()
-                    .CreateScoped("https://www.googleapis.com/auth/cloud-platform");
-                _logger.LogInformation("GeminiVisionService: using Application Default Credentials");
-            }
-
-            _logger.LogInformation(
-                "Initialized GeminiVisionService â€” vision: {VisionModel}, text: {TextModel}, project: {ProjectId}",
-                _visionModel, _textModel, _projectId);
         }
 
-        // â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Public API ───────────────────────────────────────────────────────
 
         /// <inheritdoc/>
         public async Task<GeminiVisionResponse> AnalyzeVideoAsync(
@@ -121,6 +86,7 @@ namespace VideoAnalysis.Server.Domain.GeminiService
             }
 
             string prompt = BuildVisionAnalysisPrompt(martialArt, studentIdentifier, videoDescription, skillLevel, trainingGoal);
+            var settings = await _modelConfig.GetEffectiveAsync(AiFeatureKeys.VideoAnalysisSingleShot);
 
             var request = new
             {
@@ -136,21 +102,14 @@ namespace VideoAnalysis.Server.Domain.GeminiService
                         }
                     }
                 },
-                generationConfig = new
-                {
-                    temperature = 0.3f,
-                    topP = 0.95f,
-                    maxOutputTokens = 65535,
-                    responseMimeType = "application/json",
-                    thinkingConfig = new { thinkingBudget = 16384 },
-                },
-                safetySettings = AllSafetyOff(),
+                generationConfig = BuildGenerationConfig(settings, topP: 0.95f),
+                safetySettings = VertexRestClient.AllSafetyOff(),
             };
 
-            _logger.LogInformation("Sending video analysis request for: {FileUri} to model {Model}", fileUri, _visionModel);
+            _logger.LogInformation("Sending video analysis request for: {FileUri} to model {Model}", fileUri, settings.ModelId);
 
-            var response = await PostJsonAsync(GenerateContentUrl(_visionModel), request, CancellationToken.None);
-            string resultJson = ExtractText(response);
+            var response = await _vertex.GenerateContentAsync(settings.ModelId, settings.Location, request, CancellationToken.None);
+            string resultJson = _vertex.ExtractText(response);
 
             return new GeminiVisionResponse { AnalysisJson = resultJson };
         }
@@ -162,6 +121,7 @@ namespace VideoAnalysis.Server.Domain.GeminiService
             TrainingSession classSession)
         {
             var curriculumPrompt = BuildCurriculumPrompt(weaknesses, students, classSession);
+            var settings = await _modelConfig.GetEffectiveAsync(AiFeatureKeys.ClassCurriculum);
 
             var request = new
             {
@@ -173,20 +133,14 @@ namespace VideoAnalysis.Server.Domain.GeminiService
                         parts = new[] { new { text = curriculumPrompt } }
                     }
                 },
-                generationConfig = new
-                {
-                    temperature = 1.0f,
-                    topP = 1.0f,
-                    maxOutputTokens = 16384,
-                    responseMimeType = "application/json",
-                },
-                safetySettings = AllSafetyOff(),
+                generationConfig = BuildGenerationConfig(settings, topP: 1.0f),
+                safetySettings = VertexRestClient.AllSafetyOff(),
             };
 
-            _logger.LogInformation("Sending curriculum request to model {Model}", _textModel);
+            _logger.LogInformation("Sending curriculum request to model {Model}", settings.ModelId);
 
-            var response = await PostJsonAsync(GenerateContentUrl(_textModel), request, CancellationToken.None);
-            string resultJson = ExtractText(response);
+            var response = await _vertex.GenerateContentAsync(settings.ModelId, settings.Location, request, CancellationToken.None);
+            string resultJson = _vertex.ExtractText(response);
 
             return new GeminiChatResponse { CurriculumJson = resultJson };
         }
@@ -231,33 +185,28 @@ namespace VideoAnalysis.Server.Domain.GeminiService
 
             var pairingPrompt = BuildFighterPairingPrompt(fighters, classSession);
 
-            var request = new
-            {
-                contents = new[]
-                {
-                    new
-                    {
-                        role = "user",
-                        parts = new[] { new { text = pairingPrompt } }
-                    }
-                },
-                generationConfig = new
-                {
-                    temperature = 0.2f,
-                    topP = 1.0f,
-                    maxOutputTokens = 8192,
-                    responseMimeType = "application/json",
-                },
-                safetySettings = AllSafetyOff(),
-            };
-
             try
             {
-                _logger.LogInformation("Sending fighter pairing request to model {Model}", _textModel);
+                var settings = await _modelConfig.GetEffectiveAsync(AiFeatureKeys.FighterPairing);
+                var request = new
+                {
+                    contents = new[]
+                    {
+                        new
+                        {
+                            role = "user",
+                            parts = new[] { new { text = pairingPrompt } }
+                        }
+                    },
+                    generationConfig = BuildGenerationConfig(settings, topP: 1.0f),
+                    safetySettings = VertexRestClient.AllSafetyOff(),
+                };
+
+                _logger.LogInformation("Sending fighter pairing request to model {Model}", settings.ModelId);
                 _logger.LogInformation("User Prompt: {Prompt}", pairingPrompt);
 
-                var geminiResponse = await PostJsonAsync(GenerateContentUrl(_textModel), request, CancellationToken.None);
-                string resultJson = ExtractText(geminiResponse);
+                var geminiResponse = await _vertex.GenerateContentAsync(settings.ModelId, settings.Location, request, CancellationToken.None);
+                string resultJson = _vertex.ExtractText(geminiResponse);
 
                 response.RawGenerateContentResponseJson = resultJson;
                 string cleanedJson = CleanJsonFromMarkdown(resultJson);
@@ -291,79 +240,14 @@ namespace VideoAnalysis.Server.Domain.GeminiService
             return response;
         }
 
-        // â”€â”€ HTTP Helpers (same pattern as MyCoachApp VertexAiService) â”€â”€â”€â”€â”€â”€
+        // All three features expect JSON back; thinking/sampling keys are emitted per the model's capabilities.
+        private static Dictionary<string, object> BuildGenerationConfig(AiFeatureSettings settings, float topP) =>
+            GeminiModelCatalog.BuildGenerationConfig(
+                GeminiModelCatalog.Resolve(settings.ModelId),
+                settings.ThinkingLevel, settings.ThinkingBudget, settings.Temperature, settings.MaxOutputTokens,
+                topP: topP, responseMimeType: "application/json");
 
-        private async Task<string> GetAccessTokenAsync()
-        {
-            var tokenAccess = _credential as ITokenAccess;
-            return await tokenAccess!.GetAccessTokenForRequestAsync();
-        }
-
-        private string ModelPath(string modelId) =>
-            $"projects/{_projectId}/locations/{_location}/publishers/google/models/{modelId}";
-
-        private string GenerateContentUrl(string modelId) =>
-            $"/v1/{ModelPath(modelId)}:generateContent";
-
-        private async Task<JsonElement> PostJsonAsync(string url, object body, CancellationToken ct)
-        {
-            var token = await GetAccessTokenAsync();
-            using var request = new HttpRequestMessage(HttpMethod.Post, url);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            request.Content = JsonContent.Create(body, options: JsonOptions);
-
-            var response = await _httpClient.SendAsync(request, ct);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorBody = await response.Content.ReadAsStringAsync(ct);
-                _logger.LogError("Vertex AI API error. Status: {StatusCode}, Body: {Body}",
-                    (int)response.StatusCode, errorBody[..Math.Min(500, errorBody.Length)]);
-                throw new HttpRequestException(
-                    $"Vertex AI request failed with {(int)response.StatusCode}: {errorBody[..Math.Min(500, errorBody.Length)]}",
-                    null,
-                    response.StatusCode);
-            }
-
-            await using var stream = await response.Content.ReadAsStreamAsync(ct);
-            return await JsonSerializer.DeserializeAsync<JsonElement>(stream, cancellationToken: ct);
-        }
-
-        private static string ExtractText(JsonElement response)
-        {
-            // With thinking models, the actual output is in the last text part
-            // (thinking parts come first, then the real response)
-            var parts = response
-                .GetProperty("candidates")[0]
-                .GetProperty("content")
-                .GetProperty("parts");
-
-            // Walk parts in reverse to find the last text part
-            for (int i = parts.GetArrayLength() - 1; i >= 0; i--)
-            {
-                if (parts[i].TryGetProperty("text", out var textProp))
-                {
-                    var text = textProp.GetString();
-                    if (!string.IsNullOrWhiteSpace(text))
-                        return text;
-                }
-            }
-
-            throw new InvalidOperationException(
-                "Response contained no text in candidates[0].content.parts");
-        }
-
-        // â”€â”€ Safety settings (all off for martial arts content) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-        private static object[] AllSafetyOff() =>
-        [
-            new { category = "HARM_CATEGORY_HATE_SPEECH", threshold = "OFF" },
-            new { category = "HARM_CATEGORY_DANGEROUS_CONTENT", threshold = "OFF" },
-            new { category = "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold = "OFF" },
-            new { category = "HARM_CATEGORY_HARASSMENT", threshold = "OFF" },
-        ];
-
-        // â”€â”€ Prompt builders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Prompt builders ───────────────────────────────────────────────────
 
         private static string BuildVisionAnalysisPrompt(string martialArt, string studentIdentifier, string videoDescription, string skillLevel, string trainingGoal)
         {
@@ -575,7 +459,7 @@ namespace VideoAnalysis.Server.Domain.GeminiService
             ";
         }
 
-        // â”€â”€ Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Utilities ─────────────────────────────────────────────────────────
 
         private string DetermineMimeType(string pathOrUri)
         {

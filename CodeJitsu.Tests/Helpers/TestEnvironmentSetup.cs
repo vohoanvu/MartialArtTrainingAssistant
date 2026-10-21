@@ -23,8 +23,6 @@ public static class TestEnvironmentSetup
                 ["Jwt:Issuer"] = "test-issuer",
                 ["Jwt:Audience"] = "test-audience",
                 ["YOUTUBE_API_KEY"] = "test-youtube-key",
-                ["XAIGROK_API_KEY"] = "test-xai-key",
-                ["XAIGROK_ENDPOINT"] = "https://api.x.ai/v1/chat/completions",
                 ["GoogleCloud:ProjectId"] = "test-project",
                 ["GoogleCloud:BucketName"] = "test-bucket",
                 ["GoogleCloud:ServiceAccountKeyPath"] = "",

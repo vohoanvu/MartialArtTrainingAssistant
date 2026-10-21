@@ -26,8 +26,8 @@ cd CodeJitsu.Client && npm run dev            # Port 5173
 dotnet build
 
 # Run tests
-dotnet test                                                    # Backend: 141 tests (135 pass, 6 skipped)
-cd CodeJitsu.Client && npx vitest run         # Frontend: 99 tests
+dotnet test                                                    # Backend: 193 tests (187 pass, 6 skipped)
+cd CodeJitsu.Client && npx vitest run         # Frontend: 138 tests — needs Node 22 (jsdom fails on Node 18)
 ```
 
 ## Database
@@ -62,7 +62,9 @@ dotnet ef database update --project SharedEntities --startup-project FighterMana
 - Swagger/Swashbuckle v10 for API docs (enabled via config)
 - API versioning via `Asp.Versioning`
 - SignalR 10 for real-time notifications
-- YouTube Data API v3 for video search (replaced Grok live search)
+- Technique resource search (`POST /vid/api/youtube/search`, `TechniqueResourceSearchService`): Gemini + Grounding with Google Search on Vertex AI, every YouTube link verified via YouTube Data API v3, keyword-search fallback. Replaced the xAI Grok live search (removed Oct 2026).
+- **GenAI model config**: `GeminiModelCatalog` holds per-model request rules (Gemini 4 Argon = `thinkingLevel` only, no explicit context cache, sampling params ignored; Gemini 3.x = `thinkingBudget`). `AiModelConfigService` resolves each feature's settings = AI Console override (`AiFeatureConfigs` table) ?? appsettings/env defaults. Agentic pipeline default model: `gemini-4-argon`.
+- **AI Console** (`/console`, `api/ai-console`): admin-only model configuration per GenAI feature; admins = `AiConsole__AdminEmails` (env `AI_CONSOLE_ADMIN_EMAILS`, comma-separated; empty = disabled). No role-based admin exists — every SSO user is an Instructor.
 - Testing: xUnit + Moq + EF Core InMemory provider
 
 ## Frontend Patterns

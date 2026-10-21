@@ -20,6 +20,7 @@ services:
     env_file: .env
     environment:
       - ASPNETCORE_APP_DB=${SUPABASE_APP_DB}
+      - AiConsole__AdminEmails=${AI_CONSOLE_ADMIN_EMAILS:-}
     # Keyless auth: the app uses Application Default Credentials from the VM's attached
     # service account (codejitsu-vm-runtime). No mounted SA key (org policy
     # constraints/iam.disableServiceAccountKeyCreation blocks key creation on MyCoach).

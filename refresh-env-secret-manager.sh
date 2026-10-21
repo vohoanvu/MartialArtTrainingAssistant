@@ -28,8 +28,6 @@ SECRETS_TO_FETCH=(
   "GEMINI_VISION_VIDEO_ANALYSIS_PROMPT"
   "GEMINI_VISION_LOCATION"
   "GEMINI_VISION_MODEL"
-  "XAIGROK_API_KEY"
-  "XAIGROK_ENDPOINT"
 )
 
 echo "Creating a fresh .env file..."
@@ -40,6 +38,19 @@ for secret_name in "${SECRETS_TO_FETCH[@]}"; do
   secret_value=$(gcloud secrets versions access latest --secret="$secret_name" --project="$PROJECT_ID" --quiet)
   # Single-quote the value so connection strings / prompts with spaces survive docker-compose parsing.
   printf "%s='%s'\n" "$secret_name" "$secret_value" >> "$ENV_FILE"
+done
+
+# Optional (non-fatal if the secret does not exist yet): AI Console admin allow-list.
+OPTIONAL_SECRETS=(
+  "AI_CONSOLE_ADMIN_EMAILS"
+)
+for secret_name in "${OPTIONAL_SECRETS[@]}"; do
+  if secret_value=$(gcloud secrets versions access latest --secret="$secret_name" --project="$PROJECT_ID" --quiet 2>/dev/null); then
+    echo "Fetching optional secret: $secret_name..."
+    printf "%s='%s'\n" "$secret_name" "$secret_value" >> "$ENV_FILE"
+  else
+    echo "Optional secret $secret_name not found; skipping."
+  fi
 done
 
 echo ""

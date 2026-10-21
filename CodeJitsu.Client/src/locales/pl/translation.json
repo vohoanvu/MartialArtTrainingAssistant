@@ -141,6 +141,150 @@
       "authorName": "Cyprian Gburek",
       "githubProfile": "Sprawdź mojego GitHuba",
       "email": "Napisz do mnie"
+    },
+    "aiConsole": {
+      "nav": "Konsola AI",
+      "title": "Konsola AI",
+      "subtitle": "Wybierz model i parametry używane przez każdą funkcję generatywnej AI w CodeJitsu. Zmiany są zapisywane jako nadpisania ustawień domyślnych serwera i obowiązują od następnego żądania. Użyj „Testuj model”, aby przed zapisem wysłać krótkie zapytanie z niezapisanymi wartościami.",
+      "loading": "Wczytywanie konfiguracji AI…",
+      "empty": "Nie skonfigurowano żadnych funkcji AI.",
+      "defaultsLine": "Domyślnie na serwerze: {{model}} ({{location}})",
+      "updatedBy": "Ostatnia zmiana: {{by}}, {{at}}",
+      "badge": {
+        "overridden": "Nadpisane",
+        "default": "Domyślne",
+        "unsaved": "Niezapisane zmiany"
+      },
+      "error": {
+        "title": "Nie udało się wczytać Konsoli AI",
+        "body": "Coś poszło nie tak podczas wczytywania konfiguracji AI.",
+        "retry": "Spróbuj ponownie"
+      },
+      "noAccess": {
+        "title": "Nie masz dostępu do Konsoli AI",
+        "body": "Ta sekcja jest dostępna tylko dla administratorów. Jeśli uważasz, że powinieneś mieć dostęp, skontaktuj się z właścicielem projektu."
+      },
+      "features": {
+        "video-analysis-pipeline": {
+          "title": "Analiza wideo — potok agentowy",
+          "description": "Czterofazowa analiza przesłanych nagrań sparingów w Vertex AI (Profiler → Rejestrator zdarzeń → Weryfikator → Główny trener). Wszystkie fazy używają jednego modelu."
+        },
+        "video-analysis-single-shot": {
+          "title": "Analiza wideo — jedno zapytanie (starsza v1)",
+          "description": "Oryginalna analiza nagrania sparingu w jednym zapytaniu. Zachowana dla starszych nagrań i jako rozwiązanie awaryjne."
+        },
+        "class-curriculum": {
+          "title": "Generator programu zajęć",
+          "description": "Tworzy uporządkowany plan zajęć (rozgrzewka, techniki, ćwiczenia, sparing) dla sesji treningowej."
+        },
+        "fighter-pairing": {
+          "title": "Dobieranie par zawodników",
+          "description": "Proponuje pary do sparingu na podstawie pasa, wagi, doświadczenia i celów."
+        },
+        "technique-search": {
+          "title": "Wyszukiwanie materiałów o technikach",
+          "description": "Znajduje filmy instruktażowe i artykuły dzięki Google Search, a następnie weryfikuje każdy link do YouTube za pomocą YouTube Data API."
+        }
+      },
+      "fields": {
+        "model": "Model",
+        "customModelOption": "Własny identyfikator modelu…",
+        "customModelId": "Własny identyfikator modelu",
+        "customModelHint": "Małe litery, cyfry, kropki i myślniki, np. gemini-x-y.",
+        "noVideo": "(brak obsługi wideo)",
+        "noGoogleSearch": "(brak Google Search)",
+        "location": "Lokalizacja",
+        "thinking": "Myślenie",
+        "thinkingStyle": "Sterowanie myśleniem",
+        "thinkingStyleLevel": "Poziom (LOW / MEDIUM / HIGH)",
+        "thinkingStyleBudget": "Budżet tokenów",
+        "thinkingLevel": "Poziom myślenia",
+        "thinkingBudget": "Budżet myślenia (tokeny)",
+        "thinkingBudgetHint": "0–32768. Pozostaw puste, aby użyć wartości domyślnej modelu.",
+        "temperature": "Temperatura",
+        "temperatureHint": "0–2. Pozostaw puste, aby użyć wartości domyślnej modelu.",
+        "temperatureIgnored": "Ten model ignoruje temperaturę, dlatego pole jest wyłączone.",
+        "maxOutputTokens": "Maks. tokenów odpowiedzi",
+        "modelDefault": "Domyślne modelu"
+      },
+      "thinkingLevels": {
+        "LOW": "Niski",
+        "MEDIUM": "Średni",
+        "HIGH": "Wysoki"
+      },
+      "phases": {
+        "title": "Fazy potoku",
+        "phase": "Faza",
+        "fps": "FPS",
+        "fpsHint": "FPS to liczba klatek na sekundę próbkowanych z wideo (0–10). 0 oznacza brak pracy klatka po klatce w tej fazie.",
+        "implicitCacheNote": "Ten model korzysta wyłącznie z niejawnego buforowania — wideo jest wysyłane ponownie w każdej fazie, a Vertex automatycznie obniża koszt powtórzonego początku.",
+        "names": {
+          "profiler": "Profiler",
+          "eventLogger": "Rejestrator zdarzeń",
+          "verifier": "Weryfikator",
+          "headCoach": "Główny trener"
+        }
+      },
+      "search": {
+        "maxResults": "Maks. wyników (1–20)",
+        "verifyWithYouTube": "Weryfikuj linki YouTube przez YouTube Data API"
+      },
+      "actions": {
+        "test": "Testuj model",
+        "testing": "Testowanie…",
+        "save": "Zapisz",
+        "saving": "Zapisywanie…",
+        "reset": "Przywróć domyślne",
+        "discard": "Odrzuć zmiany"
+      },
+      "confirmReset": {
+        "title": "Przywrócić ustawienia domyślne?",
+        "body": "Spowoduje to usunięcie zapisanego nadpisania dla „{{feature}}” i powrót do ustawień domyślnych serwera.",
+        "confirm": "Przywróć",
+        "cancel": "Anuluj"
+      },
+      "test": {
+        "okTitle": "Model odpowiedział",
+        "failedTitle": "Test nie powiódł się",
+        "latency": "Opóźnienie: {{ms}} ms",
+        "modelVersion": "Wersja modelu: {{version}}",
+        "unknownError": "Model nie zwrócił odpowiedzi."
+      },
+      "toast": {
+        "savedTitle": "Ustawienia zapisane",
+        "savedBody": "„{{feature}}” używa teraz nowej konfiguracji.",
+        "resetTitle": "Przywrócono ustawienia domyślne",
+        "resetBody": "„{{feature}}” wróciło do ustawień domyślnych serwera.",
+        "saveFailedTitle": "Nie udało się wykonać żądania",
+        "genericError": "Coś poszło nie tak. Spróbuj ponownie."
+      },
+      "validation": {
+        "modelId": "Użyj 2–63 małych liter, cyfr, kropek lub myślników, zaczynając od litery lub cyfry.",
+        "location": "Użyj „global” lub regionu, np. us-central1.",
+        "thinkingLevel": "Wybierz LOW, MEDIUM lub HIGH.",
+        "thinkingBudget": "Podaj liczbę całkowitą od 0 do 32768.",
+        "temperature": "Podaj liczbę od 0 do 2.",
+        "maxOutputTokens": "Podaj liczbę całkowitą od 1 do 65536.",
+        "fps": "Podaj liczbę całkowitą od 0 do 10.",
+        "maxResults": "Podaj liczbę całkowitą od 1 do 20."
+      }
+    },
+    "liveSearch": {
+      "parseError": "Nie udało się odczytać wyników wyszukiwania",
+      "noResults": "Nie znaleziono materiałów dla tej techniki.",
+      "sourceGrounded": "Oparte na Google Search · {{model}}",
+      "sourceGroundedNoModel": "Oparte na Google Search",
+      "sourceYoutube": "Wyszukiwanie YouTube",
+      "videosTitle": "Filmy z YouTube",
+      "articlesTitle": "Artykuły i materiały",
+      "playVideo": "Odtwórz film",
+      "videoPlayer": "Odtwarzacz wideo",
+      "whyRelevant": "Dlaczego warto",
+      "free": "Za darmo",
+      "paid": "Płatne",
+      "opensInNewTab": "(otwiera się w nowej karcie)",
+      "searchSuggestions": "Podpowiedzi Google Search",
+      "searchSuggestionsFrameTitle": "Podpowiedzi Google Search"
     }
   }
 }

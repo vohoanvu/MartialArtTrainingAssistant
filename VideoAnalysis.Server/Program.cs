@@ -59,20 +59,24 @@ namespace VideoAnalysis.Server
             builder.Services.AddScoped<IGoogleCloudStorageService, GoogleCloudStorageService>();
             builder.Services.AddAutoMapper(cfg => {}, typeof(Program).Assembly);
 
-            builder.Services.AddHttpClient<IGeminiVisionService, GeminiVisionService>();
+            // GenAI model configuration: appsettings/env defaults, overridable per feature from the AI Console.
+            builder.Services.AddMemoryCache();
+            builder.Services.Configure<TechniqueSearchOptions>(
+                builder.Configuration.GetSection(TechniqueSearchOptions.SectionName));
+            builder.Services.Configure<AiConsoleOptions>(
+                builder.Configuration.GetSection(AiConsoleOptions.SectionName));
+            builder.Services.AddSingleton<IAiModelConfigService, AiModelConfigService>();
+            builder.Services.AddHttpClient<IVertexRestClient, VertexRestClient>();
+
+            builder.Services.AddScoped<IGeminiVisionService, GeminiVisionService>();
             builder.Services.AddScoped<AiAnalysisProcessorService>();
             builder.Services.AddScoped<CurriculumRecommendationService>();
-            builder.Services.AddHttpClient<IXAIService, XAIService>();
+            builder.Services.AddScoped<ITechniqueResourceSearchService, TechniqueResourceSearchService>();
             builder.Services.AddTransient<VideoAnalysisBackgroundJobService>();
 
             // Agentic (v2) analysis pipeline
             builder.Services.Configure<VertexAiPipelineOptions>(
                 builder.Configuration.GetSection(VertexAiPipelineOptions.SectionName));
-            // Propagate the shared Pipeline:ModelId to any phase that didn't override it, so the whole
-            // pipeline can be pointed at one model (e.g. gemini-3.5-flash) with a single setting — and so
-            // all phases stay on ONE model, which the multimodal context cache requires.
-            builder.Services.PostConfigure<VertexAiPipelineOptions>(o => o.Normalize());
-            builder.Services.AddHttpClient<IVertexRestClient, VertexRestClient>();
             builder.Services.AddScoped<IAgenticPipelineService, AgenticPipelineService>();
             builder.Services.AddScoped<AgenticAnalysisReadService>();
             builder.Services.AddScoped<AgenticAnalysisWriteService>();
@@ -270,7 +274,6 @@ namespace VideoAnalysis.Server
             var pipelineOptions = builder.Configuration
                 .GetSection(VertexAiPipelineOptions.SectionName)
                 .Get<VertexAiPipelineOptions>() ?? new VertexAiPipelineOptions();
-            pipelineOptions.Normalize();
             builder.Services.AddHangfireServer(opts =>
             {
                 opts.ServerName = "vertex-pipeline-server";

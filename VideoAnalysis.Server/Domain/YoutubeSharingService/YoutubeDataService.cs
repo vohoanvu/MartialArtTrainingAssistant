@@ -6,6 +6,9 @@ namespace VideoAnalysis.Server.Domain.YoutubeSharingService
     {
         Task<VideoDetailsResponse> GetVideoDetailsAsync(string videoId);
         Task<List<YoutubeSearchResult>> SearchVideosAsync(string query, int maxResults = 10);
+
+        /// <summary>Looks up videos by id; returns only those that exist, are public and embeddable, in input order.</summary>
+        Task<List<YoutubeSearchResult>> GetPlayableVideosAsync(IReadOnlyList<string> videoIds);
     }
 
     public class YoutubeDataService : IYoutubeDataService
@@ -73,12 +76,51 @@ namespace VideoAnalysis.Server.Domain.YoutubeSharingService
                         ThumbnailUrl = item.Snippet?.Thumbnails?.Medium?.Url
                             ?? item.Snippet?.Thumbnails?.Default__?.Url
                             ?? string.Empty,
+                        ChannelTitle = item.Snippet?.ChannelTitle,
                     })
                     .ToList();
             }
             catch (Exception ex)
             {
                 throw new VideoDetailsException($"Failed to search YouTube videos for query '{query}'", ex);
+            }
+        }
+
+        public async Task<List<YoutubeSearchResult>> GetPlayableVideosAsync(IReadOnlyList<string> videoIds)
+        {
+            if (videoIds.Count == 0) return [];
+            try
+            {
+                // videos.list accepts up to 50 ids per call and costs 1 quota unit (vs 100 for search.list).
+                var request = _youtubeServiceWrapper.List("snippet,status");
+                request.VideoId = new Google.Apis.Util.Repeatable<string>(videoIds.Take(50));
+                var response = await request.ExecuteAsync();
+
+                var byId = (response.Items ?? [])
+                    .Where(v => v.Status?.Embeddable != false
+                        && string.Equals(v.Status?.PrivacyStatus ?? "public", "public", StringComparison.OrdinalIgnoreCase))
+                    .ToDictionary(v => v.Id);
+
+                return videoIds
+                    .Where(byId.ContainsKey)
+                    .Select(id => byId[id])
+                    .Select(v => new YoutubeSearchResult
+                    {
+                        VideoId = v.Id,
+                        Title = v.Snippet?.Title ?? string.Empty,
+                        Description = v.Snippet?.Description ?? string.Empty,
+                        EmbedLink = $"https://www.youtube.com/embed/{v.Id}",
+                        PublishedAt = v.Snippet?.PublishedAtDateTimeOffset?.ToString("o") ?? string.Empty,
+                        ThumbnailUrl = v.Snippet?.Thumbnails?.Medium?.Url
+                            ?? v.Snippet?.Thumbnails?.Default__?.Url
+                            ?? string.Empty,
+                        ChannelTitle = v.Snippet?.ChannelTitle,
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new VideoDetailsException($"Failed to look up YouTube videos {string.Join(",", videoIds)}", ex);
             }
         }
     }
@@ -91,6 +133,7 @@ namespace VideoAnalysis.Server.Domain.YoutubeSharingService
         public string EmbedLink { get; set; }
         public string PublishedAt { get; set; }
         public string ThumbnailUrl { get; set; }
+        public string? ChannelTitle { get; set; }
     }
 
     public class VideoDetailsResponse

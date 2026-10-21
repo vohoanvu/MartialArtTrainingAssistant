@@ -1,4 +1,6 @@
 ﻿import { http, HttpResponse } from 'msw';
+import type { AiFeatureSettings } from '@/components/AiConsole/types';
+import { mockOverview, mockTestResult } from './aiConsoleData';
 
 // ---------------------------------------------------------------------------
 // Shared mock data
@@ -82,6 +84,39 @@ const mockUploadedVideos = [
     uploadedAt: '2026-03-20T10:00:00',
   },
 ];
+
+export const mockTechniqueSearchResults = {
+  source: 'vertex-grounded',
+  model_id: 'gemini-4-argon',
+  youtube_videos: [
+    {
+      video_id: 'abc123',
+      title: 'Guard Passing Tutorial',
+      description: 'Learn guard passing techniques',
+      embed_link: 'https://www.youtube.com/embed/abc123',
+      publication_date: '2024-01-01T00:00:00+00:00',
+      thumbnail_url: 'https://i.ytimg.com/vi/abc123/mqdefault.jpg',
+      channel_title: 'Grappling Academy',
+      why_relevant: 'Covers the knee-slice pass step by step.',
+    },
+  ],
+  web_resources: [
+    {
+      title: 'Knee slice breakdown',
+      url: 'https://example.com/knee-slice',
+      description: 'Detailed article',
+      is_free: true,
+    },
+    {
+      title: 'Passing course',
+      url: 'https://example.com/course',
+      description: null,
+      is_free: false,
+    },
+  ],
+  web_search_queries: ['knee slice pass bjj'],
+  search_entry_point_html: '<div class="container"><a class="chip" href="https://www.google.com/search?q=knee+slice">knee slice pass bjj</a></div>',
+};
 
 const mockLoginResponse = {
   tokenType: 'Bearer',
@@ -282,20 +317,41 @@ export const handlers = [
     });
   }),
 
-  // YouTube: POST technique search
+  // YouTube: POST technique search (Vertex-grounded payload; returned as a JSON string body)
   http.post('/vid/api/youtube/search', () => {
-    return HttpResponse.text(JSON.stringify({
-      youtube_videos: [
-        {
-          video_id: 'abc123',
-          title: 'Guard Passing Tutorial',
-          description: 'Learn guard passing techniques',
-          embed_link: 'https://www.youtube.com/embed/abc123',
-          published_at: '2024-01-01T00:00:00+00:00',
-          thumbnail_url: 'https://i.ytimg.com/vi/abc123/mqdefault.jpg',
-        },
-      ],
-    }));
+    return HttpResponse.text(JSON.stringify(mockTechniqueSearchResults));
   }),
+
+  // AI Console (admin-only)
+  http.get('/vid/api/ai-console/access', () => HttpResponse.json({ isAdmin: true })),
+
+  http.get('/vid/api/ai-console', () => HttpResponse.json(mockOverview())),
+
+  http.put('/vid/api/ai-console/features/:key', async ({ params, request }) => {
+    const body = (await request.json()) as AiFeatureSettings;
+    const feature = mockOverview().features.find((f) => f.key === params.key);
+    if (!feature) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({
+      ...feature,
+      isOverridden: true,
+      updatedAt: '2026-10-21T08:30:00Z',
+      updatedBy: 'admin@example.com',
+      effective: body,
+    });
+  }),
+
+  http.delete('/vid/api/ai-console/features/:key', ({ params }) => {
+    const feature = mockOverview().features.find((f) => f.key === params.key);
+    if (!feature) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({
+      ...feature,
+      isOverridden: false,
+      updatedAt: null,
+      updatedBy: null,
+      effective: feature.defaults,
+    });
+  }),
+
+  http.post('/vid/api/ai-console/features/:key/test', () => HttpResponse.json(mockTestResult)),
 ];
 

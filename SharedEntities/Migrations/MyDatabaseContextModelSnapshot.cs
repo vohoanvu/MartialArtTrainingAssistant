@@ -224,6 +224,28 @@ namespace SharedEntities.Migrations
                     b.ToTable("AiAnalysisResults");
                 });
 
+            modelBuilder.Entity("SharedEntities.Models.AiFeatureConfig", b =>
+                {
+                    b.Property<string>("FeatureKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("SettingsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("FeatureKey");
+
+                    b.ToTable("AiFeatureConfigs");
+                });
+
             modelBuilder.Entity("SharedEntities.Models.AnalysisWeakness", b =>
                 {
                     b.Property<int>("Id")

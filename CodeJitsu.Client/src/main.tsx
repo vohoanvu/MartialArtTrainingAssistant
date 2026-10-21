@@ -20,6 +20,7 @@ import SsoCallback from './pages/SSOCallback.tsx';
 import { Toaster } from './components/ui/toaster.tsx';
 import VideoAnalysisManagement from './pages/VideoAnalysisManagement.tsx';
 import PricingPage from './pages/Pricing.tsx';
+import AiConsole from './pages/AiConsole.tsx';
 
 const router = createBrowserRouter([
     {
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
             {
                 path: '/video-review/:videoId',
                 element: <VideoReview/>,
+            },
+            {
+                path: '/console',
+                element: <AiConsole/>,
             },
             {
                 path: '/sso-callback',

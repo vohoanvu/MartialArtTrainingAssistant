@@ -59,6 +59,8 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
     public virtual DbSet<Waitlist> Waitlists { get; set; }
 
+    public virtual DbSet<AiFeatureConfig> AiFeatureConfigs { get; set; }
+
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -124,6 +126,10 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
         builder.Entity<VideoSegmentFeedback>()
             .Property(a => a.AnalysisJson)
+            .HasColumnType("jsonb");
+
+        builder.Entity<AiFeatureConfig>()
+            .Property(c => c.SettingsJson)
             .HasColumnType("jsonb");
 
         builder.Entity<TrainingSession>()

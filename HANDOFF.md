@@ -8,6 +8,34 @@ CI/CD only builds images; the actual VM deploy is manual.
 
 ---
 
+## 🧠 Gemini 4 Argon + AI Console + Grok removal (2026-10-21) — CODE-COMPLETE, NOT DEPLOYED
+
+On `feature/gcp-vm-deploy`, uncommitted at hand-off. Backend 187 pass / 6 skipped; frontend 138 pass (Node 22), tsc clean.
+
+- **Agentic pipeline → `gemini-4-argon`** (GA 2026-10-13). Argon rejects `thinkingBudget` (HTTP 400; use
+  `thinkingLevel` LOW/MEDIUM/HIGH), has **no explicit context caching** (implicit only, ≥6,144-token shared
+  prefix — the video is sent first in every phase), and ignores temperature/topP. `GeminiModelCatalog` shapes
+  requests per model, so rolling back to `gemini-3.1-pro-preview` (console or `VertexAi__Pipeline__ModelId`)
+  restores budgets + explicit caching automatically. Output caps raised (Profiler 1024→4096, HeadCoach
+  8192→16384) as headroom in case thinking counts against them.
+- **Grok removed** (`XAIService`, `XAIGROK_*` env/secrets). Technique search = Gemini + Google Search
+  grounding, YouTube ids verified by `videos.list` (public + embeddable), keyword-search fallback. Search
+  Suggestions widget rendered unmodified in a sandboxed iframe (Google display requirement).
+- **AI Console** `/console` — per-feature model/location/thinking/tokens (+ per-phase for the pipeline),
+  "Test model" smoke call, reset to defaults. Overrides in new table `AiFeatureConfigs`.
+
+**Remaining (in order):**
+1. ✅ Migration `20261021112034_AddAiFeatureConfigs` applied to Supabase 2026-10-21 (`dotnet ef database update
+   --connection <session pooler>`; additive, one table).
+2. ⬜ Create Secret Manager secret `AI_CONSOLE_ADMIN_EMAILS` (+ grant the VM SA accessor) — the refresh script
+   fetches it optionally. Copy the updated `refresh-env-secret-manager.sh` + `docker-compose.prod.yml` to the VM.
+3. ⬜ CI build + manual VM deploy.
+4. ⬜ **Validate Argon on a real tape** (event accuracy vs the 3.1-pro baseline — Flash regressed to ~50%
+   before). Roll back from the console if worse.
+5. ⬜ Optional: delete the `XAIGROK_API_KEY` / `XAIGROK_ENDPOINT` secrets; legacy `k8s/test/*` still mention them.
+
+---
+
 ## 🚑 Incident + recovery (2026-07-01) — VM zone moved `us-central1-c` → `us-central1-b`
 
 After the MyCoach **billing** interruption, `thecodejitsu-app-vm` (stopped) would not restart:

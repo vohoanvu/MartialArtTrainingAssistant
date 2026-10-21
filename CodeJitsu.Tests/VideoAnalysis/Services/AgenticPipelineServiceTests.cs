@@ -10,6 +10,7 @@ using SharedEntities.Models;
 using VideoAnalysis.Server.Configuration;
 using VideoAnalysis.Server.Domain.AIServices;
 using VideoAnalysis.Server.Domain.YoutubeSharingService;
+using VideoAnalysis.Server.Models.Dtos;
 
 namespace CodeJitsu.Tests.VideoAnalysis.Services;
 
@@ -47,9 +48,18 @@ public class AgenticPipelineServiceTests
         return videoId;
     }
 
+    // A model with explicit context caching (Gemini 3.x), for the cache lifecycle tests.
+    private static VertexAiPipelineOptions CachingModelOptions() => new() { ModelId = "gemini-3.1-pro-preview" };
+
     private static (AgenticPipelineService svc, Mock<IVertexRestClient> vertex, List<string> sent)
-        CreateService(MyDatabaseContext db, Action<Mock<IVertexRestClient>> configureVertex, VertexAiPipelineOptions? opts = null)
+        CreateService(MyDatabaseContext db, Action<Mock<IVertexRestClient>> configureVertex, VertexAiPipelineOptions? opts = null,
+            AiFeatureSettings? consoleOverride = null)
     {
+        opts ??= new VertexAiPipelineOptions();
+        var modelConfig = new Mock<IAiModelConfigService>();
+        modelConfig.Setup(m => m.GetEffectiveAsync(AiFeatureKeys.VideoAnalysisPipeline, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(consoleOverride ?? AiModelConfigService.PipelineDefaults(opts));
+
         var vertex = new Mock<IVertexRestClient>();
         vertex.Setup(v => v.ModelResourcePath(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("projects/p/locations/us-central1/publishers/google/models/m");
@@ -70,7 +80,8 @@ public class AgenticPipelineServiceTests
 
         var svc = new AgenticPipelineService(
             vertex.Object, db,
-            Options.Create(opts ?? new VertexAiPipelineOptions()),
+            Options.Create(opts),
+            modelConfig.Object,
             hub.Object,
             new Mock<ILogger<AgenticPipelineService>>().Object);
         return (svc, vertex, sent);
@@ -145,12 +156,78 @@ public class AgenticPipelineServiceTests
     {
         using var db = InMemoryDbContextFactory.Create();
         var videoId = await SeedAsync(db);
-        var (svc, vertex, _) = CreateService(db, SetupHappyPath);
+        var (svc, vertex, _) = CreateService(db, SetupHappyPath, CachingModelOptions());
 
         await svc.RunPipelineAsync(videoId, CancellationToken.None);
 
         vertex.Verify(v => v.CreateCachedContentAsync(It.IsAny<object>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         vertex.Verify(v => v.DeleteCachedContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Should_SkipExplicitCache_And_SendArgonShapedRequests_When_DefaultModel()
+    {
+        using var db = InMemoryDbContextFactory.Create();
+        var videoId = await SeedAsync(db);
+        var calls = new List<(string Model, string Location, JsonElement Body)>();
+        var (svc, vertex, _) = CreateService(db, v =>
+        {
+            SetupHappyPath(v);
+            v.Setup(x => x.GenerateContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, object, CancellationToken>((m, l, b, _) => calls.Add((m, l, JsonSerializer.SerializeToElement(b))))
+                .ReturnsAsync(default(JsonElement));
+        });
+
+        await svc.RunPipelineAsync(videoId, CancellationToken.None);
+
+        // Gemini 4 Argon has no explicit caching — the pipeline must not even try.
+        vertex.Verify(v => v.CreateCachedContentAsync(It.IsAny<object>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        Assert.Equal(4, calls.Count);
+        foreach (var (model, location, body) in calls)
+        {
+            Assert.Equal(GeminiModelCatalog.Gemini4Argon, model);
+            Assert.Equal("global", location);
+            // Video first in every phase → identical prefix for Vertex's implicit cache.
+            var firstPart = body.GetProperty("contents")[0].GetProperty("parts")[0];
+            Assert.True(firstPart.TryGetProperty("fileData", out _));
+            var gen = body.GetProperty("generationConfig");
+            var thinking = gen.GetProperty("thinkingConfig");
+            Assert.True(thinking.TryGetProperty("thinkingLevel", out _));
+            Assert.False(thinking.TryGetProperty("thinkingBudget", out _)); // a budget is an HTTP 400 on Argon
+            Assert.False(gen.TryGetProperty("temperature", out _));        // ignored by Argon's backend
+        }
+        // Head Coach gets HIGH thinking, Verifier LOW (defaults).
+        Assert.Equal("LOW", calls[2].Body.GetProperty("generationConfig").GetProperty("thinkingConfig").GetProperty("thinkingLevel").GetString());
+        Assert.Equal("HIGH", calls[3].Body.GetProperty("generationConfig").GetProperty("thinkingConfig").GetProperty("thinkingLevel").GetString());
+    }
+
+    [Fact]
+    public async Task Should_UseConsoleOverrideModel_For_AllPhases()
+    {
+        using var db = InMemoryDbContextFactory.Create();
+        var videoId = await SeedAsync(db);
+        var overrideSettings = AiModelConfigService.PipelineDefaults(new VertexAiPipelineOptions());
+        overrideSettings.ModelId = "gemini-3.1-pro-preview";
+        var models = new List<string>();
+        var (svc, _, _) = CreateService(db, v =>
+        {
+            SetupHappyPath(v);
+            v.Setup(x => x.GenerateContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, object, CancellationToken>((m, _, b, _) =>
+                {
+                    models.Add(m);
+                    // Budget-mode model (Gemini 3.x): thinkingBudget, never thinkingLevel.
+                    var thinking = JsonSerializer.SerializeToElement(b).GetProperty("generationConfig").GetProperty("thinkingConfig");
+                    Assert.True(thinking.TryGetProperty("thinkingBudget", out _));
+                    Assert.False(thinking.TryGetProperty("thinkingLevel", out _));
+                })
+                .ReturnsAsync(default(JsonElement));
+        }, consoleOverride: overrideSettings);
+
+        await svc.RunPipelineAsync(videoId, CancellationToken.None);
+
+        Assert.Equal(4, models.Count);
+        Assert.All(models, m => Assert.Equal("gemini-3.1-pro-preview", m));
     }
 
     [Fact]
@@ -164,7 +241,7 @@ public class AgenticPipelineServiceTests
                 .ThrowsAsync(new InvalidOperationException("cache too small"));
             v.SetupSequence(x => x.ExtractText(It.IsAny<JsonElement>()))
                 .Returns(VisualDna).Returns(EventsJson).Returns(EventsJson).Returns(CoachingJson);
-        });
+        }, CachingModelOptions());
 
         await svc.RunPipelineAsync(videoId, CancellationToken.None);
 
@@ -189,7 +266,7 @@ public class AgenticPipelineServiceTests
             v.SetupSequence(x => x.ExtractText(It.IsAny<JsonElement>()))
                 .Returns(VisualDna)
                 .Returns("this is not valid json");  // Phase 2 parse fails
-        });
+        }, CachingModelOptions());
 
         await Assert.ThrowsAsync<JsonException>(() => svc.RunPipelineAsync(videoId, CancellationToken.None));
 

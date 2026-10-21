@@ -21,7 +21,8 @@ namespace VideoAnalysis.Server.Domain.AIServices
 
     /// <summary>
     /// Orchestrates the 4-phase agentic VLM pipeline (Auto-Profiler → Event Logger → Event Verifier
-    /// → Head Coach), sharing a single Vertex context cache of the video across phases when possible.
+    /// → Head Coach) on one shared model, reusing the video across phases via an explicit Vertex context
+    /// cache when the model supports it, or Vertex's implicit prefix cache when it doesn't (Gemini 4 Argon).
     /// Emits per-phase status over SignalR and persists results to the v2 entity tables.
     /// </summary>
     public class AgenticPipelineService : IAgenticPipelineService
@@ -29,21 +30,27 @@ namespace VideoAnalysis.Server.Domain.AIServices
         private readonly IVertexRestClient _vertex;
         private readonly MyDatabaseContext _context;
         private readonly VertexAiPipelineOptions _options;
+        private readonly IAiModelConfigService _modelConfig;
         private readonly IHubContext<VideoAnalysisHub> _hub;
         private readonly ILogger<AgenticPipelineService> _logger;
 
         private static readonly JsonSerializerOptions ParseOptions = new() { PropertyNameCaseInsensitive = true };
 
+        /// <summary>Model settings snapshotted at run start, so a console change never mixes models within one run.</summary>
+        private sealed record PipelineRun(GeminiModelInfo Model, string Location, AiPipelinePhaseSettings Phases);
+
         public AgenticPipelineService(
             IVertexRestClient vertex,
             MyDatabaseContext context,
             IOptions<VertexAiPipelineOptions> options,
+            IAiModelConfigService modelConfig,
             IHubContext<VideoAnalysisHub> hub,
             ILogger<AgenticPipelineService> logger)
         {
             _vertex = vertex;
             _context = context;
             _options = options.Value;
+            _modelConfig = modelConfig;
             _hub = hub;
             _logger = logger;
         }
@@ -58,6 +65,13 @@ namespace VideoAnalysis.Server.Domain.AIServices
             var mimeType = DetermineMimeType(fileUri);
             var studentIdentifier = video.StudentIdentifier ?? "the most active athlete in the video";
 
+            var settings = await _modelConfig.GetEffectiveAsync(AiFeatureKeys.VideoAnalysisPipeline, ct);
+            var run = new PipelineRun(
+                GeminiModelCatalog.Resolve(settings.ModelId),
+                settings.Location,
+                settings.Phases ?? AiModelConfigService.PipelineDefaults(_options).Phases!);
+            _logger.LogInformation("Agentic pipeline for video {VideoId} on model {Model} ({Location}).", videoId, run.Model.Id, run.Location);
+
             var result = await GetOrCreateResultAsync(videoId, video.UserId, ct);
 
             string? cacheName = null;
@@ -65,21 +79,21 @@ namespace VideoAnalysis.Server.Domain.AIServices
             {
                 // ── Phase 1: Auto-Profiler (+ context cache creation) ─────────
                 await UpdateStatusAsync(result, AnalysisPipelineStatus.Profiling, videoId, ct);
-                cacheName = await TryCreateCacheAsync(fileUri, mimeType, videoId, ct);
+                cacheName = await TryCreateCacheAsync(run, fileUri, mimeType, videoId, ct);
                 result.ContextCacheName = cacheName;
                 await _context.SaveChangesAsync(ct);
 
-                var visualDna = await RunProfilerAsync(cacheName, fileUri, mimeType, studentIdentifier, ct);
+                var visualDna = await RunProfilerAsync(run, cacheName, fileUri, mimeType, studentIdentifier, ct);
                 result.VisualDna = visualDna;
                 await _context.SaveChangesAsync(ct);
 
                 // ── Phase 2: Event Logger ─────────────────────────────────────
                 await UpdateStatusAsync(result, AnalysisPipelineStatus.Logging, videoId, ct);
-                var rawEvents = await RunEventLoggerAsync(cacheName, fileUri, mimeType, visualDna, ct);
+                var rawEvents = await RunEventLoggerAsync(run, cacheName, fileUri, mimeType, visualDna, ct);
 
                 // ── Phase 3: Event Verifier ───────────────────────────────────
                 await UpdateStatusAsync(result, AnalysisPipelineStatus.Verifying, videoId, ct);
-                var verifiedEvents = await RunVerifierAsync(cacheName, fileUri, mimeType, rawEvents, visualDna, ct);
+                var verifiedEvents = await RunVerifierAsync(run, cacheName, fileUri, mimeType, rawEvents, visualDna, ct);
 
                 PersistMatchEvents(result, verifiedEvents);
                 result.AnalysisJson = JsonSerializer.Serialize(new VertexEventsResponse { Events = verifiedEvents });
@@ -87,7 +101,7 @@ namespace VideoAnalysis.Server.Domain.AIServices
 
                 // ── Phase 4: Head Coach ───────────────────────────────────────
                 await UpdateStatusAsync(result, AnalysisPipelineStatus.Coaching, videoId, ct);
-                var report = await RunHeadCoachAsync(cacheName, fileUri, mimeType, verifiedEvents, visualDna, appUser.Fighter, ct);
+                var report = await RunHeadCoachAsync(run, cacheName, fileUri, mimeType, verifiedEvents, visualDna, appUser.Fighter, ct);
 
                 PersistCoachingReport(result, report);
                 await UpdateStatusAsync(result, AnalysisPipelineStatus.Complete, videoId, ct);
@@ -107,7 +121,7 @@ namespace VideoAnalysis.Server.Domain.AIServices
             {
                 if (cacheName != null)
                 {
-                    try { await _vertex.DeleteCachedContentAsync(cacheName, _options.Location, CancellationToken.None); }
+                    try { await _vertex.DeleteCachedContentAsync(cacheName, run.Location, CancellationToken.None); }
                     catch (Exception ex) { _logger.LogWarning(ex, "Context cache cleanup failed for {CacheName}", cacheName); }
                     result.ContextCacheName = null;
                     await _context.SaveChangesAsync(CancellationToken.None);
@@ -223,18 +237,15 @@ namespace VideoAnalysis.Server.Domain.AIServices
 
         // ── Phase implementations ────────────────────────────────────────────
 
-        private async Task<string?> TryCreateCacheAsync(string fileUri, string mimeType, int videoId, CancellationToken ct)
+        private async Task<string?> TryCreateCacheAsync(PipelineRun run, string fileUri, string mimeType, int videoId, CancellationToken ct)
         {
-            // Caching is only reusable across phases when they share one model.
-            var cacheModel = _options.EventLogger.ModelId;
-            bool eligible = _options.Profiler.ModelId == cacheModel
-                && _options.Verifier.ModelId == cacheModel
-                && _options.HeadCoach.ModelId == cacheModel;
-            if (!eligible)
+            if (!run.Model.SupportsExplicitCache)
             {
-                _logger.LogWarning(
-                    "Context caching DISABLED for video {VideoId}: phases use differing models — each phase will re-send the full video (higher latency + token cost).",
-                    videoId);
+                // e.g. Gemini 4 Argon: no cachedContents. Every phase sends the video as the FIRST part, so the
+                // identical prefix is picked up by Vertex's implicit cache (≥6,144 tokens) and billed at a discount.
+                _logger.LogInformation(
+                    "Explicit context caching not supported by {Model}; video {VideoId} relies on implicit prefix caching.",
+                    run.Model.Id, videoId);
                 return null;
             }
 
@@ -245,7 +256,7 @@ namespace VideoAnalysis.Server.Domain.AIServices
                 var expireTime = DateTime.UtcNow.AddMinutes(Math.Max(1, _options.ContextCacheTtlMinutes)).ToString("O");
                 var body = new
                 {
-                    model = _vertex.ModelResourcePath(cacheModel, _options.Location),
+                    model = _vertex.ModelResourcePath(run.Model.Id, run.Location),
                     displayName = $"analysis-{videoId}",
                     expireTime,
                     contents = new[]
@@ -260,10 +271,10 @@ namespace VideoAnalysis.Server.Domain.AIServices
                         },
                     },
                 };
-                var cacheName = await _vertex.CreateCachedContentAsync(body, _options.Location, ct);
+                var cacheName = await _vertex.CreateCachedContentAsync(body, run.Location, ct);
                 _logger.LogInformation(
                     "Context cache ACTIVE for video {VideoId} (model {Model}); all 4 phases reuse the cached video.",
-                    videoId, cacheModel);
+                    videoId, run.Model.Id);
                 return cacheName;
             }
             catch (Exception ex)
@@ -274,56 +285,56 @@ namespace VideoAnalysis.Server.Domain.AIServices
             }
         }
 
-        private async Task<string> RunProfilerAsync(string? cacheName, string fileUri, string mimeType, string studentIdentifier, CancellationToken ct)
+        private async Task<string> RunProfilerAsync(PipelineRun run, string? cacheName, string fileUri, string mimeType, string studentIdentifier, CancellationToken ct)
         {
             var prompt = PipelinePrompts.Profiler(studentIdentifier);
-            var body = BuildBody(cacheName, fileUri, mimeType, prompt, BuildTextGenerationConfig(_options.Profiler));
-            var response = await _vertex.GenerateContentAsync(_options.Profiler.ModelId, _options.Location, body, ct);
+            var body = BuildBody(cacheName, fileUri, mimeType, prompt, BuildGenerationConfig(run.Model, run.Phases.Profiler));
+            var response = await _vertex.GenerateContentAsync(run.Model.Id, run.Location, body, ct);
             return _vertex.ExtractText(response).Trim();
         }
 
-        private async Task<List<VertexEvent>> RunEventLoggerAsync(string? cacheName, string fileUri, string mimeType, string visualDna, CancellationToken ct)
+        private async Task<List<VertexEvent>> RunEventLoggerAsync(PipelineRun run, string? cacheName, string fileUri, string mimeType, string visualDna, CancellationToken ct)
         {
-            var fps = _options.EventLogger.Fps > 0 ? _options.EventLogger.Fps : 3;
-            var genConfig = BuildJsonGenerationConfig(_options.EventLogger, PipelineSchemas.EventsSchema());
+            var fps = run.Phases.EventLogger.Fps is > 0 and var f ? f : 3;
+            var genConfig = BuildGenerationConfig(run.Model, run.Phases.EventLogger, PipelineSchemas.EventsSchema());
 
-            var events = await EventLoggerCallAsync(cacheName, fileUri, mimeType, PipelinePrompts.EventLogger(visualDna, fps), genConfig, ct);
+            var events = await EventLoggerCallAsync(run, cacheName, fileUri, mimeType, PipelinePrompts.EventLogger(visualDna, fps), genConfig, ct);
             if (events.Count == 0)
             {
                 // Proven robustness step: a simplified prompt when the structured pass yields nothing.
                 _logger.LogWarning("Event Logger returned 0 events — retrying with simplified prompt.");
-                events = await EventLoggerCallAsync(cacheName, fileUri, mimeType, PipelinePrompts.EventLoggerFallback(), genConfig, ct);
+                events = await EventLoggerCallAsync(run, cacheName, fileUri, mimeType, PipelinePrompts.EventLoggerFallback(), genConfig, ct);
             }
             return events;
         }
 
-        private async Task<List<VertexEvent>> EventLoggerCallAsync(string? cacheName, string fileUri, string mimeType, string prompt, object genConfig, CancellationToken ct)
+        private async Task<List<VertexEvent>> EventLoggerCallAsync(PipelineRun run, string? cacheName, string fileUri, string mimeType, string prompt, object genConfig, CancellationToken ct)
         {
             var body = BuildBody(cacheName, fileUri, mimeType, prompt, genConfig);
-            var response = await _vertex.GenerateContentAsync(_options.EventLogger.ModelId, _options.Location, body, ct);
+            var response = await _vertex.GenerateContentAsync(run.Model.Id, run.Location, body, ct);
             return ParseEvents(_vertex.ExtractText(response));
         }
 
-        private async Task<List<VertexEvent>> RunVerifierAsync(string? cacheName, string fileUri, string mimeType, List<VertexEvent> rawEvents, string visualDna, CancellationToken ct)
+        private async Task<List<VertexEvent>> RunVerifierAsync(PipelineRun run, string? cacheName, string fileUri, string mimeType, List<VertexEvent> rawEvents, string visualDna, CancellationToken ct)
         {
             if (rawEvents.Count == 0) return rawEvents;
             var eventsJson = JsonSerializer.Serialize(new VertexEventsResponse { Events = rawEvents });
             var prompt = PipelinePrompts.Verifier(visualDna, eventsJson);
-            var genConfig = BuildJsonGenerationConfig(_options.Verifier, PipelineSchemas.EventsSchema());
+            var genConfig = BuildGenerationConfig(run.Model, run.Phases.Verifier, PipelineSchemas.EventsSchema());
             var body = BuildBody(cacheName, fileUri, mimeType, prompt, genConfig);
-            var response = await _vertex.GenerateContentAsync(_options.Verifier.ModelId, _options.Location, body, ct);
+            var response = await _vertex.GenerateContentAsync(run.Model.Id, run.Location, body, ct);
             var verified = ParseEvents(_vertex.ExtractText(response));
             // Defensive: if the verifier returned nothing usable, keep the raw events rather than losing data.
             return verified.Count > 0 ? verified : rawEvents;
         }
 
-        private async Task<VertexCoachingReport> RunHeadCoachAsync(string? cacheName, string fileUri, string mimeType, List<VertexEvent> events, string visualDna, Fighter? fighter, CancellationToken ct)
+        private async Task<VertexCoachingReport> RunHeadCoachAsync(PipelineRun run, string? cacheName, string fileUri, string mimeType, List<VertexEvent> events, string visualDna, Fighter? fighter, CancellationToken ct)
         {
             var eventsJson = JsonSerializer.Serialize(new VertexEventsResponse { Events = events });
             var prompt = PipelinePrompts.HeadCoach(visualDna, eventsJson, fighter);
-            var genConfig = BuildJsonGenerationConfig(_options.HeadCoach, PipelineSchemas.CoachingReportSchema());
+            var genConfig = BuildGenerationConfig(run.Model, run.Phases.HeadCoach, PipelineSchemas.CoachingReportSchema());
             var body = BuildBody(cacheName, fileUri, mimeType, prompt, genConfig);
-            var response = await _vertex.GenerateContentAsync(_options.HeadCoach.ModelId, _options.Location, body, ct);
+            var response = await _vertex.GenerateContentAsync(run.Model.Id, run.Location, body, ct);
             var text = CleanJsonFromMarkdown(_vertex.ExtractText(response));
             return JsonSerializer.Deserialize<VertexCoachingReport>(text, ParseOptions)
                 ?? throw new InvalidOperationException("Head Coach returned unparseable coaching report JSON.");
@@ -348,7 +359,8 @@ namespace VideoAnalysis.Server.Domain.AIServices
                 };
             }
 
-            // Fallback when no cache could be created: reference the gs:// video directly (no videoMetadata).
+            // No explicit cache: reference the gs:// video directly (no videoMetadata). The video MUST stay the
+            // first part — the identical leading prefix across phases is what Vertex's implicit cache reuses.
             return new
             {
                 contents = new[]
@@ -368,23 +380,14 @@ namespace VideoAnalysis.Server.Domain.AIServices
             };
         }
 
-        private static object BuildJsonGenerationConfig(PhaseModelOptions phase, JsonNode responseSchema) => new
-        {
-            temperature = phase.Temperature,
-            topP = 1.0f,
-            maxOutputTokens = phase.MaxOutputTokens,
-            responseMimeType = "application/json",
-            responseSchema,
-            thinkingConfig = new { thinkingBudget = phase.ThinkingBudget },
-        };
-
-        private static object BuildTextGenerationConfig(PhaseModelOptions phase) => new
-        {
-            temperature = phase.Temperature,
-            topP = 1.0f,
-            maxOutputTokens = phase.MaxOutputTokens,
-            thinkingConfig = new { thinkingBudget = phase.ThinkingBudget },
-        };
+        // Model-aware: thinkingLevel vs thinkingBudget and sampling params are chosen per GeminiModelCatalog,
+        // so the same phase settings produce a valid request for Gemini 4 (level) and 3.x (budget) models.
+        private static object BuildGenerationConfig(GeminiModelInfo model, AiPhaseSettings phase, JsonNode? responseSchema = null) =>
+            GeminiModelCatalog.BuildGenerationConfig(
+                model, phase.ThinkingLevel, phase.ThinkingBudget, phase.Temperature, phase.MaxOutputTokens,
+                topP: 1.0f,
+                responseMimeType: responseSchema != null ? "application/json" : null,
+                responseSchema: responseSchema);
 
         // ── Parsing utilities ────────────────────────────────────────────────
 

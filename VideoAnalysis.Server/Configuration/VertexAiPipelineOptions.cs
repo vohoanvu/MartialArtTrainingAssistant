@@ -4,6 +4,7 @@ namespace VideoAnalysis.Server.Configuration
     /// Strongly-typed options for the agentic (multi-step) Vertex AI video-analysis pipeline.
     /// Bound from the <c>VertexAi:Pipeline</c> configuration section. Environment overrides use
     /// the standard ASP.NET nesting delimiter, e.g. <c>VertexAi__Pipeline__Location</c>.
+    /// These are the DEFAULTS — an admin override saved in the AI Console (AiFeatureConfigs table) wins.
     /// </summary>
     public class VertexAiPipelineOptions
     {
@@ -13,68 +14,52 @@ namespace VideoAnalysis.Server.Configuration
         public bool Enabled { get; set; } = true;
 
         /// <summary>
-        /// Vertex location used for the pipeline. The proven MyCoach mobile pipeline runs context
-        /// caching on the GLOBAL endpoint (https://aiplatform.googleapis.com + locations/global/cachedContents),
-        /// validated with real uploads — so "global" is the default and matches the single-shot path.
+        /// Vertex location used for the pipeline. The proven MyCoach mobile pipeline runs on the GLOBAL
+        /// endpoint (https://aiplatform.googleapis.com), and Gemini 4 Argon is served from global/us/eu only.
         /// </summary>
         public string Location { get; set; } = "global";
 
-        /// <summary>Context-cache TTL (minutes). Must exceed expected total pipeline runtime.</summary>
+        /// <summary>Context-cache TTL (minutes). Must exceed expected total pipeline runtime. Only used by models with explicit caching.</summary>
         public int ContextCacheTtlMinutes { get; set; } = 30;
 
         /// <summary>Events with confidence below this are flagged for review in the UI.</summary>
         public double ConfidenceThresholdForReview { get; set; } = 0.7;
 
-        /// <summary>Caps concurrent pipeline jobs (dedicated Hangfire queue worker count).</summary>
+        /// <summary>Caps concurrent pipeline jobs (dedicated Hangfire queue worker count). Startup-only.</summary>
         public int MaxConcurrentJobs { get; set; } = 2;
 
         /// <summary>
-        /// Shared model for ALL phases. Each phase inherits this unless it sets its own
-        /// <see cref="PhaseModelOptions.ModelId"/>. Keeping every phase on ONE model is what lets the
-        /// Vertex multimodal context cache be reused across phases (cache ↔ inference model must match),
-        /// so this is the single knob to point the whole pipeline at a different model — e.g. flip to
-        /// Gemini 3.5 Flash with <c>VertexAi__Pipeline__ModelId=gemini-3.5-flash</c> (no image rebuild).
+        /// The ONE model every phase runs on. Sharing a model is what lets phases reuse the video: an explicit
+        /// context cache on models that support it (cache ↔ inference model must match), or Vertex's implicit
+        /// prefix cache on models that don't (Gemini 4 Argon). Rollback: <c>VertexAi__Pipeline__ModelId=gemini-3.1-pro-preview</c>
+        /// or pick it in the AI Console.
         /// </summary>
-        public string ModelId { get; set; } = "gemini-3.1-pro-preview";
+        public string ModelId { get; set; } = "gemini-4-argon";
 
-        // Per-phase generation settings. ModelId is intentionally left blank so each phase inherits the
-        // shared ModelId above (via Normalize); set a phase ModelId only to deliberately diverge — which
-        // disables cross-phase context caching. Token/thinking budgets are tuned for speed while
-        // protecting the accuracy-critical phases (Profiler visual-DNA, Verifier) and the Head Coach.
-        public PhaseModelOptions Profiler { get; set; } = new() { Fps = 1, Temperature = 0.1f, MaxOutputTokens = 1024, ThinkingBudget = 8192 };
-        public PhaseModelOptions EventLogger { get; set; } = new() { Fps = 4, Temperature = 0.2f, MaxOutputTokens = 16384, ThinkingBudget = 8192 };
-        public PhaseModelOptions Verifier { get; set; } = new() { Fps = 0, Temperature = 0.1f, MaxOutputTokens = 16384, ThinkingBudget = 4096 };
-        public PhaseModelOptions HeadCoach { get; set; } = new() { Fps = 0, Temperature = 0.4f, MaxOutputTokens = 8192, ThinkingBudget = 16384 };
-
-        /// <summary>
-        /// Fills any phase whose <see cref="PhaseModelOptions.ModelId"/> was left blank with the shared
-        /// <see cref="ModelId"/>. Call AFTER binding configuration (see Program.cs PostConfigure) so an
-        /// env/appsettings override of the shared model propagates to every phase.
-        /// </summary>
-        public void Normalize()
-        {
-            foreach (var phase in new[] { Profiler, EventLogger, Verifier, HeadCoach })
-            {
-                if (string.IsNullOrWhiteSpace(phase.ModelId))
-                    phase.ModelId = ModelId;
-            }
-        }
+        // Per-phase generation settings. ThinkingLevel applies to level-mode models (Gemini 4); ThinkingBudget to
+        // budget-mode models (Gemini 3.x) — the request builder translates whichever one the model doesn't take.
+        // Output caps leave headroom for thinking tokens; the Verifier stays cheap, the Head Coach thinks hardest.
+        public PhaseModelOptions Profiler { get; set; } = new() { Fps = 1, Temperature = 0.1f, MaxOutputTokens = 4096, ThinkingBudget = 8192, ThinkingLevel = "MEDIUM" };
+        public PhaseModelOptions EventLogger { get; set; } = new() { Fps = 4, Temperature = 0.2f, MaxOutputTokens = 16384, ThinkingBudget = 8192, ThinkingLevel = "MEDIUM" };
+        public PhaseModelOptions Verifier { get; set; } = new() { Fps = 0, Temperature = 0.1f, MaxOutputTokens = 16384, ThinkingBudget = 4096, ThinkingLevel = "LOW" };
+        public PhaseModelOptions HeadCoach { get; set; } = new() { Fps = 0, Temperature = 0.4f, MaxOutputTokens = 16384, ThinkingBudget = 16384, ThinkingLevel = "HIGH" };
     }
 
-    /// <summary>Per-phase Vertex model + generation settings.</summary>
+    /// <summary>Per-phase Vertex generation settings.</summary>
     public class PhaseModelOptions
     {
-        /// <summary>Optional per-phase model override. Blank = inherit the pipeline-level shared ModelId.</summary>
-        public string ModelId { get; set; } = "";
-
         /// <summary>Frames-per-second for video sampling. 0 = phase does not do frame-by-frame work.</summary>
         public int Fps { get; set; }
 
+        /// <summary>Ignored by models whose backend ignores sampling params (Gemini 4 Argon).</summary>
         public float Temperature { get; set; }
 
         public int MaxOutputTokens { get; set; }
 
-        /// <summary>Thinking-token budget. 0 disables thinking for the phase.</summary>
+        /// <summary>Thinking-token budget for budget-mode models. 0 disables thinking for the phase.</summary>
         public int ThinkingBudget { get; set; }
+
+        /// <summary>LOW / MEDIUM / HIGH for level-mode models.</summary>
+        public string? ThinkingLevel { get; set; }
     }
 }

@@ -141,6 +141,150 @@
       "authorName": "Cyprian Gburek",
       "githubProfile": "Check my GitHub",
       "email": "Email me"
+    },
+    "aiConsole": {
+      "nav": "AI Console",
+      "title": "AI Console",
+      "subtitle": "Choose the model and tuning used by every generative-AI feature in CodeJitsu. Changes are saved as overrides on top of the server defaults and take effect for the next request. Use Test model to send a tiny prompt with the unsaved values before saving.",
+      "loading": "Loading AI configuration…",
+      "empty": "No AI features are configured.",
+      "defaultsLine": "Server default: {{model}} ({{location}})",
+      "updatedBy": "Last updated by {{by}} on {{at}}",
+      "badge": {
+        "overridden": "Overridden",
+        "default": "Default",
+        "unsaved": "Unsaved changes"
+      },
+      "error": {
+        "title": "Could not load the AI Console",
+        "body": "Something went wrong while loading the AI configuration.",
+        "retry": "Retry"
+      },
+      "noAccess": {
+        "title": "You don't have access to the AI Console",
+        "body": "This area is limited to administrators. If you think you should have access, contact the project owner."
+      },
+      "features": {
+        "video-analysis-pipeline": {
+          "title": "Video analysis — agentic pipeline",
+          "description": "4-phase Vertex AI analysis of uploaded sparring videos (Profiler → Event Logger → Verifier → Head Coach). All phases share one model."
+        },
+        "video-analysis-single-shot": {
+          "title": "Video analysis — single-shot (legacy v1)",
+          "description": "Original one-request analysis of a sparring video. Kept for older recordings and as a fallback."
+        },
+        "class-curriculum": {
+          "title": "Class curriculum generator",
+          "description": "Builds a structured class plan (warm-up, techniques, drills, sparring) for a training session."
+        },
+        "fighter-pairing": {
+          "title": "Fighter pairing",
+          "description": "Suggests sparring pairs for a class based on belt, weight, experience and goals."
+        },
+        "technique-search": {
+          "title": "Technique resource search",
+          "description": "Finds instructional videos and articles with Google Search grounding, then verifies every YouTube link with the YouTube Data API."
+        }
+      },
+      "fields": {
+        "model": "Model",
+        "customModelOption": "Custom model ID…",
+        "customModelId": "Custom model ID",
+        "customModelHint": "Lowercase letters, digits, dots and dashes, e.g. gemini-x-y.",
+        "noVideo": "(no video support)",
+        "noGoogleSearch": "(no Google Search)",
+        "location": "Location",
+        "thinking": "Thinking",
+        "thinkingStyle": "Thinking control",
+        "thinkingStyleLevel": "Level (LOW / MEDIUM / HIGH)",
+        "thinkingStyleBudget": "Token budget",
+        "thinkingLevel": "Thinking level",
+        "thinkingBudget": "Thinking budget (tokens)",
+        "thinkingBudgetHint": "0–32768. Leave empty for the model default.",
+        "temperature": "Temperature",
+        "temperatureHint": "0–2. Leave empty for the model default.",
+        "temperatureIgnored": "This model ignores temperature, so the field is disabled.",
+        "maxOutputTokens": "Max output tokens",
+        "modelDefault": "Model default"
+      },
+      "thinkingLevels": {
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "HIGH": "High"
+      },
+      "phases": {
+        "title": "Pipeline phases",
+        "phase": "Phase",
+        "fps": "FPS",
+        "fpsHint": "FPS is the number of frames per second sampled from the video (0–10). 0 means no frame-by-frame work for that phase.",
+        "implicitCacheNote": "This model uses implicit caching only — the video is re-sent each phase and Vertex discounts the repeated prefix automatically.",
+        "names": {
+          "profiler": "Profiler",
+          "eventLogger": "Event Logger",
+          "verifier": "Verifier",
+          "headCoach": "Head Coach"
+        }
+      },
+      "search": {
+        "maxResults": "Max results (1–20)",
+        "verifyWithYouTube": "Verify YouTube links via YouTube Data API"
+      },
+      "actions": {
+        "test": "Test model",
+        "testing": "Testing…",
+        "save": "Save",
+        "saving": "Saving…",
+        "reset": "Reset to defaults",
+        "discard": "Discard changes"
+      },
+      "confirmReset": {
+        "title": "Reset to defaults?",
+        "body": "This removes the saved override for \"{{feature}}\" and returns it to the server defaults.",
+        "confirm": "Reset",
+        "cancel": "Cancel"
+      },
+      "test": {
+        "okTitle": "Model responded",
+        "failedTitle": "Test failed",
+        "latency": "Latency: {{ms}} ms",
+        "modelVersion": "Model version: {{version}}",
+        "unknownError": "The model did not return a response."
+      },
+      "toast": {
+        "savedTitle": "Settings saved",
+        "savedBody": "\"{{feature}}\" now uses the new configuration.",
+        "resetTitle": "Reset to defaults",
+        "resetBody": "\"{{feature}}\" is back to the server defaults.",
+        "saveFailedTitle": "Could not complete the request",
+        "genericError": "Something went wrong. Please try again."
+      },
+      "validation": {
+        "modelId": "Use 2–63 lowercase letters, digits, dots or dashes, starting with a letter or digit.",
+        "location": "Use \"global\" or a region such as us-central1.",
+        "thinkingLevel": "Choose LOW, MEDIUM or HIGH.",
+        "thinkingBudget": "Enter a whole number from 0 to 32768.",
+        "temperature": "Enter a number from 0 to 2.",
+        "maxOutputTokens": "Enter a whole number from 1 to 65536.",
+        "fps": "Enter a whole number from 0 to 10.",
+        "maxResults": "Enter a whole number from 1 to 20."
+      }
+    },
+    "liveSearch": {
+      "parseError": "Failed to parse search results",
+      "noResults": "No resources were found for this technique.",
+      "sourceGrounded": "Grounded with Google Search · {{model}}",
+      "sourceGroundedNoModel": "Grounded with Google Search",
+      "sourceYoutube": "YouTube search",
+      "videosTitle": "YouTube Videos",
+      "articlesTitle": "Articles & resources",
+      "playVideo": "Play Video",
+      "videoPlayer": "Video Player",
+      "whyRelevant": "Why it's relevant",
+      "free": "Free",
+      "paid": "Paid",
+      "opensInNewTab": "(opens in a new tab)",
+      "searchSuggestions": "Google Search suggestions",
+      "searchSuggestionsFrameTitle": "Google Search suggestions"
     }
   }
 }

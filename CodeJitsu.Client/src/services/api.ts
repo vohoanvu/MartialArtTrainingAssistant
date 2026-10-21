@@ -25,6 +25,8 @@ import {
     VideoSearchResult,
 } from "@/types/global.ts";
 import axios from 'axios';
+import useAuthStore from '@/store/authStore';
+import type { AiConsoleOverview, AiFeatureConfig, AiFeatureSettings, AiModelTestResult } from '@/components/AiConsole/types';
 
 type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
@@ -997,3 +999,102 @@ export const youtubeSearch = async ({
         throw error;
     }
 };
+
+// ---------------------------------------------------------------------------
+// AI Console (admin-only model configuration) - /vid/api/ai-console
+// ---------------------------------------------------------------------------
+
+export class AiConsoleApiError extends Error {
+    status: number;
+    fieldErrors: Record<string, string[]> | null;
+
+    constructor(status: number, message: string, fieldErrors: Record<string, string[]> | null = null) {
+        super(message);
+        this.name = 'AiConsoleApiError';
+        this.status = status;
+        this.fieldErrors = fieldErrors;
+    }
+}
+
+interface AiConsoleRequestOptions {
+    method?: 'GET' | 'PUT' | 'POST' | 'DELETE';
+    body?: unknown;
+    jwtToken: string | null;
+    hydrate?: () => Promise<void> | void;
+    currentTry?: number;
+}
+
+async function aiConsoleRequest<T>(path: string, options: AiConsoleRequestOptions): Promise<T> {
+    const { method = 'GET', body, jwtToken, hydrate, currentTry = 0 } = options;
+    const response = await fetch(`/vid/api/ai-console${path}`, {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`,
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+    if (response.ok) {
+        return await response.json() as T;
+    }
+
+    if (response.status === 401 && currentTry === 0 && hydrate) {
+        await hydrate();
+        return aiConsoleRequest<T>(path, {
+            ...options,
+            jwtToken: useAuthStore.getState().accessToken ?? jwtToken,
+            currentTry: 1,
+        });
+    }
+
+    let message = response.statusText || `Request failed (${response.status})`;
+    let fieldErrors: Record<string, string[]> | null = null;
+    try {
+        const payload = JSON.parse(await response.text());
+        if (payload?.title) message = payload.title;
+        if (payload?.errors && typeof payload.errors === 'object') fieldErrors = payload.errors;
+    } catch {
+        // non-JSON body: keep the status text
+    }
+    throw new AiConsoleApiError(response.status, message, fieldErrors);
+}
+
+/** Resolves true only when the server says the caller is an admin. Never throws (401/403/network => false). */
+export async function getAiConsoleAccess({ jwtToken }: { jwtToken: string | null }): Promise<boolean> {
+    try {
+        const result = await aiConsoleRequest<{ isAdmin: boolean }>('/access', { jwtToken });
+        return result?.isAdmin === true;
+    } catch {
+        return false;
+    }
+}
+
+export const getAiConsoleOverview = (
+    { jwtToken, hydrate }: { jwtToken: string | null; hydrate?: () => Promise<void> | void }
+): Promise<AiConsoleOverview> =>
+    aiConsoleRequest<AiConsoleOverview>('', { jwtToken, hydrate });
+
+export const updateAiFeatureConfig = (
+    { key, settings, jwtToken, hydrate }:
+    { key: string; settings: AiFeatureSettings; jwtToken: string | null; hydrate?: () => Promise<void> | void }
+): Promise<AiFeatureConfig> =>
+    aiConsoleRequest<AiFeatureConfig>(`/features/${encodeURIComponent(key)}`, {
+        method: 'PUT', body: settings, jwtToken, hydrate,
+    });
+
+export const resetAiFeatureConfig = (
+    { key, jwtToken, hydrate }:
+    { key: string; jwtToken: string | null; hydrate?: () => Promise<void> | void }
+): Promise<AiFeatureConfig> =>
+    aiConsoleRequest<AiFeatureConfig>(`/features/${encodeURIComponent(key)}`, {
+        method: 'DELETE', jwtToken, hydrate,
+    });
+
+export const testAiFeatureConfig = (
+    { key, settings, jwtToken, hydrate }:
+    { key: string; settings: AiFeatureSettings; jwtToken: string | null; hydrate?: () => Promise<void> | void }
+): Promise<AiModelTestResult> =>
+    aiConsoleRequest<AiModelTestResult>(`/features/${encodeURIComponent(key)}/test`, {
+        method: 'POST', body: settings, jwtToken, hydrate,
+    });

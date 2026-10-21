@@ -43,8 +43,7 @@ services:
         Jwt__Issuer: "${JWT_ISSUER}"
         Jwt__Key: "${JWT_KEY}"
         DOTNET_RUNNING_IN_CONTAINER: "true"
-        XAIGROK_API_KEY: "${XAIGROK_API_KEY}"
-        XAIGROK_ENDPOINT: "${XAIGROK_ENDPOINT}"
+        AiConsole__AdminEmails: "${AI_CONSOLE_ADMIN_EMAILS:-}"
     volumes:
       - ./secrets/gcs-key.json:/app/secrets/codejitsu-cloud-storage-service-account.json:ro
     networks:
