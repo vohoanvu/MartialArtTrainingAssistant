@@ -61,6 +61,8 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
 
     public virtual DbSet<AiFeatureConfig> AiFeatureConfigs { get; set; }
 
+    public virtual DbSet<AnalysisUsage> AnalysisUsages { get; set; }
+
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -131,6 +133,12 @@ public class MyDatabaseContext : IdentityDbContext<AppUserEntity>
         builder.Entity<AiFeatureConfig>()
             .Property(c => c.SettingsJson)
             .HasColumnType("jsonb");
+
+        // Quota checks count a user's recent, non-refunded analyses.
+        builder.Entity<AnalysisUsage>()
+            .HasIndex(u => new { u.UserId, u.StartedAt });
+        builder.Entity<AnalysisUsage>()
+            .HasIndex(u => u.VideoId);
 
         builder.Entity<TrainingSession>()
             .Property(ts => ts.RawCurriculumJson)

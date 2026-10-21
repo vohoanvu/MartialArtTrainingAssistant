@@ -2,18 +2,16 @@ using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using SharedEntities.Data;
-using VideoAnalysis.Server.Configuration;
+using VideoAnalysis.Server.Domain.AccessControl;
 using VideoAnalysis.Server.Domain.AIServices;
 using VideoAnalysis.Server.Models.Dtos;
 
 namespace VideoAnalysis.Server.Controllers
 {
     /// <summary>
-    /// AI Console: view and override the model configuration of every GenAI feature. Restricted to the emails
-    /// in <c>AiConsole:AdminEmails</c> — every SSO user is an Instructor, so roles can't gate this.
+    /// AI Console: view and override the model configuration of every GenAI feature and the free-demo analysis
+    /// quota. Restricted to the emails in <c>AiConsole:AdminEmails</c> — every SSO user is an Instructor, so
+    /// roles can't gate this.
     /// </summary>
     [Route("api/ai-console")]
     [ApiController]
@@ -21,8 +19,8 @@ namespace VideoAnalysis.Server.Controllers
     public class AiConsoleController(
         IAiModelConfigService modelConfig,
         IVertexRestClient vertex,
-        MyDatabaseContext db,
-        IOptions<AiConsoleOptions> consoleOptions,
+        IAdminAccessService adminAccess,
+        IAnalysisQuotaService analysisQuota,
         ILogger<AiConsoleController> logger) : ControllerBase
     {
         private const string TestPrompt = "Reply with the single word OK.";
@@ -129,20 +127,42 @@ namespace VideoAnalysis.Server.Controllers
             }
         }
 
+        // ── Free-demo analysis quota ─────────────────────────────────────────
+
+        [HttpGet("quota")]
+        public async Task<ActionResult<AnalysisQuotaConfigDto>> GetQuotaAsync(CancellationToken ct)
+        {
+            if (await GetAdminEmailAsync() == null) return Forbid();
+            return await analysisQuota.GetConfigAsync(ct);
+        }
+
+        [HttpPut("quota")]
+        public async Task<ActionResult<AnalysisQuotaConfigDto>> UpdateQuotaAsync([FromBody] AnalysisQuotaSettings settings, CancellationToken ct)
+        {
+            var admin = await GetAdminEmailAsync();
+            if (admin == null) return Forbid();
+
+            var errors = AnalysisQuotaService.Validate(settings);
+            if (errors.Count > 0) return ValidationProblem(new ValidationProblemDetails(errors));
+
+            return await analysisQuota.SaveOverrideAsync(settings, admin, ct);
+        }
+
+        [HttpDelete("quota")]
+        public async Task<ActionResult<AnalysisQuotaConfigDto>> ResetQuotaAsync(CancellationToken ct)
+        {
+            var admin = await GetAdminEmailAsync();
+            if (admin == null) return Forbid();
+
+            logger.LogInformation("AI Console: {User} reset the analysis quota.", admin);
+            return await analysisQuota.ResetAsync(ct);
+        }
+
         // ── Helpers ──────────────────────────────────────────────────────────
 
         /// <summary>The caller's email when it is on the admin allow-list, else null.</summary>
-        private async Task<string?> GetAdminEmailAsync()
-        {
-            var admins = consoleOptions.Value.AdminEmailSet();
-            if (admins.Count == 0) return null;
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return null;
-
-            var email = await db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Email).FirstOrDefaultAsync();
-            return email != null && admins.Contains(email) ? email : null;
-        }
+        private Task<string?> GetAdminEmailAsync() =>
+            adminAccess.GetAdminEmailAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         private static AiModelInfoDto ToDto(GeminiModelInfo m) => new()
         {

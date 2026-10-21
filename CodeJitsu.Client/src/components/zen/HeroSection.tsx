@@ -4,10 +4,12 @@ interface HeroSectionProps {
   subtitle: string
   ctaLabel: string
   onCta?: () => void
+  /** Optional outbound link shown next to the primary CTA (opens in a new tab). */
+  secondaryCta?: { label: string; href: string }
   children?: React.ReactNode
 }
 
-export function HeroSection({ eyebrow, title, subtitle, ctaLabel, onCta, children }: HeroSectionProps) {
+export function HeroSection({ eyebrow, title, subtitle, ctaLabel, onCta, secondaryCta, children }: HeroSectionProps) {
   return (
     <section
       className="relative bg-slate-zen700 min-h-[80vh] flex flex-col items-center justify-center text-center px-5 py-8 overflow-hidden"
@@ -40,12 +42,24 @@ export function HeroSection({ eyebrow, title, subtitle, ctaLabel, onCta, childre
         <p className="font-sans text-base text-parchment-300 max-w-lg mx-auto mb-6">
           {subtitle}
         </p>
-        <button
-          onClick={onCta}
-          className="inline-block bg-blood-300 text-white font-serif italic font-semibold text-base px-8 py-3.5 rounded-lg border border-blood-400 shadow-[0_2px_12px_rgba(196,90,71,0.30)] hover:bg-blood-400 hover:-translate-y-px transition-all duration-fast ease-zen"
-        >
-          {ctaLabel}
-        </button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            onClick={onCta}
+            className="inline-block bg-blood-300 text-white font-serif italic font-semibold text-base px-8 py-3.5 rounded-lg border border-blood-400 shadow-[0_2px_12px_rgba(196,90,71,0.30)] hover:bg-blood-400 hover:-translate-y-px transition-all duration-fast ease-zen"
+          >
+            {ctaLabel}
+          </button>
+          {secondaryCta && (
+            <a
+              href={secondaryCta.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block font-serif font-semibold text-base text-gold-accent px-8 py-3.5 rounded-lg border border-gold-accent/50 hover:bg-gold-accent/10 hover:text-parchment-50 hover:-translate-y-px transition-all duration-fast ease-zen"
+            >
+              {secondaryCta.label}
+            </a>
+          )}
+        </div>
         {children}
       </div>
     </section>

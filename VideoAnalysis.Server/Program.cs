@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using VideoAnalysis.Server.Domain.AIServices;
 using VideoAnalysis.Server.Configuration;
+using VideoAnalysis.Server.Domain.AccessControl;
 using Hangfire;
 using Hangfire.PostgreSql;
 
@@ -66,6 +67,11 @@ namespace VideoAnalysis.Server
             builder.Services.Configure<AiConsoleOptions>(
                 builder.Configuration.GetSection(AiConsoleOptions.SectionName));
             builder.Services.AddSingleton<IAiModelConfigService, AiModelConfigService>();
+            // Free-demo video-analysis quota (AI Console admins exempt).
+            builder.Services.Configure<AnalysisQuotaOptions>(
+                builder.Configuration.GetSection(AnalysisQuotaOptions.SectionName));
+            builder.Services.AddScoped<IAdminAccessService, AdminAccessService>();
+            builder.Services.AddScoped<IAnalysisQuotaService, AnalysisQuotaService>();
             builder.Services.AddHttpClient<IVertexRestClient, VertexRestClient>();
 
             builder.Services.AddScoped<IGeminiVisionService, GeminiVisionService>();

@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Hangfire;
 using VideoAnalysis.Server.Configuration;
+using VideoAnalysis.Server.Domain.AccessControl;
 using VideoAnalysis.Server.Helpers;
 using VideoAnalysis.Server.Models.Dtos;
 using VideoAnalysis.Server.Domain.GeminiService;
@@ -121,6 +122,9 @@ namespace VideoAnalysis.Server.Controllers
                 return Unauthorized();
             }
 
+            if (await GetExhaustedQuotaAsync(userId) is { } exhausted)
+                return this.AnalysisQuotaExceeded(exhausted);
+
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
             // Calculate hash of the video file
@@ -192,6 +196,10 @@ namespace VideoAnalysis.Server.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
                 return Unauthorized();
+
+            // Refuse BEFORE issuing the upload URL, so nobody uploads a multi-GB tape only to be rejected at analyze-v2.
+            if (await GetExhaustedQuotaAsync(userId) is { } exhausted)
+                return this.AnalysisQuotaExceeded(exhausted);
 
             var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<MyDatabaseContext>();
 
@@ -503,6 +511,14 @@ namespace VideoAnalysis.Server.Controllers
                 _logger.LogError(ex, "Error processing AI analysis for video ID {VideoId}", videoId);
                 return StatusCode(500, new { Message = "An error occurred while processing the AI analysis", Details = ex.Message });
             }
+        }
+
+        /// <summary>The caller's quota status when they have no analyses left, else null (pre-check only; nothing is charged).</summary>
+        private async Task<AnalysisQuotaStatusDto?> GetExhaustedQuotaAsync(string userId)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var status = await scope.ServiceProvider.GetRequiredService<IAnalysisQuotaService>().GetStatusAsync(userId);
+            return status.IsExhausted ? status : null;
         }
 
         private bool IsValidVideoFormat(string contentType) =>

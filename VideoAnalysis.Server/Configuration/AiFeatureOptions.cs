@@ -16,6 +16,22 @@ namespace VideoAnalysis.Server.Configuration
         public bool VerifyWithYouTube { get; set; } = true;
     }
 
+    /// <summary>
+    /// Free-demo video-analysis quota defaults. Bound from <c>AnalysisQuota</c> (env <c>AnalysisQuota__*</c>);
+    /// an AI Console override wins. AI Console admins are exempt.
+    /// </summary>
+    public class AnalysisQuotaOptions
+    {
+        public const string SectionName = "AnalysisQuota";
+
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>Analyses a user may start per rolling window. 0 = analyses disabled for non-admins.</summary>
+        public int MaxPerWindow { get; set; } = 3;
+
+        public int WindowHours { get; set; } = 24;
+    }
+
     /// <summary>Who may use the AI Console. Bound from <c>AiConsole</c> (env <c>AiConsole__AdminEmails</c>).</summary>
     public class AiConsoleOptions
     {

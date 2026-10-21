@@ -10,6 +10,7 @@ using SharedEntities.Models;
 using System.Security.Claims;
 using VideoAnalysis.Server.Configuration;
 using VideoAnalysis.Server.Controllers;
+using VideoAnalysis.Server.Domain.AccessControl;
 using VideoAnalysis.Server.Domain.AIServices;
 using VideoAnalysis.Server.Domain.GeminiService;
 using VideoAnalysis.Server.Models.Dtos;
@@ -20,7 +21,7 @@ public class GeminiControllerTests
 {
     // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    private static IServiceProvider BuildServiceProvider(MyDatabaseContext db, Mock<IGeminiVisionService>? geminiMock = null)
+    private static IServiceProvider BuildServiceProvider(MyDatabaseContext db, Mock<IGeminiVisionService>? geminiMock = null, Mock<IAnalysisQuotaService>? quotaMock = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton(db);
@@ -30,6 +31,8 @@ public class GeminiControllerTests
         services.AddScoped<CurriculumRecommendationService>();
         services.AddScoped<AgenticAnalysisReadService>();
         services.AddScoped<AgenticAnalysisWriteService>();
+        var quota = (quotaMock ?? new Mock<IAnalysisQuotaService>()).Object;
+        services.AddScoped<IAnalysisQuotaService>(_ => quota);
         return services.BuildServiceProvider();
     }
 
@@ -37,11 +40,12 @@ public class GeminiControllerTests
         MyDatabaseContext db,
         Mock<IGeminiVisionService>? geminiMock = null,
         string? authUserId = "test-user-id",
-        VertexAiPipelineOptions? pipelineOptions = null)
+        VertexAiPipelineOptions? pipelineOptions = null,
+        Mock<IAnalysisQuotaService>? quotaMock = null)
     {
         geminiMock ??= new Mock<IGeminiVisionService>();
         var loggerMock = new Mock<ILogger<GeminiController>>();
-        var serviceProvider = BuildServiceProvider(db, geminiMock);
+        var serviceProvider = BuildServiceProvider(db, geminiMock, quotaMock);
         var options = Options.Create(pipelineOptions ?? new VertexAiPipelineOptions());
         var transcoderOptions = Options.Create(new TranscoderOptions());
 
@@ -340,6 +344,81 @@ public class GeminiControllerTests
         var result = await controller.AnalyzeVideoV2Async(999);
 
         Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    // Quota-refused and in-progress paths return before Hangfire's static Enqueue, so they're unit-testable.
+    private static MyDatabaseContext SeedVideo()
+    {
+        var db = InMemoryDbContextFactory.Create();
+        var user = TestFixtures.CreateAppUser();
+        db.Users.Add(user);
+        db.Videos.Add(TestFixtures.CreateStudentUploadMetadata(id: 1, userId: user.Id));
+        db.SaveChanges();
+        return db;
+    }
+
+    private static AnalysisQuotaStatusDto ExhaustedStatus() => new()
+    {
+        Enabled = true, Limit = 3, Used = 3, Remaining = 0, WindowHours = 24, ResetsAt = DateTime.UtcNow.AddHours(5),
+    };
+
+    [Fact]
+    public async Task Should_Return429WithRetryAfter_When_AnalyzeV2QuotaExhausted()
+    {
+        var db = SeedVideo();
+        var quota = new Mock<IAnalysisQuotaService>();
+        quota.Setup(q => q.TryReserveAsync("test-user-id", 1, AnalysisKinds.V2, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new QuotaReservation(false, ExhaustedStatus()));
+        var controller = CreateController(db, quotaMock: quota);
+
+        var result = await controller.AnalyzeVideoV2Async(1);
+
+        var obj = Assert.IsAssignableFrom<ObjectResult>(result);
+        Assert.Equal(429, obj.StatusCode);
+        Assert.Contains("ANALYSIS_QUOTA_EXCEEDED", System.Text.Json.JsonSerializer.Serialize(obj.Value));
+        Assert.True(int.Parse(controller.Response.Headers.RetryAfter!) > 17000);
+    }
+
+    [Fact]
+    public async Task Should_Return409WithoutCharging_When_AnalyzeV2AlreadyRunning()
+    {
+        var db = SeedVideo();
+        var quota = new Mock<IAnalysisQuotaService>();
+        quota.Setup(q => q.IsAnalysisInProgressAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        var controller = CreateController(db, quotaMock: quota);
+
+        var result = await controller.AnalyzeVideoV2Async(1);
+
+        Assert.IsType<ConflictObjectResult>(result);
+        quota.Verify(q => q.TryReserveAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Should_Return429_When_LegacyAnalyzeQuotaExhausted()
+    {
+        var db = SeedVideo();
+        var quota = new Mock<IAnalysisQuotaService>();
+        quota.Setup(q => q.TryReserveAsync("test-user-id", 1, AnalysisKinds.V1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new QuotaReservation(false, ExhaustedStatus()));
+        var controller = CreateController(db, quotaMock: quota);
+
+        var result = await controller.AnalyzeVideoAsync(1);
+
+        Assert.Equal(429, Assert.IsAssignableFrom<ObjectResult>(result).StatusCode);
+    }
+
+    [Fact]
+    public async Task Should_ReturnCallersQuotaStatus()
+    {
+        var db = SeedVideo();
+        var quota = new Mock<IAnalysisQuotaService>();
+        quota.Setup(q => q.GetStatusAsync("test-user-id", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AnalysisQuotaStatusDto { Enabled = true, Limit = 3, Used = 1, Remaining = 2, WindowHours = 24 });
+        var controller = CreateController(db, quotaMock: quota);
+
+        var result = await controller.GetAnalysisQuotaAsync();
+
+        Assert.Equal(2, result.Value!.Remaining);
     }
 
     [Fact]

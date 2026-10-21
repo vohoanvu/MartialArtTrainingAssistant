@@ -10,6 +10,7 @@ using CodeJitsu.Tests.Helpers;
 using SharedEntities.Data;
 using VideoAnalysis.Server.Configuration;
 using VideoAnalysis.Server.Controllers;
+using VideoAnalysis.Server.Domain.AccessControl;
 using VideoAnalysis.Server.Domain.AIServices;
 using VideoAnalysis.Server.Models.Dtos;
 
@@ -29,7 +30,7 @@ public class AiConsoleControllerTests
     }
 
     private static (AiConsoleController controller, Mock<IAiModelConfigService> config, Mock<IVertexRestClient> vertex)
-        CreateController(MyDatabaseContext db, string userId, string adminEmails = AdminEmail)
+        CreateController(MyDatabaseContext db, string userId, string adminEmails = AdminEmail, Mock<IAnalysisQuotaService>? quota = null)
     {
         var config = new Mock<IAiModelConfigService>();
         var definitions = new List<AiFeatureDefinition>
@@ -46,8 +47,9 @@ public class AiConsoleControllerTests
             });
 
         var vertex = new Mock<IVertexRestClient>();
-        var controller = new AiConsoleController(config.Object, vertex.Object, db,
-            Options.Create(new AiConsoleOptions { AdminEmails = adminEmails }),
+        var controller = new AiConsoleController(config.Object, vertex.Object,
+            new AdminAccessService(db, Options.Create(new AiConsoleOptions { AdminEmails = adminEmails })),
+            (quota ?? new Mock<IAnalysisQuotaService>()).Object,
             new Mock<ILogger<AiConsoleController>>().Object)
         {
             ControllerContext = new ControllerContext
@@ -176,5 +178,39 @@ public class AiConsoleControllerTests
 
         Assert.False(result.Ok);
         Assert.Contains("404", result.Error);
+    }
+
+    // ── Analysis quota ───────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Should_Forbid_NonAdmin_OnQuotaEndpoints()
+    {
+        using var db = SeedUsers();
+        var quota = new Mock<IAnalysisQuotaService>();
+        var (controller, _, _) = CreateController(db, "user-id", quota: quota);
+        var settings = new AnalysisQuotaSettings { Enabled = true, MaxPerWindow = 5, WindowHours = 24 };
+
+        Assert.IsType<ForbidResult>((await controller.GetQuotaAsync(default)).Result);
+        Assert.IsType<ForbidResult>((await controller.UpdateQuotaAsync(settings, default)).Result);
+        Assert.IsType<ForbidResult>((await controller.ResetQuotaAsync(default)).Result);
+        quota.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Should_SaveQuota_AsAdmin_AndRejectInvalidValues()
+    {
+        using var db = SeedUsers();
+        var quota = new Mock<IAnalysisQuotaService>();
+        quota.Setup(q => q.SaveOverrideAsync(It.IsAny<AnalysisQuotaSettings>(), AdminEmail, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AnalysisQuotaConfigDto { IsOverridden = true, Defaults = new(), Effective = new() { Enabled = true, MaxPerWindow = 5, WindowHours = 24 } });
+        var (controller, _, _) = CreateController(db, "admin-id", quota: quota);
+
+        var invalid = await controller.UpdateQuotaAsync(new AnalysisQuotaSettings { Enabled = true, MaxPerWindow = 5, WindowHours = 0 }, default);
+        var problem = Assert.IsType<ValidationProblemDetails>(Assert.IsAssignableFrom<ObjectResult>(invalid.Result).Value);
+        Assert.Contains("windowHours", problem.Errors.Keys);
+
+        var saved = await controller.UpdateQuotaAsync(new AnalysisQuotaSettings { Enabled = true, MaxPerWindow = 5, WindowHours = 24 }, default);
+        Assert.Equal(5, saved.Value!.Effective.MaxPerWindow);
+        quota.Verify(q => q.SaveOverrideAsync(It.Is<AnalysisQuotaSettings>(x => x.MaxPerWindow == 5), AdminEmail, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

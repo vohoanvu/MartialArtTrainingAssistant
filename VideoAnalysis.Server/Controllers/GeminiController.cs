@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using SharedEntities.Data;
 using SharedEntities.Models;
 using VideoAnalysis.Server.Configuration;
+using VideoAnalysis.Server.Domain.AccessControl;
 using VideoAnalysis.Server.Domain.AIServices;
 using VideoAnalysis.Server.Domain.GeminiService;
 using VideoAnalysis.Server.Helpers;
@@ -48,8 +49,29 @@ namespace VideoAnalysis.Server.Controllers
             if (!await dbContext.Videos.AnyAsync(v => v.Id == videoId))
                 return BadRequest("Invalid VideoId.");
 
-            BackgroundJob.Enqueue<AgenticAnalysisBackgroundJobService>(
-                job => job.ProcessAgenticAnalysisAsync(videoId));
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            // Free-demo quota: refuse a duplicate run of the same tape (it would be charged twice), then
+            // charge this run. A failed run is refunded by the background job.
+            var quota = scope.ServiceProvider.GetRequiredService<IAnalysisQuotaService>();
+            if (await quota.IsAnalysisInProgressAsync(videoId))
+                return this.AnalysisInProgress();
+            var reservation = await quota.TryReserveAsync(userId, videoId, AnalysisKinds.V2);
+            if (!reservation.Allowed)
+                return this.AnalysisQuotaExceeded(reservation.Status);
+
+            try
+            {
+                BackgroundJob.Enqueue<AgenticAnalysisBackgroundJobService>(
+                    job => job.ProcessAgenticAnalysisAsync(videoId));
+            }
+            catch
+            {
+                await quota.RefundAsync(videoId, AnalysisKinds.V2);
+                throw;
+            }
 
             // Also produce a browser-playable (H.264/AAC) copy so HEVC tapes are viewable in-review.
             // Analysis ingests the original fine; this is purely for playback. Gated by config so it
@@ -71,6 +93,19 @@ namespace VideoAnalysis.Server.Controllers
             }
 
             return Accepted(new { Message = "Agentic video analysis is processing", VideoId = videoId });
+        }
+
+        /// <summary>The caller's free-demo analysis quota (drives the client's "N analyses left" indicator).</summary>
+        [HttpGet("analysis-quota")]
+        [Authorize]
+        public async Task<ActionResult<AnalysisQuotaStatusDto>> GetAnalysisQuotaAsync()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            using var scope = _serviceProvider.CreateScope();
+            return await scope.ServiceProvider.GetRequiredService<IAnalysisQuotaService>().GetStatusAsync(userId);
         }
 
         [HttpGet("{videoId}/analysis-v2")]
@@ -144,10 +179,27 @@ namespace VideoAnalysis.Server.Controllers
             if (!await dbContext.Videos.AnyAsync(v => v.Id == videoId))
                 return BadRequest("Invalid VideoId.");
 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            var quota = scope.ServiceProvider.GetRequiredService<IAnalysisQuotaService>();
+            var reservation = await quota.TryReserveAsync(userId, videoId, AnalysisKinds.V1);
+            if (!reservation.Allowed)
+                return this.AnalysisQuotaExceeded(reservation.Status);
+
             // Enqueue background job for video analysis; returns a jobId if needed.
-            BackgroundJob.Enqueue<VideoAnalysisBackgroundJobService>(
-                job => job.ProcessVideoAnalysisAsync(videoId)
-            );
+            try
+            {
+                BackgroundJob.Enqueue<VideoAnalysisBackgroundJobService>(
+                    job => job.ProcessVideoAnalysisAsync(videoId)
+                );
+            }
+            catch
+            {
+                await quota.RefundAsync(videoId, AnalysisKinds.V1);
+                throw;
+            }
 
             // Return 202 Accepted to indicate the analysis is processing
             return Accepted(new { Message = "Video analysis is processing", VideoId = videoId });

@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { analysisConnection } from '../services/SignalRService';
+import { AnalysisQuotaError, startVideoAnalysis } from '@/services/api';
+import { useAnalysisQuota } from '@/hooks/useAnalysisQuota';
 
 const V2_ENABLED = import.meta.env.VITE_ANALYSIS_V2_ENABLED !== 'false';
 
@@ -17,6 +19,7 @@ const VideoAnalysisManagement: React.FC = () => {
     const [analysisPhase, setAnalysisPhase] = useState<string | null>(null);
     const [shouldRefreshList, setShouldRefreshList] = useState(false);
     const { toast } = useToast();
+    const { quota, refresh: refreshQuota } = useAnalysisQuota();
 
     useEffect(() => {
         // The shared videoAnalysisHub connection is owned/started globally by NotificationsListener,
@@ -43,24 +46,20 @@ const VideoAnalysisManagement: React.FC = () => {
     const handleUploadSuccess = async (response: VideoUploadResponse) => {
         try {
             setIsAnalyzing(true);
-            const analyzePath = V2_ENABLED ? 'analyze-v2' : 'analyze';
-            const res = await fetch(`/vid/api/video/${analyzePath}/${response.videoId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
-                },
+            const outcome = await startVideoAnalysis({
+                videoId: response.videoId as number,
+                jwtToken: accessToken,
+                v2: V2_ENABLED,
+                hydrate,
             });
 
-            if (res.status === 202) {
+            if (outcome === 'accepted') {
                 // API accepted the request for background processing.
                 toast({
                     title: "Analysis Started",
                     description: "Your video is being analyzed. This may take a few minutes...",
                     variant: "default",
                 });
-            } else if (!res.ok) {
-                throw new Error('Analysis failed');
             } else {
                 toast({
                     title: "Unexpected Response",
@@ -70,14 +69,31 @@ const VideoAnalysisManagement: React.FC = () => {
             }
             setShouldRefreshList(true);
         } catch (error) {
-            console.error('Analysis failed:', error);
-            toast({
-                title: "Analysis Failed",
-                description: "There was an error analyzing your video. Please try again.",
-                variant: "destructive",
-            });
+            if (error instanceof AnalysisQuotaError) {
+                // 429: out of free analyses (the upload itself is kept and can be analyzed later).
+                // 409: this video's pipeline is already running; nothing was charged.
+                toast({
+                    title: error.isInProgress
+                        ? t('analysisQuota.toast.inProgressTitle')
+                        : t('analysisQuota.toast.quotaTitle'),
+                    description: error.message || (error.isInProgress
+                        ? t('analysisQuota.toast.inProgressFallback')
+                        : t('analysisQuota.toast.quotaFallback')),
+                    variant: error.isInProgress ? "default" : "destructive",
+                });
+                setShouldRefreshList(true);
+            } else {
+                console.error('Analysis failed:', error);
+                toast({
+                    title: "Analysis Failed",
+                    description: "There was an error analyzing your video. Please try again.",
+                    variant: "destructive",
+                });
+            }
         } finally {
             setIsAnalyzing(false);
+            // A started analysis consumes a use and a 429 means our view was stale.
+            void refreshQuota();
         }
     };
 
@@ -94,6 +110,8 @@ const VideoAnalysisManagement: React.FC = () => {
                                 isUploading={isUploading}
                                 setIsUploading={setIsUploading}
                                 onUploadSuccess={handleUploadSuccess}
+                                quota={quota}
+                                onQuotaRejected={refreshQuota}
                             />
                         </div>
                         {(isAnalyzing || analysisPhase) && (

@@ -19,7 +19,7 @@ describe('LandingPage', () => {
   it('renders the hero with the demo framing', () => {
     renderLandingPage();
     expect(screen.getByRole('heading', { level: 1, name: /AI that reads a BJJ sparring tape/i })).toBeInTheDocument();
-    expect(screen.getByText(/Demo project · Internal R&D tool/i)).toBeInTheDocument();
+    expect(screen.getByText(/Free demo by TKNQ · Internal R&D tool/i)).toBeInTheDocument();
   });
 
   it('uses the self-hosted demo video as the hero media', () => {
@@ -33,7 +33,7 @@ describe('LandingPage', () => {
   it('states clearly that this is not a commercial product', () => {
     renderLandingPage();
     expect(screen.getByText(/A demo, not a commercial product/i)).toBeInTheDocument();
-    expect(screen.getByText(/Not for sale/i)).toBeInTheDocument();
+    expect(screen.getByText(/Free, not for sale/i)).toBeInTheDocument();
     expect(screen.getByText(/Used internally for R&D/i)).toBeInTheDocument();
     expect(screen.getByText(/It is not a commercial product\./i)).toBeInTheDocument();
   });
@@ -50,8 +50,30 @@ describe('LandingPage', () => {
     renderLandingPage();
     expect(screen.getByText(/internal R&D project by TKNQ \(pronounced “Technique”\)/i)).toBeInTheDocument();
     const link = screen.getByRole('link', { name: /Visit TKNQ/i });
-    expect(link).toHaveAttribute('href', 'https://tknq.io/');
+    expect(link.getAttribute('href')).toMatch(/^https:\/\/tknq\.io\/\?/);
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('funnels visitors to TKNQ with UTM-tagged links from every placement', () => {
+    renderLandingPage();
+    expect(screen.getByRole('heading', { level: 2, name: /Run your gym on TKNQ/i })).toBeInTheDocument();
+    for (const title of ['Billing', 'Attendance', 'Class management', 'Leaderboards']) {
+      expect(screen.getByRole('heading', { level: 3, name: title })).toBeInTheDocument();
+    }
+
+    const placements = {
+      hero: /Run a gym\? Meet TKNQ/i,
+      spotlight: /Explore TKNQ/i,
+      closing: /See what TKNQ can do for your gym/i,
+      footer: /Visit TKNQ/i,
+    };
+    for (const [placement, name] of Object.entries(placements)) {
+      const url = new URL(screen.getByRole('link', { name }).getAttribute('href')!);
+      expect(url.origin).toBe('https://tknq.io');
+      expect(url.searchParams.get('utm_source')).toBe('codejitsu');
+      expect(url.searchParams.get('utm_medium')).toBe('referral');
+      expect(url.searchParams.get('utm_content')).toBe(placement);
+    }
   });
 
   it('links the demo CTA to sign-in', () => {

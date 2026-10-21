@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FeatureConfigCard } from '@/components/AiConsole/FeatureConfigCard';
+import { QuotaConfigCard } from '@/components/AiConsole/QuotaConfigCard';
 import { AiConsoleOverview, AiFeatureConfig } from '@/components/AiConsole/types';
 import { AiConsoleApiError, getAiConsoleOverview } from '@/services/api';
 import useAuthStore from '@/store/authStore';
@@ -113,6 +114,7 @@ const AiConsole: React.FC = () => {
 
             {state.status === 'ready' && (
                 <div className="space-y-6">
+                    <QuotaConfigCard jwtToken={accessToken} hydrate={hydrate} />
                     {state.overview.features.length === 0 && (
                         <p className="text-sm text-slate-zen400">{t('aiConsole.empty')}</p>
                     )}

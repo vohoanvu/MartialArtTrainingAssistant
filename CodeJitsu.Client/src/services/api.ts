@@ -27,6 +27,102 @@ import {
 import axios from 'axios';
 import useAuthStore from '@/store/authStore';
 import type { AiConsoleOverview, AiFeatureConfig, AiFeatureSettings, AiModelTestResult } from '@/components/AiConsole/types';
+import type { AnalysisQuotaConfig, AnalysisQuotaSettings, AnalysisQuotaStatus } from '@/types/analysisQuota';
+
+// ---------------------------------------------------------------------------
+// Demo analysis quota errors (HTTP 429 / 409 from the video analysis endpoints)
+// ---------------------------------------------------------------------------
+
+export const ANALYSIS_QUOTA_EXCEEDED = 'ANALYSIS_QUOTA_EXCEEDED';
+export const ANALYSIS_IN_PROGRESS = 'ANALYSIS_IN_PROGRESS';
+
+/**
+ * Thrown by the upload / analyze helpers when the server rejects the request because the user has
+ * no analyses left (429, code ANALYSIS_QUOTA_EXCEEDED) or the video is already being analyzed
+ * (409, code ANALYSIS_IN_PROGRESS). `message` is the server's own user-facing text when provided.
+ */
+export class AnalysisQuotaError extends Error {
+    status: number;
+    code: string;
+    limit: number | null;
+    used: number | null;
+    windowHours: number | null;
+    resetsAt: string | null;
+    retryAfterSeconds: number | null;
+
+    constructor(
+        status: number,
+        code: string,
+        message: string,
+        extra: {
+            limit?: number | null;
+            used?: number | null;
+            windowHours?: number | null;
+            resetsAt?: string | null;
+            retryAfterSeconds?: number | null;
+        } = {}
+    ) {
+        super(message);
+        this.name = 'AnalysisQuotaError';
+        this.status = status;
+        this.code = code;
+        this.limit = extra.limit ?? null;
+        this.used = extra.used ?? null;
+        this.windowHours = extra.windowHours ?? null;
+        this.resetsAt = extra.resetsAt ?? null;
+        this.retryAfterSeconds = extra.retryAfterSeconds ?? null;
+    }
+
+    get isQuotaExceeded(): boolean {
+        return this.code === ANALYSIS_QUOTA_EXCEEDED;
+    }
+
+    get isInProgress(): boolean {
+        return this.code === ANALYSIS_IN_PROGRESS;
+    }
+}
+
+/**
+ * Builds an AnalysisQuotaError from a failed response, or returns null when the response is not a
+ * quota rejection (so callers keep their existing handling; e.g. upload-sparring's 409 = duplicate).
+ * A 429 is always a quota rejection (message falls back to empty so the UI can use its i18n text).
+ */
+export function toAnalysisQuotaError(
+    status: number,
+    body: unknown,
+    retryAfterHeader?: string | null
+): AnalysisQuotaError | null {
+    const payload = (body && typeof body === 'object' ? body : {}) as Record<string, unknown>;
+    const code = typeof payload.code === 'string' ? payload.code : '';
+    const isQuota = status === 429 || code === ANALYSIS_QUOTA_EXCEEDED;
+    const isInProgress = status === 409 && code === ANALYSIS_IN_PROGRESS;
+    if (!isQuota && !isInProgress) return null;
+
+    const retryAfter = retryAfterHeader ? Number(retryAfterHeader) : NaN;
+    return new AnalysisQuotaError(
+        status,
+        code || (isQuota ? ANALYSIS_QUOTA_EXCEEDED : ANALYSIS_IN_PROGRESS),
+        typeof payload.message === 'string' ? payload.message : '',
+        {
+            limit: typeof payload.limit === 'number' ? payload.limit : null,
+            used: typeof payload.used === 'number' ? payload.used : null,
+            windowHours: typeof payload.windowHours === 'number' ? payload.windowHours : null,
+            resetsAt: typeof payload.resetsAt === 'string' ? payload.resetsAt : null,
+            retryAfterSeconds: Number.isFinite(retryAfter) ? retryAfter : null,
+        }
+    );
+}
+
+async function quotaErrorFromResponse(response: Response): Promise<AnalysisQuotaError | null> {
+    if (response.status !== 429 && response.status !== 409) return null;
+    let body: unknown = null;
+    try {
+        body = JSON.parse(await response.text());
+    } catch {
+        // non-JSON body
+    }
+    return toAnalysisQuotaError(response.status, body, response.headers.get('Retry-After'));
+}
 
 type Path = keyof paths;
 type PathMethod<T extends Path> = keyof paths[T];
@@ -419,6 +515,9 @@ export async function requestVideoUploadUrl({
         await hydrate();
         return await requestVideoUploadUrl({ file, description, studentIdentifier, martialArt, jwtToken, hydrate, currentTry: 1 });
     }
+    // 429 = demo quota used up. Thrown BEFORE any bytes are sent to GCS.
+    const quotaError = await quotaErrorFromResponse(response);
+    if (quotaError) throw quotaError;
     throw new Error(`Failed to get upload URL: ${response.status} ${response.statusText}`);
 }
 
@@ -504,6 +603,15 @@ export async function uploadVideoFile({
                 hydrate,
                 onProgress,
             });
+        }
+
+        if (error.response?.status === 429) {
+            const quotaError = toAnalysisQuotaError(
+                429,
+                error.response.data,
+                error.response.headers?.['retry-after']
+            );
+            if (quotaError) throw quotaError;
         }
 
         // Throw a more informative error
@@ -1098,3 +1206,74 @@ export const testAiFeatureConfig = (
     aiConsoleRequest<AiModelTestResult>(`/features/${encodeURIComponent(key)}/test`, {
         method: 'POST', body: settings, jwtToken, hydrate,
     });
+
+// ---------------------------------------------------------------------------
+// Demo analysis quota - /vid/api/video/analysis-quota, starting an analysis, AI Console settings
+// ---------------------------------------------------------------------------
+
+/** Current user's free-analysis quota. Throws on any non-2xx (callers treat that as "unknown"). */
+export async function getAnalysisQuota(
+    { jwtToken, hydrate, currentTry = 0 }:
+    { jwtToken: string | null; hydrate?: () => Promise<void> | void; currentTry?: number }
+): Promise<AnalysisQuotaStatus> {
+    const response = await fetch('/vid/api/video/analysis-quota', {
+        headers: { 'Authorization': `Bearer ${jwtToken}` },
+    });
+    if (response.ok) return await response.json() as AnalysisQuotaStatus;
+    if (response.status === 401 && currentTry === 0 && hydrate) {
+        await hydrate();
+        return getAnalysisQuota({
+            jwtToken: useAuthStore.getState().accessToken ?? jwtToken,
+            hydrate,
+            currentTry: 1,
+        });
+    }
+    throw new Error(`Failed to load analysis quota: ${response.status} ${response.statusText}`);
+}
+
+/**
+ * Starts the (background) analysis of an uploaded video; this is where a quota use is reserved.
+ * Resolves 'accepted' on 202 and 'unexpected' on any other 2xx. Throws AnalysisQuotaError for
+ * 429 (quota used up) and 409 ANALYSIS_IN_PROGRESS, and a plain Error otherwise.
+ */
+export async function startVideoAnalysis(
+    { videoId, jwtToken, v2 = true, hydrate, currentTry = 0 }:
+    { videoId: number; jwtToken: string | null; v2?: boolean; hydrate?: () => Promise<void> | void; currentTry?: number }
+): Promise<'accepted' | 'unexpected'> {
+    const analyzePath = v2 ? 'analyze-v2' : 'analyze';
+    const response = await fetch(`/vid/api/video/${analyzePath}/${videoId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`,
+        },
+    });
+    if (response.status === 202) return 'accepted';
+    if (response.ok) return 'unexpected';
+    if (response.status === 401 && currentTry === 0 && hydrate) {
+        await hydrate();
+        return startVideoAnalysis({
+            videoId,
+            v2,
+            hydrate,
+            jwtToken: useAuthStore.getState().accessToken ?? jwtToken,
+            currentTry: 1,
+        });
+    }
+    const quotaError = await quotaErrorFromResponse(response);
+    if (quotaError) throw quotaError;
+    throw new Error(`Analysis failed: ${response.status} ${response.statusText}`);
+}
+
+type AiConsoleAuth = { jwtToken: string | null; hydrate?: () => Promise<void> | void };
+
+export const getAnalysisQuotaConfig = ({ jwtToken, hydrate }: AiConsoleAuth): Promise<AnalysisQuotaConfig> =>
+    aiConsoleRequest<AnalysisQuotaConfig>('/quota', { jwtToken, hydrate });
+
+export const updateAnalysisQuotaConfig = (
+    { settings, jwtToken, hydrate }: AiConsoleAuth & { settings: AnalysisQuotaSettings }
+): Promise<AnalysisQuotaConfig> =>
+    aiConsoleRequest<AnalysisQuotaConfig>('/quota', { method: 'PUT', body: settings, jwtToken, hydrate });
+
+export const resetAnalysisQuotaConfig = ({ jwtToken, hydrate }: AiConsoleAuth): Promise<AnalysisQuotaConfig> =>
+    aiConsoleRequest<AnalysisQuotaConfig>('/quota', { method: 'DELETE', jwtToken, hydrate });

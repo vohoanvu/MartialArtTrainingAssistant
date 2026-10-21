@@ -250,6 +250,34 @@
         "modelVersion": "Wersja modelu: {{version}}",
         "unknownError": "Model nie zwrócił odpowiedzi."
       },
+      "quota": {
+        "title": "Limit analiz demo",
+        "description": "Ogranicz, ile analiz wideo każde konto może rozpocząć w ruchomym oknie czasowym. Nieudane analizy są zwracane automatycznie, a administratorzy Konsoli AI są zwolnieni z limitu. Zmiany obowiązują od następnego żądania.",
+        "loading": "Wczytywanie ustawień limitu…",
+        "loadError": "Nie udało się wczytać ustawień limitu.",
+        "enabled": "Egzekwuj limit",
+        "maxPerWindow": "Analiz w oknie (0–1000)",
+        "maxPerWindowHint": "0 wyłącza analizę wideo dla wszystkich poza administratorami.",
+        "windowHours": "Okno w godzinach (1–720)",
+        "windowHoursHint": "Każde użycie zwalnia się tyle godzin po rozpoczęciu.",
+        "defaultsLine": "Domyślnie na serwerze: {{max}} na {{hours}} godz., limit {{state}}",
+        "stateOn": "włączony",
+        "stateOff": "wyłączony",
+        "confirmReset": {
+          "title": "Przywrócić domyślny limit?",
+          "body": "Spowoduje to usunięcie zapisanego nadpisania i powrót limitu analiz demo do ustawień domyślnych serwera."
+        },
+        "toast": {
+          "savedTitle": "Limit zapisany",
+          "savedBody": "Nowy limit obowiązuje od następnej analizy.",
+          "resetTitle": "Przywrócono domyślny limit",
+          "resetBody": "Limit analiz demo wrócił do ustawień domyślnych serwera."
+        },
+        "validation": {
+          "maxPerWindow": "Podaj liczbę całkowitą od 0 do 1000.",
+          "windowHours": "Podaj liczbę całkowitą od 1 do 720."
+        }
+      },
       "toast": {
         "savedTitle": "Ustawienia zapisane",
         "savedBody": "„{{feature}}” używa teraz nowej konfiguracji.",
@@ -267,6 +295,22 @@
         "maxOutputTokens": "Podaj liczbę całkowitą od 1 do 65536.",
         "fps": "Podaj liczbę całkowitą od 0 do 10.",
         "maxResults": "Podaj liczbę całkowitą od 1 do 20."
+      }
+    },
+    "analysisQuota": {
+      "unlimited": "Nielimitowane analizy (administrator)",
+      "window": "w ciągu {{count}} godz.",
+      "remaining": "Pozostało {{remaining}} z {{limit}} darmowych analiz {{window}}",
+      "nextFreesUp": "kolejna zwolni się o {{time}}",
+      "exhaustedTitle": "Brak darmowych analiz.",
+      "exhaustedBody": "Wykorzystano wszystkie darmowe analizy ({{limit}}, {{window}}). Kolejna zwolni się o {{time}}, więc przesyłanie jest wstrzymane do tego czasu.",
+      "exhaustedBodyNoTime": "Wykorzystano wszystkie darmowe analizy ({{limit}}, {{window}}). Przesyłanie jest wstrzymane do czasu zwolnienia miejsca.",
+      "disabledBody": "Analiza wideo jest obecnie wyłączona dla kont demo.",
+      "toast": {
+        "quotaTitle": "Osiągnięto limit darmowych analiz",
+        "quotaFallback": "Wykorzystano wszystkie darmowe analizy. Spróbuj ponownie później.",
+        "inProgressTitle": "Analiza już trwa",
+        "inProgressFallback": "To wideo jest już analizowane. Wyniki pojawią się po zakończeniu."
       }
     },
     "liveSearch": {
@@ -288,23 +332,24 @@
     },
     "landing": {
       "hero": {
-        "eyebrow": "Projekt demonstracyjny · Wewnętrzne narzędzie R&D",
+        "eyebrow": "Darmowe demo od TKNQ · Wewnętrzne narzędzie R&D",
         "title": "AI, które czyta nagranie sparingu BJJ",
-        "subtitle": "CodeJitsu to działające demo, a nie produkt na sprzedaż. Prześlij nagranie rolowania, a Gemini rozłoży je na oś czasu walki ze znacznikami czasu, ocenę techniczną i ćwiczenia, które naprawią to, co poszło nie tak. W TKNQ służy też jako wewnętrzny poligon R&D dla multimodalnej AI.",
+        "subtitle": "CodeJitsu to darmowe, działające demo od TKNQ, kompleksowego oprogramowania dla klubów i akademii BJJ. Prześlij nagranie rolowania, a Gemini rozłoży je na oś czasu walki ze znacznikami czasu, ocenę techniczną i ćwiczenia, które naprawią to, co poszło nie tak.",
         "cta": "Wypróbuj demo",
         "videoTitle": "Film demonstracyjny CodeJitsu",
-        "videoFallback": "Twoja przeglądarka nie może odtworzyć tego filmu."
+        "videoFallback": "Twoja przeglądarka nie może odtworzyć tego filmu.",
+        "secondaryCta": "Prowadzisz klub? Poznaj TKNQ"
       },
       "status": {
         "eyebrow": "Zanim przejdziesz dalej",
         "title": "Demo, a nie produkt komercyjny",
         "notForSale": {
-          "title": "Nie na sprzedaż",
-          "body": "Nie ma planów, subskrypcji ani płacących klientów. Nic tutaj nie jest sprzedawane i nic nie jest przygotowywane do sprzedaży."
+          "title": "Darmowe, nie na sprzedaż",
+          "body": "Nie ma tu planów ani subskrypcji. Każde konto otrzymuje niewielką pulę darmowych analiz wideo, która odnawia się w ruchomym oknie 24 godzin."
         },
         "internal": {
           "title": "Używane wewnętrznie do R&D",
-          "body": "Zespół TKNQ używa CodeJitsu do testowania nowych modeli, promptów i potoków agentowych na prawdziwych nagraniach sparingów, a zdobytą wiedzę wykorzystuje w innych projektach."
+          "body": "Zespół TKNQ używa CodeJitsu do testowania nowych modeli, promptów i potoków agentowych na prawdziwych nagraniach sparingów. To, czego się tu uczymy, kształtuje oprogramowanie, które tworzymy dla klubów."
         },
         "asIs": {
           "title": "Udostępniane w stanie „tak jak jest”",
@@ -336,6 +381,37 @@
           "b3": "Artykuły i materiały obok filmów"
         }
       },
+      "tknq": {
+        "eyebrow": "Od zespołu, który stworzył CodeJitsu",
+        "title": "Prowadź swój klub z TKNQ",
+        "description": "TKNQ (wymawiane „Technique”) to kompleksowe oprogramowanie do zarządzania klubami i akademiami BJJ w Australii, dostępne w przeglądarce i na urządzeniach mobilnych. Zdejmuje z Ciebie administrację, żebyś mógł spędzać czas na macie, dłużej utrzymywać członków klubu i rozwijać społeczność BJJ.",
+        "billing": {
+          "title": "Rozliczenia",
+          "body": "Karnety i płatności w jednym miejscu, z mniejszą liczbą przypomnień."
+        },
+        "attendance": {
+          "title": "Obecność",
+          "body": "Zobacz, kto trenuje co tydzień, a kto po cichu przestał przychodzić."
+        },
+        "classes": {
+          "title": "Zarządzanie zajęciami",
+          "body": "Grafik, zajęcia i trenerzy uporządkowani w jednym miejscu."
+        },
+        "leaderboard": {
+          "title": "Rankingi",
+          "body": "Śledź postępy i zamień regularność w przyjazną rywalizację."
+        },
+        "apps": {
+          "title": "Aplikacje webowe i mobilne",
+          "body": "Zarządzaj akademią z recepcji albo z brzegu maty."
+        },
+        "retention": {
+          "title": "Stworzone z myślą o retencji",
+          "body": "Wszystko w TKNQ ma pomagać członkom zostać, robić postępy i przyprowadzać znajomych."
+        },
+        "cta": "Poznaj TKNQ",
+        "note": "Stworzone dla klubów i akademii BJJ w całej Australii."
+      },
       "rnd": {
         "eyebrow": "Dlaczego istnieje",
         "title": "Poligon R&D, którego naprawdę używamy",
@@ -349,7 +425,9 @@
       "cta": {
         "title": "Przekonaj się sam",
         "body": "Zaloguj się, aby przesłać nagranie lub utworzyć zajęcia demonstracyjne. Nie przesyłaj nagrań, które muszą pozostać prywatne.",
-        "button": "Otwórz demo"
+        "button": "Otwórz demo",
+        "tknqPrompt": "Prowadzisz akademię BJJ?",
+        "tknqButton": "Zobacz, co TKNQ może zrobić dla Twojego klubu"
       },
       "footer": {
         "line": "CodeJitsu to projekt demonstracyjny i wewnętrzny projekt R&D firmy TKNQ (wymawiane „Technique”). Nie jest produktem komercyjnym.",

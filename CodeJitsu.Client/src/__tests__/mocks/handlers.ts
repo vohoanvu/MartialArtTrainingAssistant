@@ -1,6 +1,6 @@
 ﻿import { http, HttpResponse } from 'msw';
 import type { AiFeatureSettings } from '@/components/AiConsole/types';
-import { mockOverview, mockTestResult } from './aiConsoleData';
+import { mockOverview, mockQuotaConfig, mockQuotaStatus, mockTestResult } from './aiConsoleData';
 
 // ---------------------------------------------------------------------------
 // Shared mock data
@@ -238,6 +238,22 @@ export const handlers = [
     return HttpResponse.json(mockUploadedVideos);
   }),
 
+  // VideoAnalysis: GET free demo analysis quota (must precede the generic /video/:videoId route)
+  http.get('/vid/api/video/analysis-quota', () => HttpResponse.json(mockQuotaStatus())),
+
+  // VideoAnalysis: POST request a direct-to-GCS signed upload URL (quota pre-check lives here)
+  http.post('/vid/api/video/upload-url', () =>
+    HttpResponse.json({
+      videoId: 10,
+      uploadUrl: 'https://storage.example.com/upload/10',
+      gcsPath: 'videos/10.mp4',
+    })
+  ),
+
+  // VideoAnalysis: POST start analysis (reserves a quota use)
+  http.post('/vid/api/video/analyze-v2/:videoId', () => new HttpResponse(null, { status: 202 })),
+  http.post('/vid/api/video/analyze/:videoId', () => new HttpResponse(null, { status: 202 })),
+
   // VideoAnalysis: GET uploaded video by ID
   http.get('/vid/api/video/:videoId', ({ params }) => {
     const { videoId } = params;
@@ -353,5 +369,21 @@ export const handlers = [
   }),
 
   http.post('/vid/api/ai-console/features/:key/test', () => HttpResponse.json(mockTestResult)),
+
+  http.get('/vid/api/ai-console/quota', () => HttpResponse.json(mockQuotaConfig())),
+
+  http.put('/vid/api/ai-console/quota', async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json(
+      mockQuotaConfig({
+        isOverridden: true,
+        updatedAt: '2026-10-21T08:30:00Z',
+        updatedBy: 'admin@example.com',
+        effective: body as never,
+      })
+    );
+  }),
+
+  http.delete('/vid/api/ai-console/quota', () => HttpResponse.json(mockQuotaConfig())),
 ];
 

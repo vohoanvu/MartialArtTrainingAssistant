@@ -6,6 +6,7 @@ import type {
     AiModelTestResult,
     AiPhaseSettings,
 } from '@/components/AiConsole/types';
+import type { AnalysisQuotaConfig, AnalysisQuotaStatus } from '@/types/analysisQuota';
 
 export const mockModels: AiModelInfo[] = [
     {
@@ -138,3 +139,25 @@ export const mockTestResult: AiModelTestResult = {
     sample: 'pong',
     error: null,
 };
+
+/** Default user-facing quota status: enabled, 3 per 24h, 1 used (2 left). */
+export const mockQuotaStatus = (overrides: Partial<AnalysisQuotaStatus> = {}): AnalysisQuotaStatus => ({
+    enabled: true,
+    exempt: false,
+    limit: 3,
+    used: 1,
+    remaining: 2,
+    windowHours: 24,
+    resetsAt: '2099-01-01T18:40:00Z',
+    ...overrides,
+});
+
+/** Default AI Console quota config: not overridden, 3 per 24h. */
+export const mockQuotaConfig = (overrides: Partial<AnalysisQuotaConfig> = {}): AnalysisQuotaConfig => ({
+    isOverridden: false,
+    updatedAt: null,
+    updatedBy: null,
+    defaults: { enabled: true, maxPerWindow: 3, windowHours: 24 },
+    effective: { enabled: true, maxPerWindow: 3, windowHours: 24 },
+    ...overrides,
+});

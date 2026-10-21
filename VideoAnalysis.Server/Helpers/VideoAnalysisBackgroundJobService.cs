@@ -5,6 +5,8 @@ using System.Text.Json;
 using SharedEntities.Models;
 using Microsoft.AspNetCore.SignalR;
 using VideoAnalysis.Server.Domain.YoutubeSharingService;
+using VideoAnalysis.Server.Domain.AccessControl;
+using Hangfire;
 
 namespace VideoAnalysis.Server.Helpers
 {
@@ -16,22 +18,27 @@ namespace VideoAnalysis.Server.Helpers
         private readonly ILogger<VideoAnalysisBackgroundJobService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IHubContext<VideoAnalysisHub> _hubContext;
+        private readonly IAnalysisQuotaService _quota;
 
         public VideoAnalysisBackgroundJobService(
             MyDatabaseContext context,
             IGeminiVisionService geminiService,
             ILogger<VideoAnalysisBackgroundJobService> logger,
             IServiceProvider serviceProvider,
-            IHubContext<VideoAnalysisHub> hubContext)
+            IHubContext<VideoAnalysisHub> hubContext,
+            IAnalysisQuotaService quota)
         {
             _context = context;
             _geminiService = geminiService;
             _logger = logger;
             _serviceProvider = serviceProvider;
             _hubContext = hubContext;
+            _quota = quota;
         }
 
         /// <inheritdoc/>
+        // Attempts = 0: each Hangfire retry would re-bill a full video analysis; a failure is final and refunded.
+        [AutomaticRetry(Attempts = 0)]
         public async Task ProcessVideoAnalysisAsync(int videoId)
         {
             var uploadedVideo = await _context.Videos.FindAsync(videoId);
@@ -105,6 +112,8 @@ namespace VideoAnalysis.Server.Helpers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error analyzing video with path {Path}", uploadedVideo!.FilePath);
+                try { await _quota.RefundAsync(videoId, AnalysisKinds.V1); }
+                catch (Exception refundEx) { _logger.LogError(refundEx, "Quota refund failed for video {VideoId}.", videoId); }
                 throw new InvalidOperationException("Error analyzing video.", ex);
             }
         }

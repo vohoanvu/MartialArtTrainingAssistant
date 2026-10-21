@@ -250,6 +250,34 @@
         "modelVersion": "Model version: {{version}}",
         "unknownError": "The model did not return a response."
       },
+      "quota": {
+        "title": "Demo analysis quota",
+        "description": "Limit how many video analyses each account can start per rolling window. Failed analyses are refunded automatically and AI Console admins are exempt. Changes apply to the next request.",
+        "loading": "Loading quota settings…",
+        "loadError": "Could not load the quota settings.",
+        "enabled": "Enforce the limit",
+        "maxPerWindow": "Analyses per window (0–1000)",
+        "maxPerWindowHint": "0 turns video analysis off for everyone except admins.",
+        "windowHours": "Window in hours (1–720)",
+        "windowHoursHint": "Each use frees up this many hours after it was started.",
+        "defaultsLine": "Server default: {{max}} per {{hours}} h, limit {{state}}",
+        "stateOn": "on",
+        "stateOff": "off",
+        "confirmReset": {
+          "title": "Reset the quota to defaults?",
+          "body": "This removes the saved override and returns the demo analysis quota to the server defaults."
+        },
+        "toast": {
+          "savedTitle": "Quota saved",
+          "savedBody": "The new limit applies to the next analysis.",
+          "resetTitle": "Quota reset to defaults",
+          "resetBody": "The demo analysis quota is back to the server defaults."
+        },
+        "validation": {
+          "maxPerWindow": "Enter a whole number from 0 to 1000.",
+          "windowHours": "Enter a whole number from 1 to 720."
+        }
+      },
       "toast": {
         "savedTitle": "Settings saved",
         "savedBody": "\"{{feature}}\" now uses the new configuration.",
@@ -267,6 +295,23 @@
         "maxOutputTokens": "Enter a whole number from 1 to 65536.",
         "fps": "Enter a whole number from 0 to 10.",
         "maxResults": "Enter a whole number from 1 to 20."
+      }
+    },
+    "analysisQuota": {
+      "unlimited": "Unlimited analyses (admin)",
+      "window_one": "per hour",
+      "window_other": "per {{count}} hours",
+      "remaining": "{{remaining}} of {{limit}} free analyses left {{window}}",
+      "nextFreesUp": "next one frees up at {{time}}",
+      "exhaustedTitle": "No free analyses left.",
+      "exhaustedBody": "You've used all {{limit}} free analyses ({{window}}). Your next one frees up at {{time}}, so uploads are paused until then.",
+      "exhaustedBodyNoTime": "You've used all {{limit}} free analyses ({{window}}). Uploads are paused until a slot frees up.",
+      "disabledBody": "Video analysis is turned off for demo accounts right now.",
+      "toast": {
+        "quotaTitle": "Free analysis limit reached",
+        "quotaFallback": "You've used all your free analyses for now. Please try again later.",
+        "inProgressTitle": "Analysis already running",
+        "inProgressFallback": "This video is already being analyzed. The results will appear when it's done."
       }
     },
     "liveSearch": {
@@ -288,23 +333,24 @@
     },
     "landing": {
       "hero": {
-        "eyebrow": "Demo project · Internal R&D tool",
+        "eyebrow": "Free demo by TKNQ · Internal R&D tool",
         "title": "AI that reads a BJJ sparring tape",
-        "subtitle": "CodeJitsu is a working demo, not a product for sale. Upload a roll and Gemini breaks it down into a timestamped match timeline, a technical grade and the drills to fix what went wrong. At TKNQ, it doubles as an internal R&D testbed for multimodal AI.",
+        "subtitle": "CodeJitsu is a free working demo from TKNQ, the all-in-one software for BJJ gyms and academies. Upload a roll and Gemini breaks it down into a timestamped match timeline, a technical grade and the drills to fix what went wrong.",
         "cta": "Try the demo",
         "videoTitle": "CodeJitsu demo video",
-        "videoFallback": "Your browser can't play this video."
+        "videoFallback": "Your browser can't play this video.",
+        "secondaryCta": "Run a gym? Meet TKNQ"
       },
       "status": {
         "eyebrow": "Before you go further",
         "title": "A demo, not a commercial product",
         "notForSale": {
-          "title": "Not for sale",
-          "body": "There are no plans, subscriptions or paying customers. Nothing here is sold, and nothing is being prepared for sale."
+          "title": "Free, not for sale",
+          "body": "There are no plans or subscriptions here. Every account gets a small allowance of free video analyses that refills over a rolling 24 hours."
         },
         "internal": {
           "title": "Used internally for R&D",
-          "body": "The TKNQ team uses CodeJitsu to try new models, prompts and agent pipelines against real sparring footage, and carries what we learn into other work."
+          "body": "The TKNQ team uses CodeJitsu to try new models, prompts and agent pipelines against real sparring footage. What we learn here shapes the software we build for gyms."
         },
         "asIs": {
           "title": "Provided as-is",
@@ -336,6 +382,37 @@
           "b3": "Articles and resources alongside videos"
         }
       },
+      "tknq": {
+        "eyebrow": "From the team behind CodeJitsu",
+        "title": "Run your gym on TKNQ",
+        "description": "TKNQ (pronounced “Technique”) is all-in-one business software for BJJ gyms and academies in Australia, on the web and on mobile. It takes the admin off your plate so you can spend your time on the mats, keep your members training longer and grow the BJJ community.",
+        "billing": {
+          "title": "Billing",
+          "body": "Memberships and payments handled in one place, with less chasing."
+        },
+        "attendance": {
+          "title": "Attendance",
+          "body": "See who is training every week, and who has quietly stopped turning up."
+        },
+        "classes": {
+          "title": "Class management",
+          "body": "Keep your timetable, classes and coaches organised."
+        },
+        "leaderboard": {
+          "title": "Leaderboards",
+          "body": "Track progress and turn showing up into friendly competition."
+        },
+        "apps": {
+          "title": "Web and mobile apps",
+          "body": "Run your academy from the front desk or from the side of the mat."
+        },
+        "retention": {
+          "title": "Built for retention",
+          "body": "Everything in TKNQ is there to help members stay, progress and bring their friends."
+        },
+        "cta": "Explore TKNQ",
+        "note": "Made for BJJ gyms and academies across Australia."
+      },
       "rnd": {
         "eyebrow": "Why it exists",
         "title": "An R&D testbed we actually use",
@@ -349,7 +426,9 @@
       "cta": {
         "title": "See it for yourself",
         "body": "Sign in to upload a tape or set up a demo class. Please don't upload footage you need to keep private.",
-        "button": "Open the demo"
+        "button": "Open the demo",
+        "tknqPrompt": "Own or run a BJJ academy?",
+        "tknqButton": "See what TKNQ can do for your gym"
       },
       "footer": {
         "line": "CodeJitsu is a demo and internal R&D project by TKNQ (pronounced “Technique”). It is not a commercial product.",

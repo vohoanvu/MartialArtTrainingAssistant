@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { uploadVideoDirect } from '@/services/api';
+import { useTranslation } from 'react-i18next';
+import { AnalysisQuotaError, uploadVideoDirect } from '@/services/api';
+import { AnalysisQuotaIndicator } from './AnalysisQuotaIndicator';
+import { AnalysisQuotaStatus, isQuotaBlocked } from '@/types/analysisQuota';
 import { Button } from '../ui/button';
 import { VideoUploadResponse, MartialArt } from '@/types/global';
 import { Input } from '../ui/input';
@@ -14,6 +17,10 @@ interface VideoUploadFormProps {
     isUploading: boolean;
     setIsUploading: (value: boolean) => void;
     onUploadSuccess: (response: VideoUploadResponse) => void;
+    /** Free-analysis quota of the signed-in user; the upload is blocked while it is used up. */
+    quota?: AnalysisQuotaStatus | null;
+    /** Called when the server rejected the upload with 429 so the owner can refresh the quota. */
+    onQuotaRejected?: () => void;
 }
 
 const VideoUploadForm = ({
@@ -21,8 +28,11 @@ const VideoUploadForm = ({
     hydrateFn,
     isUploading,
     setIsUploading,
-    onUploadSuccess
+    onUploadSuccess,
+    quota = null,
+    onQuotaRejected
 }: VideoUploadFormProps) => {
+    const { t } = useTranslation();
     const [file, setFile] = useState<File | null>(null);
     const [description, setDescription] = useState('');
     const [studentIdentifier, setStudentIdentifier] = useState('');
@@ -36,8 +46,11 @@ const VideoUploadForm = ({
 
     const martialArtOptions = Object.values(MartialArt);
 
+    const quotaBlocked = isQuotaBlocked(quota);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (quotaBlocked) return;
         if (!file) {
             setError('Please select a video file');
             return;
@@ -69,6 +82,18 @@ const VideoUploadForm = ({
             setSignedUrl('');
             onUploadSuccess(response);
         } catch (err: any) {
+            if (err instanceof AnalysisQuotaError) {
+                // 429 comes from the pre-check on upload-url, before any bytes were sent to storage.
+                const message = err.message || t('analysisQuota.toast.quotaFallback');
+                toast({
+                    title: t('analysisQuota.toast.quotaTitle'),
+                    description: message,
+                    variant: "destructive"
+                });
+                setError(message);
+                onQuotaRejected?.();
+                return;
+            }
             setError(err);
             toast({
                 title: "Upload Failed",
@@ -147,9 +172,10 @@ const VideoUploadForm = ({
                         </SelectContent>
                     </Select>
                 </div>
+                <AnalysisQuotaIndicator quota={quota} />
                 <Button
                     type="submit"
-                    disabled={!file || isUploading}
+                    disabled={!file || isUploading || quotaBlocked}
                     className="w-full"
                 >
                     {isUploading ? 'Uploading...' : `Upload Video`}
